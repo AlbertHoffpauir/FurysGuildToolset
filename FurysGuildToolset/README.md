@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.6.3
+# Fury's Guild Management Toolset (ESO addon) v1.6.4
 
 **AI disclosure:** Most of this addon's code was written with an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -40,7 +40,7 @@ On first install the addon looks back 30 days (adjustable in settings), as far a
 |---|---|
 | `/gt` | Open the report window (`/gt bank`, `/gt hoppers`, `/gt watchlist`, `/gt history`, `/gt space`, `/gt members`, `/gt inactive`, `/gt trader`, `/gt sales`, `/gt auto`, `/gt recruit`, `/gt raffle`) |
 | `/gt tour` | Start or stop the recruiting zone tour |
-| `/gt raffle add @name 3 (reason)` | Give someone raffle tickets by hand (`/gt raffle remove @name 3` takes them away). Logged with the reason |
+| `/gt raffle add @name 3 (reason)` | Give someone raffle tickets by hand (`/gt raffle remove @name 3` takes them away). Logged with the reason. Capitals don't matter: the name is matched to a raffle buyer, a member of your guilds or a friend, and if none match it suggests close names and asks before adding |
 | `/gt status` | What history has loaded per guild, and the biggest withdrawers against your thresholds |
 | `/gt reset` | Rebuild bank alerts and the hopper report from the logged history with your current settings, no reload. Actions you already took are kept |
 | `/gt reset full` | Wipe the log and the trader week totals, reload the UI and download the look-back period again. Settings and the watchlist are kept |

@@ -298,6 +298,7 @@ function Raffle:GetTally()
             b.last = math.max(b.last, d.ts)
         end
     end
+    self:MergeNameCase(byName)
     for who in pairs(r.adjust) do Buyer(who, math.huge) end
     for who in pairs(r.excluded) do Buyer(who, math.huge) end
     table.sort(list, function(a, b)
@@ -323,6 +324,63 @@ function Raffle:GetTally()
     end
     self.tally = { list = list, byName = byName, total = total, gold = gold }
     return self.tally
+end
+
+-- 1.6.4: a name typed in the wrong case (@marthowolf for @MarthOWolf) made a second buyer.
+-- Hand changes saved under another spelling of a buyer's name move to the buyer's real
+-- spelling. If both spellings had tickets added, the wrong-case one is dropped as a repeat.
+function Raffle:MergeNameCase(byName)
+    local r = self.sv.raffle
+    local real = {}
+    for who in pairs(byName) do real[zo_strlower(who)] = who end
+    for _, list in ipairs({ r.adjust, r.excluded }) do
+        local moves = {}
+        for who, value in pairs(list) do
+            local right = real[zo_strlower(who)]
+            if right and right ~= who then moves[#moves + 1] = { who, right, value } end
+        end
+        for _, move in ipairs(moves) do
+            local who, right, value = move[1], move[2], move[3]
+            list[who] = nil
+            local dropped = list == r.adjust and list[right] ~= nil
+            if not dropped then list[right] = value end
+            for _, c in ipairs(r.changes) do if c.who == who then c.who = right end end
+            table.insert(r.changes, { ts = GetTimeStamp(), who = right, text = dropped
+                and string.format("hand change under %s (%+d) dropped as a repeat of this one", who, value)
+                or string.format("hand change typed as %s moved here", who) })
+        end
+    end
+end
+
+-- The real spelling of a typed name: a buyer, a member of any of your guilds, or a friend.
+-- Returns the name, or nil plus up to 5 close matches.
+function Raffle:FindAccount(typed)
+    local want = zo_strlower(U.NormalizeName(typed))
+    local close, seen = {}, {}
+    local function Check(name)
+        if not name or name == "" then return nil end
+        local low = zo_strlower(name)
+        if low == want then return name end
+        if not seen[low] and #close < 5 and (low:find(want:sub(2), 1, true) or want:find(low:sub(2), 1, true)) then
+            seen[low] = true
+            close[#close + 1] = name
+        end
+    end
+    for _, b in ipairs(self:GetTally().list) do
+        local hit = Check(b.who)
+        if hit then return hit end
+    end
+    for _, guildId in ipairs(U.GetGuildIds()) do
+        for i = 1, GetNumGuildMembers(guildId) do
+            local hit = Check((GetGuildMemberInfo(guildId, i)))
+            if hit then return hit end
+        end
+    end
+    for i = 1, GetNumFriends() do
+        local hit = Check((GetFriendInfo(i)))
+        if hit then return hit end
+    end
+    return nil, close
 end
 
 function Raffle:Change(who, text)
@@ -800,7 +858,18 @@ function Raffle:Slash(args)
         end
         if not self.sv.enabled then U.Print("The raffle is turned off. Turn it on in /gtsettings under Raffle."); return end
         local n = tonumber(count)
-        self:AddTickets(U.NormalizeName(name), verb == "add" and n or -n, why)
+        if verb == "remove" then n = -n end
+        local found, close = self:FindAccount(name)
+        if found then
+            self:AddTickets(found, n, why)
+            return
+        end
+        local typed = U.NormalizeName(name)
+        local hint = #close > 0 and ("\n\nDid you mean: " .. table.concat(close, ", ") .. "?") or ""
+        U.Print("%s isn't a raffle buyer, a member of your guilds or a friend.%s", typed, #close > 0 and (" Did you mean: " .. table.concat(close, ", ") .. "?") or "")
+        GT.Actions.Confirm("Unknown account", string.format("%s isn't a raffle buyer, a member of any of your guilds or on your friends list. Check the spelling.%s\n\nAdd the tickets to %s anyway?", typed, hint, typed), function()
+            self:AddTickets(typed, n, why)
+        end)
     else
         GT.Report:Show("raffle")
     end
