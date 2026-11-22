@@ -82,6 +82,10 @@ function Raffle:Initialize(sv)
         EVENT_MANAGER:RegisterForUpdate(UPDATE_NAME, 30000, function() self:Tick() end)
         EVENT_MANAGER:RegisterForEvent(UPDATE_NAME, EVENT_MAIL_INBOX_UPDATE, function() self:ScanMail() end)
         EVENT_MANAGER:RegisterForEvent(UPDATE_NAME, EVENT_MAIL_OPEN_MAILBOX, function() self:ScanMail() end)
+        EVENT_MANAGER:RegisterForEvent(UPDATE_NAME, EVENT_MAIL_READABLE, function(_, mailId) self:OnMailReadable(mailId) end)
+        -- 1.6.2: also record a mail right before its gold is taken, so taking the gold always counts.
+        ZO_PreHook("TakeMailAttachedMoney", function(mailId) self:BeforeTakeGold(mailId) end)
+        ZO_PreHook("TakeMailAttachments", function(mailId) self:BeforeTakeGold(mailId) end)
     end
 end
 
@@ -136,30 +140,49 @@ end
 
 -- Records every mail in the inbox that has gold attached (not system mail, not returned, not
 -- cash on delivery). Runs each time the mailbox opens or its list changes.
+-- Records one mail with gold attached, once (by mail id). money/cod come from the caller,
+-- because the inbox list and the opened mail report them through different functions.
+function Raffle:RecordMail(mailId, money, cod)
+    local key = "mail:" .. Id64ToString(mailId)
+    if self.seen[key] or (money or 0) <= 0 or (cod or 0) > 0 then return false end
+    local sender, _, subject, _, _, fromSystem, fromCustomerService, returned, _, _, _, _, secsSinceReceived = GetMailItemInfo(mailId)
+    if fromSystem or fromCustomerService or returned or not sender or sender == "" then return false end
+    self.seen[key] = true
+    local d = { g = 0, id = Id64ToString(mailId), src = "mail", ts = GetTimeStamp() - (secsSinceReceived or 0), who = U.NormalizeName(sender), amt = money, subj = subject }
+    table.insert(self.sv.deposits, d)
+    self.tally = nil
+    if self:Counts(d) then
+        local buyer = self:GetTally().byName[d.who]
+        U.Print("Raffle: counted %s mailed by %s. They now have %d %s.", U.FormatGold(d.amt), d.who, buyer.tickets, buyer.tickets == 1 and "ticket" or "tickets")
+    end
+    GT.Report:RefreshIfShown()
+    return true
+end
+
+-- The inbox list, each time the mailbox opens or changes.
 function Raffle:ScanMail()
-    local now = GetTimeStamp()
-    local added = 0
     local mailId = GetNextMailId(nil)
     while mailId do
-        local sender, _, subject, _, _, fromSystem, fromCustomerService, returned, _, attachedMoney, codAmount, _, secsSinceReceived = GetMailItemInfo(mailId)
-        if not fromSystem and not fromCustomerService and not returned and attachedMoney > 0 and codAmount == 0 and sender ~= "" then
-            local key = "mail:" .. Id64ToString(mailId)
-            if not self.seen[key] then
-                self.seen[key] = true
-                local d = { g = 0, id = Id64ToString(mailId), src = "mail", ts = now - secsSinceReceived, who = U.NormalizeName(sender), amt = attachedMoney, subj = subject }
-                table.insert(self.sv.deposits, d)
-                added = added + 1
-                self.tally = nil
-                if self.sv.buyNotice and self:Counts(d) then
-                    local buyer = self:GetTally().byName[d.who]
-                    U.Print("Raffle: %s mailed %s and now has %d %s.", d.who, U.FormatGold(d.amt), buyer.tickets, buyer.tickets == 1 and "ticket" or "tickets")
-                end
-            end
-        end
+        local _, _, _, _, _, _, _, _, _, attachedMoney, codAmount = GetMailItemInfo(mailId)
+        self:RecordMail(mailId, attachedMoney, codAmount)
         mailId = GetNextMailId(mailId)
     end
-    self.sv.raffle.mailCheckedAt = now
-    if added > 0 or GT.Report.currentTab == "raffle" then GT.Report:RefreshIfShown() end
+    self.sv.raffle.mailCheckedAt = GetTimeStamp()
+    if GT.Report.currentTab == "raffle" then GT.Report:RefreshIfShown() end
+end
+
+-- An opened mail: its attachment info is certain to be loaded now.
+function Raffle:OnMailReadable(mailId)
+    local _, money, cod = GetMailAttachmentInfo(mailId)
+    self:RecordMail(mailId, money, cod)
+    self.sv.raffle.mailCheckedAt = GetTimeStamp()
+end
+
+-- Last chance: right before the gold is taken out of a mail (Take, Take all, or another addon).
+function Raffle:BeforeTakeGold(mailId)
+    if not mailId then return end
+    local _, money, cod = GetMailAttachmentInfo(mailId)
+    self:RecordMail(mailId, money, cod)
 end
 
 -- Times ---------------------------------------------------------------------------
@@ -809,7 +832,7 @@ function Raffle:BuildSettings(options)
         { type = "description", text = "Sell raffle tickets for gold deposited into a guild bank or mailed to you, then draw the winners in the Raffle tab (/gt raffle). Changes here apply to the current raffle until its winners are drawn." },
         { type = "checkbox", name = "Turn on the raffle", tooltip = "Reads guild bank gold deposits (through LibHistoire) and gold mails when you open your mailbox, and shows the Raffle tab.",
           getFunc = function() return sv.enabled end, setFunc = function(v) sv.enabled = v end, default = false, requiresReload = true },
-        { type = "checkbox", name = "Chat line when someone buys tickets", tooltip = "Prints a line in your chat when a deposit or mail during the sale buys tickets. Only you see it.",
+        { type = "checkbox", name = "Chat line when someone buys tickets", tooltip = "Prints a line in your chat when a bank deposit during the sale buys tickets. Counted mails always get a line, since you are at your mailbox then. Only you see it.",
           getFunc = function() return sv.buyNotice end, setFunc = function(v) sv.buyNotice = v end, default = false },
         { type = "dropdown", name = "Raffle guild", choices = names, choicesValues = ids, tooltip = "The guild whose bank deposits buy tickets, and whose chat gets the announcement and results. Pick (no guild) for a mail-only raffle; posts then show as text to copy. Locked once sales start.",
           getFunc = function() return r.guildId end, setFunc = function(v) self:SetValue("guildId", v) end, disabled = SalesLocked },
