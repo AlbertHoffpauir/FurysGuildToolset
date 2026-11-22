@@ -2,10 +2,11 @@
 -- draws the winners. The guild is optional, so groups that aren't guilds (housing, fashion)
 -- can run a mail-only raffle.
 --
--- Tickets: every gold deposit into the raffle guild's bank, and every mail with gold attached
--- (subject containing the chosen word), between the start and the end of the sale counts. A buyer's gold is added up, so leftovers carry over between
--- deposits: tickets = total gold / ticket price (rounded down, up to the optional cap per
--- person). Gold that doesn't buy a ticket, and gold over the cap, is shown as a refund due.
+-- Tickets: the amount alone decides (Albert, 1.6.1). Every gold deposit into the raffle guild's
+-- bank, and every mail with gold attached (optionally only with a word in the subject), between
+-- the start and the end of the sale buys amount / ticket price tickets, rounded down. The
+-- remainder of each payment is dropped, not carried over, and plain donations buy tickets too.
+-- Tickets per person stop at the optional cap. Unused gold is shown as "Not used".
 -- Tickets can also be added or removed by hand (right-click a row, or /gt raffle add).
 --
 -- Bank deposits come from LibHistoire through the raffle's own reader, so the first time the
@@ -41,7 +42,7 @@ Raffle.defaults = {
         guildId = 0,        -- 0 = no guild (mail-only raffle)
         useBank = true,     -- guild bank gold deposits buy tickets
         useMail = false,    -- gold mailed to you buys tickets
-        mailSubject = "raffle",   -- a mail counts only if its subject contains this (blank = any gold mail)
+        mailSubject = "",   -- a mail counts only if its subject contains this (blank = any gold mail)
         mailCheckedAt = 0,  -- last time the mailbox was read
         prize = "",
         price = 1000,
@@ -72,6 +73,11 @@ function Raffle:Initialize(sv)
     self:Prune()
     self:RegisterTab()
     if sv.raffle.mailCheckedAt == nil then sv.raffle.mailCheckedAt = 0 end
+    -- 1.6.1: the amount alone decides, so mails no longer need "raffle" in the subject (1.6.0's default).
+    if (sv.settingsVersion or 1) < 2 then
+        if sv.raffle.mailSubject == "raffle" then sv.raffle.mailSubject = "" end
+        sv.settingsVersion = 2
+    end
     if sv.enabled then
         EVENT_MANAGER:RegisterForUpdate(UPDATE_NAME, 30000, function() self:Tick() end)
         EVENT_MANAGER:RegisterForEvent(UPDATE_NAME, EVENT_MAIL_INBOX_UPDATE, function() self:ScanMail() end)
@@ -244,7 +250,7 @@ end
 
 -- Buyers in ticket-number order (first deposit first), with ticket ranges.
 -- Result: { list = { buyer, ... }, byName = { [name] = buyer }, total =, gold = }
--- buyer = { who, gold, deposits, first, last, bought, adjust, tickets, refund, from, to, excluded }
+-- buyer = { who, gold, paid, deposits, first, last, bought, adjust, tickets, refund, from, to, excluded }
 function Raffle:GetTally()
     if self.tally then return self.tally end
     local r = self.sv.raffle
@@ -252,16 +258,18 @@ function Raffle:GetTally()
     local function Buyer(who, ts)
         local b = byName[who]
         if not b then
-            b = { who = who, gold = 0, deposits = 0, mails = 0, first = ts, last = 0 }
+            b = { who = who, gold = 0, paid = 0, deposits = 0, mails = 0, first = ts, last = 0 }
             byName[who] = b
             list[#list + 1] = b
         end
         return b
     end
+    local price = math.max(1, r.price)
     for _, d in ipairs(self.sv.deposits) do
         if self:Counts(d) then
             local b = Buyer(d.who, d.ts)
             b.gold = b.gold + d.amt
+            b.paid = b.paid + math.floor(d.amt / price)   -- each payment on its own; the remainder is dropped
             if d.src == "mail" then b.mails = b.mails + 1 else b.deposits = b.deposits + 1 end
             b.first = math.min(b.first, d.ts)
             b.last = math.max(b.last, d.ts)
@@ -273,10 +281,9 @@ function Raffle:GetTally()
         if a.first ~= b.first then return a.first < b.first end
         return a.who < b.who
     end)
-    local price = math.max(1, r.price)
     local total, gold = 0, 0
     for _, b in ipairs(list) do
-        local bought = math.floor(b.gold / price)
+        local bought = b.paid
         local paidFor = bought
         if r.maxTickets > 0 and bought > r.maxTickets then bought = r.maxTickets end
         b.bought = bought
@@ -512,7 +519,7 @@ function Raffle:AnnounceParts()
         local word = zo_strtrim(r.mailSubject or "")
         ways[#ways + 1] = string.format("mail gold to %s%s", GetDisplayName(), word ~= "" and string.format(" with \"%s\" in the subject", word) or "")
     end
-    local text = string.format("RAFFLE for %s! Tickets are %s each: %s (every %s is one ticket). %s %s Good luck!",
+    local text = string.format("RAFFLE for %s! Tickets are %s each: %s (every %s in one deposit or mail is one ticket, so send a multiple of it). %s %s Good luck!",
         self:PrizeText(), U.FormatGold(r.price), table.concat(ways, " or "), U.FormatGold(r.price), when, rules)
     return SplitParts("", { text })
 end
@@ -615,7 +622,7 @@ function Raffle:RowTooltip(b)
     lines[#lines + 1] = string.format("Paid %s: %d bank %s, %d %s.", U.FormatGold(b.gold), b.deposits, b.deposits == 1 and "deposit" or "deposits",
         b.mails, b.mails == 1 and "mail" or "mails")
     if b.overCap > 0 then lines[#lines + 1] = string.format("%d tickets over the cap of %d.", b.overCap, r.maxTickets) end
-    if b.refund > 0 then lines[#lines + 1] = string.format("Refund due: %s (gold that didn't buy a ticket).", U.FormatGold(b.refund)) end
+    if b.refund > 0 then lines[#lines + 1] = string.format("Not used: %s (each payment's remainder below the ticket price%s).", U.FormatGold(b.refund), b.overCap > 0 and ", and gold over the limit" or "") end
     for _, c in ipairs(r.changes) do
         if c.who == b.who then lines[#lines + 1] = string.format("%s: %s", U.FormatDate(c.ts), c.text) end
     end
@@ -657,7 +664,7 @@ Raffle.columns = {
     { title = "Tickets", width = 80, tip = "Tickets in the draw: gold / ticket price (up to the cap), plus or minus changes made by hand." },
     { title = "Numbers", width = 120, tip = "This buyer's ticket numbers. The draw picks a random number." },
     { title = "Gold", width = 120, tip = "Gold deposited or mailed during the sale." },
-    { title = "Refund due", width = 110, tip = "Gold that didn't buy a ticket: leftovers below the price, and gold over the cap." },
+    { title = "Not used", width = 110, tip = "Gold that didn't buy a ticket: each payment's remainder below the ticket price (dropped, not carried over), and gold over the per-person limit." },
     { title = "Chance", width = 80, tip = "Share of all tickets." },
     { title = "Last payment", width = 150 },
     { title = "Result", width = 150, tip = "Who won which draw." },
@@ -690,7 +697,7 @@ end
 function Raffle:TabExportLines()
     local r = self.sv.raffle
     local tally = self:GetTally()
-    local lines = { "Buyer\tTickets\tFirst ticket\tLast ticket\tGold\tRefund due\tBank deposits\tMails\tHand changes\tLeft out\tResult" }
+    local lines = { "Buyer\tTickets\tFirst ticket\tLast ticket\tGold\tNot used\tBank deposits\tMails\tHand changes\tLeft out\tResult" }
     for _, b in ipairs(tally.list) do
         local results = {}
         for _, res in ipairs(self:WinsOf(b.who)) do results[#results + 1] = string.format("draw %d ticket %d%s", res.n, res.ticket, res.void and " void" or "") end
@@ -810,7 +817,7 @@ function Raffle:BuildSettings(options)
           getFunc = function() return r.useBank end, setFunc = function(v) self:SetValue("useBank", v) end, disabled = SalesLocked },
         { type = "checkbox", name = "Mailed gold buys tickets", tooltip = "Gold mailed to you during the sale buys tickets. The addon can only see mail while your mailbox is open: open it before you take the gold out of raffle mails, and once after sales end. Locked once sales start.",
           getFunc = function() return r.useMail end, setFunc = function(v) self:SetValue("useMail", v) end, disabled = SalesLocked },
-        { type = "editbox", name = "Mail subject must include", tooltip = "Only mails whose subject contains this word count, so other gold mails don't buy tickets. Leave it empty to count every mail with gold.",
+        { type = "editbox", name = "Mail subject must include", tooltip = "Empty (the default): every mail with gold buys tickets, like every bank deposit. Type a word to count only mails whose subject contains it.",
           getFunc = function() return r.mailSubject end, setFunc = function(v) self:SetValue("mailSubject", zo_strtrim(v or "")) end, disabled = Locked },
         { type = "editbox", name = "Prize", tooltip = "What the winners get, for the announcement and results, for example: 4 game codes.",
           getFunc = function() return r.prize end, setFunc = function(v) self:SetValue("prize", zo_strtrim(v or "")) end, disabled = Locked },
@@ -820,7 +827,7 @@ function Raffle:BuildSettings(options)
           getFunc = function() return r.winners end, setFunc = function(v) self:SetValue("winners", v) end, disabled = Locked },
         { type = "checkbox", name = "One win per person", tooltip = "On: once someone wins, their other tickets are skipped. Off: someone with many tickets can win more than once.",
           getFunc = function() return r.oneWin end, setFunc = function(v) self:SetValue("oneWin", v) end, disabled = Locked },
-        { type = "slider", name = "Most tickets per person (0 = no limit)", min = 0, max = 1000, step = 1, tooltip = "Gold over the limit shows as a refund due.",
+        { type = "slider", name = "Most tickets per person (0 = no limit)", min = 0, max = 1000, step = 1, tooltip = "Gold over the limit shows as Not used.",
           getFunc = function() return r.maxTickets end, setFunc = function(v) self:SetValue("maxTickets", v) end, disabled = Locked },
         { type = "editbox", name = "Start (YYYY-MM-DD HH:MM)", tooltip = "When sales start, in your local time, for example 2026-11-23 20:00 (8:00 pm works too). Leave it empty and click Start sales now in the Raffle tab instead. A start in the past counts deposits since then.",
           getFunc = function() return r.startText end, setFunc = function(v) self:SetStartText(v) end, disabled = Locked },
