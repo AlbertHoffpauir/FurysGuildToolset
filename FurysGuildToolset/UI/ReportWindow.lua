@@ -171,14 +171,20 @@ function Report:Initialize()
         return a.loadOrder < b.loadOrder
     end)
 
+    -- 1.6.4: more than 9 tabs go on two rows, so the titles fit (the window grows by one row).
+    local rows = #self.tabs > 9 and 2 or 1
+    local perRow = math.ceil(#self.tabs / rows)
+    local width = math.min(180, math.floor((1160 - 4 * (perRow - 1)) / perRow))
+    FuryGMTReportTabs:SetHeight(32 * rows)
+    if rows > 1 then FuryGMTReport:SetHeight(600 + 32 * (rows - 1)) end
     local previous
     for i, tab in ipairs(self.tabs) do
         local button = WINDOW_MANAGER:CreateControlFromVirtual("FuryGMTReportTab" .. i, FuryGMTReportTabs, "ZO_DefaultButton")
-        button:SetDimensions(math.min(180, math.floor((1160 - 4 * (#self.tabs - 1)) / #self.tabs)), 28)
-        if previous then
-            button:SetAnchor(LEFT, previous, RIGHT, 4, 0)
+        button:SetDimensions(width, 28)
+        if (i - 1) % perRow ~= 0 then
+            button:SetAnchor(TOPLEFT, previous, TOPRIGHT, 4, 0)
         else
-            button:SetAnchor(LEFT, FuryGMTReportTabs, LEFT, 0, 0)
+            button:SetAnchor(TOPLEFT, FuryGMTReportTabs, TOPLEFT, 0, 2 + 32 * math.floor((i - 1) / perRow))
         end
         button:SetHandler("OnClicked", function() self:SelectTab(tab.id) end)
         Report.SetTip(button, function() return Resolve(tab.tip) end)

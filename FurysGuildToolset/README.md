@@ -1,10 +1,10 @@
-# Fury's Guild Management Toolset (ESO addon) v1.5.7
+# Fury's Guild Management Toolset (ESO addon) v1.6.5
 
 **AI disclosure:** Most of this addon's code was written with an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
 **Every feature starts turned off.** Nothing runs, alerts, logs or mails until you turn it on. Open `/gtsettings`, tick your guilds under "Guilds to get alerts from", and turn on the features you want, when you want them. (Updating from an older version keeps your settings exactly as they were.)
 
-An officer toolkit for Elder Scrolls Online. It watches your guild banks and rosters, tells you when something needs attention, and lets you deal with it in a click or two. **Right-click any row for what you can do with it** (whisper, mail, set rank, kick and so on). The line at the top of each tab and each row's hover text remind you. It has eleven modules:
+An officer toolkit for Elder Scrolls Online. It watches your guild banks and rosters, tells you when something needs attention, and lets you deal with it in a click or two. **Right-click any row for what you can do with it** (whisper, mail, set rank, kick and so on). The line at the top of each tab and each row's hover text remind you. It has twelve modules:
 
 1. **Bank alerts.** Flags anyone who withdraws more than X stacks (or X gold) in one day, counted midnight to midnight on your PC's clock (or within a rolling window of X hours, if you prefer). You get a chat and on-screen alert as it happens while you're online, and a summary when you log in. Each alert is one summary line: how many stacks and items were taken, how many came back whole and partly used, and when. Stacks put back whole don't count. Hover an alert for the full item list and what was put back. **Right-click an alert for its options:** Whisper, Mail, Warn by whisper or by mail, Demote, Set rank (pick any rank below yours; ranks without bank access are marked "no bank"), Add to guild note (adds one short line to the end of their guild note, such as "Bank Nov 18: took 41 stacks (157 items), put back 0 whole/0 partly. Demoted.", keeping what's already there), Kick, Kick and blacklist (or Blacklist once they have left), and Dismiss. Anything that changes the guild asks first, and nothing is sent until you press Enter or Send. Optional **auto-demote** (off by default) is described below.
 2. **Bank hoppers.** Lists people who joined and then left within X hours, Right-click one to blacklist, watch, dismiss, whisper or mail them. It also keeps an account-wide watchlist that alerts you when a known hopper joins any of your guilds.
@@ -17,6 +17,7 @@ An officer toolkit for Elder Scrolls Online. It watches your guild banks and ros
 9. **Member sales.** For any trader week, what each member sold in the guild store, what it sold for, the tax that earned, and the gold and items they gave or took. Filter by guild, pick the week (or "All weeks" for each member's totals over everything the addon has stored, up to the "Weeks to keep" setting, 12 by default), and click a column header to sort. Right-click a member to start a whisper, a mail (for a seller it comes filled in with a congratulations note on their place and sales), or a shout-out in guild chat. **Post top ten** puts the week's (or all time) top ten sellers in the guild chat box. Nothing is sent until you press Send or Enter. `/gt sales`.
 10. **Automatic actions (Auto tab).** Everything the addon does by itself is announced and logged: auto-demotes, the automatic demotion mail, and hoppers added to the watchlist. When someone is auto-demoted you get a breakdown in chat (and, if you turn it on, a big alert window that stays on screen until you close it): their old and new rank, the rule they hit, how much they took and between which times, and each withdrawal (time, item and stack size). The rank change is marked confirmed only once the guild roster shows the new rank, and the demotion mail is marked sent only when the server confirms it. If the mail fails you get a notice with the reason, and Send the demotion mail in its right-click menu. Skipped auto-demotes (for example, the person is at or above your rank) and the per-session limit are logged too. Hover a row for the full list of withdrawals. Kept 90 days by default. `/gt auto`.
 11. **Recruiting (Recruit tab).** Tools for finding and welcoming new members, each part off until you turn it on (see Recruiting below). `/gt recruit`.
+12. **Raffle.** Sell raffle tickets for gold deposited into a guild bank or mailed to you, see how many tickets each person bought, and draw the winners when sales end. Works without a guild too, for housing, fashion or other groups. Off until you turn it on (see Raffle below). `/gt raffle`.
 
 Every tab has an **Export / copy** button: the current view as comma-separated text (CSV). Fields that contain a comma are wrapped in quotes. Press **Select all**, then Ctrl+C, and paste into Excel (then Data > Text to Columns > Comma), Google Sheets (Split text to columns) or Discord, or save it as a .csv file. Large exports are split into parts.
 
@@ -37,8 +38,9 @@ On first install the addon looks back 30 days (adjustable in settings), as far a
 
 | Command | What it does |
 |---|---|
-| `/gt` | Open the report window (`/gt bank`, `/gt hoppers`, `/gt watchlist`, `/gt history`, `/gt space`, `/gt members`, `/gt inactive`, `/gt trader`, `/gt sales`, `/gt auto`, `/gt recruit`) |
+| `/gt` | Open the report window (`/gt bank`, `/gt hoppers`, `/gt watchlist`, `/gt history`, `/gt space`, `/gt members`, `/gt inactive`, `/gt trader`, `/gt sales`, `/gt auto`, `/gt recruit`, `/gt raffle`) |
 | `/gt tour` | Start or stop the recruiting zone tour |
+| `/gt raffle add @name 3 (reason)` | Give someone raffle tickets by hand (`/gt raffle remove @name 3` takes them away). Logged with the reason. Capitals don't matter: the name is matched to a raffle buyer, a member of your guilds or a friend, and if none match it suggests close names and asks before adding |
 | `/gt status` | What history has loaded per guild, and the biggest withdrawers against your thresholds |
 | `/gt reset` | Rebuild bank alerts and the hopper report from the logged history with your current settings, no reload. Actions you already took are kept |
 | `/gt reset full` | Wipe the log and the trader week totals, reload the UI and download the look-back period again. Settings and the watchlist are kept |
@@ -100,6 +102,21 @@ Turn on what you want in `/gtsettings` under **Recruiting**. The Recruit tab's t
 - **Welcome message.** When a new member joins while online, the welcome (`{new}` = their @name) goes into that guild's chat box and you press Enter. If you're typing, or you welcomed someone a few minutes ago, you get a [Say welcome] link instead. You can welcome only the people you invited or accepted (the default, so two officers don't both welcome the same person) or everyone who joins.
 - **Welcome mail.** For new members who joined while offline: a [Write welcome mail] link and a row on the Recruit tab open the mail filled in for you to send. Tick "Mail new members who join while online too" to mail everyone who joins. Turn on "Send the welcome mail automatically" to have it sent in the background instead (normal postage), like the demotion mail.
 
+## Raffle (optional, off by default)
+
+Turn it on in `/gtsettings` under **Raffle** (reload when asked), then set it up there:
+
+- **How tickets are bought:** gold deposited into the raffle guild's bank, gold mailed to you, or both. Pick "(no guild)" for a mail-only raffle, for groups that aren't a guild.
+- **Prize, ticket price, number of winners, one win per person** (on by default; off lets someone with many tickets win more than once), and an optional **most tickets per person**.
+- **Start and length:** type a start time (YYYY-MM-DD HH:MM in your local time; a start in the past counts payments since then) or leave it empty and click **Start sales now** on the Raffle tab. Sales run for the number of hours you set, and you can make that longer or shorter while they run.
+
+**Counting tickets.** The amount alone decides: each deposit or mail during the sale buys its amount divided by the ticket price, rounded down. With a 1,000g ticket, 5,000g buys 5 tickets and 5,600g also buys 5; the extra 600g is dropped, not carried over to the next payment. Pick a round ticket price such as 1,000g or 5,000g so multiples are easy. Plain donations to the bank during the sale buy tickets too. Gold that didn't buy a ticket, and gold over the per-person limit, shows as **Not used**. The Raffle tab lists every buyer with their tickets, ticket numbers, gold, gold not used and chance. Right-click a buyer to whisper or mail them, add or remove tickets by hand, or leave them out of the draw. Every change by hand is logged and shown when you hover the row. Everything is saved, so reloads and logouts lose nothing.
+
+- **Bank deposits** are read from guild history through LibHistoire. The raffle has its own reader, so the first time you turn it on it reads back as far as the first-run look-back setting, and deposits are kept for 45 days.
+- **Mailed gold:** the game only shows an addon your mail while your mailbox is open. Each time you open it, every mail with gold attached is recorded once, with the time it arrived. You don't have to open each mail. Every mail with gold counts, like every bank deposit (you can type a word in settings to count only mails with it in the subject). A mail is also recorded when you open it and right before you take its gold, and each counted mail prints a line in chat.
+
+**The draw.** When sales end you get a notice. Click **Draw winners** (or, while sales run, **End and draw now** to end them and draw at once with the tickets counted so far). Draw winners waits a minute for the last bank deposits to arrive and, for mail raffles, until you've opened your mailbox once after the end. Tickets are numbered in order of each buyer's first payment, and each draw picks a random ticket. With one win per person, earlier winners' tickets are skipped. The draw can't be redone. If a winner can't take the prize, right-click them and pick **Void win, draw a replacement**. **Post results** puts the results in the guild chat box (one part at a time) for you to press Enter, for example "Draw 1: ticket #137 goes to @Name (tickets 120-141)". **Announce** does the same for the price, how to buy and the time left. Without a raffle guild both show the text to copy instead, for Discord or wherever your group talks. Right-click a winner for **Mail prize**, a mail filled in with their winning ticket, ready for you to add the code. **New raffle** puts the finished raffle away (its results are kept) and keeps your settings for the next one.
+
 ## What the ESO API allows
 
 | Need | Allowed? | How the addon does it |
@@ -107,7 +124,8 @@ Turn on what you want in `/gtsettings` under **Recruiting**. The Recruit tab's t
 | Read bank, roster and guild store sales history | Yes, through the guild history API | All history comes through LibHistoire, which handles every server request and keeps history gap-free between sessions. The addon remembers the last event it processed per guild, so each login picks up where you left off, and new events arrive live while you play. |
 | Demote, set rank, kick, blacklist | Yes, within your rank's permissions | Right-click menu items with a confirmation window. Only auto-demote (if you turn it on) acts without a click. |
 | Send mail | Yes | Warn and Demote open a filled-in mail for you to send. The optional auto-demote mail is sent by itself, and the optional kick and blacklist mails are sent after you confirm the kick or blacklist. |
-| Send whispers | **No.** Addons can't send chat messages | "Warn" by whisper puts the text in your chat box and you press Enter. Zone ads and welcomes work the same way. |
+| Send whispers | **No.** Addons can't send chat messages | "Warn" by whisper puts the text in your chat box and you press Enter. Zone ads, welcomes and raffle posts work the same way. |
+| Read your mail | Only while your mailbox is open | The raffle records gold mails each time you open your mailbox. |
 | Invite and travel | Yes | Invites happen only when you click Invite. The zone tour travels once each time you post your ad; there is no automatic loop. |
 | Act while you're offline | **No.** Addons only run while you're logged in | Anything that happened while you were offline is processed at your next login and shown as alerts. |
 

@@ -6,7 +6,7 @@ local GT = FuryGMT
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.5.7"
+GT.version = "1.6.5"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -236,6 +236,12 @@ end
 
 function GT.RegisterSlashCommands()
     SLASH_COMMANDS["/gt"] = function(arg)
+        -- /gt raffle add @Name 3: names keep their capitals, so this goes first.
+        local raffleArgs = zo_strtrim(arg or ""):match("^[Rr][Aa][Ff][Ff][Ll][Ee]%s*(.*)$")
+        if raffleArgs then
+            GT.Raffle:Slash(raffleArgs)
+            return
+        end
         arg = zo_strlower(zo_strtrim(arg or ""))
         if arg == "" or arg == "show" then
             GT.Report:Toggle()
@@ -280,6 +286,7 @@ function GT.RegisterSlashCommands()
             -- No "|" here: ESO treats it as a text-formatting character and hides it.
             GT.Util.Print("/gt bank, /gt hoppers, /gt watchlist, /gt history, /gt space, /gt members, /gt inactive, /gt trader, /gt sales, /gt auto, /gt recruit  open a specific tab")
             GT.Util.Print("/gt tour  start or stop the recruiting zone tour")
+            GT.Util.Print("/gt raffle  open the Raffle tab;  /gt raffle add @name 3 (reason), /gt raffle remove @name 3 (reason)  change someone's tickets by hand")
             GT.Util.Print("/gt crier (or /crier)  open the Guild Crier message menu")
             GT.Util.Print("/gt guilds  show which guilds send alerts")
             GT.Util.Print("/gt reset  rebuild bank alerts and hoppers from the History log with your current settings")
