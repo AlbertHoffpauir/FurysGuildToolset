@@ -44,6 +44,8 @@ Recruit.defaults = {
     cooldownMinutes = 15,     -- wait this long before posting in the same zone again
     useFriends = true,        -- travel through friends as well as guildmates
     useHouses = true,         -- travel to a house you own when nobody is in the zone
+    statusBar = "off",        -- small on-screen bar: "off", "tour" (while the zone tour runs) or "always"
+    -- barX, barY: where you dragged the bar (left/top); not set = top middle of the screen
     playerMenu = false,       -- "Invite to (guild)" when you right-click a name in chat
     leads = false,            -- whispers with a keyword become leads
     keywords = "inv, invite, join, guild",
@@ -91,11 +93,97 @@ function Recruit:Initialize(sv)
     ZO_PostHook(CHAT_SYSTEM, "ShowPlayerContextMenu", function(_, playerName, rawName)
         self:AddPlayerMenu(playerName, rawName)
     end)
+    self:SetUpBar()
+end
+
+-- Status bar -------------------------------------------------------------------
+-- One line on the HUD: zones posted out of the zones the tour can visit, pending guild
+-- applications, and whether whisper leads are on. Hidden in menus like the rest of the HUD.
+local BAR_UPDATE_MS = 2000
+
+function Recruit:SetUpBar()
+    local bar = FuryGMTRecruitBar
+    self.barText = bar:GetNamedChild("Text")
+    if self.sv.barX and self.sv.barY then
+        bar:ClearAnchors()
+        bar:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, self.sv.barX, self.sv.barY)
+    end
+    self.barFragment = ZO_HUDFadeSceneFragment:New(bar)
+    self.barFragment:SetConditional(function() return self:BarWanted() end)
+    HUD_SCENE:AddFragment(self.barFragment)
+    HUD_UI_SCENE:AddFragment(self.barFragment)
+end
+
+function Recruit:BarWanted()
+    local mode = self.sv.statusBar
+    return mode == "always" or (mode == "tour" and self.touring == true)
+end
+
+-- Call after anything the bar shows or depends on changes.
+function Recruit:RefreshBar()
+    self.barFragment:Refresh()
+    if self:BarWanted() then
+        self:UpdateBar()
+        EVENT_MANAGER:RegisterForUpdate("FuryGMTRecruitBar", BAR_UPDATE_MS, function() self:UpdateBar() end)
+    else
+        EVENT_MANAGER:UnregisterForUpdate("FuryGMTRecruitBar")
+    end
+end
+
+-- Zones posted (on cooldown) and zones the tour can visit, leaving out zones you skip.
+function Recruit:ZoneProgress()
+    local done, total = 0, 0
+    for _, zone in ipairs(self.zones or {}) do
+        if not self.sv.skipZones[zone.id] then
+            total = total + 1
+            if self:CooldownLeft(zone.id) > 0 then done = done + 1 end
+        end
+    end
+    return done, total
+end
+
+function Recruit:UpdateBar()
+    -- No nested colors: each piece gets its own |c...|r.
+    local function Gray(t) return "|cC5C29E" .. t .. "|r" end
+    local guildId = self:GuildId()
+    local parts = { "|cD4AF37" .. ((guildId and guildId ~= 0) and U.GuildName(guildId) or "No guild") .. "|r" }
+    if self.touring then parts[#parts + 1] = "|c9FD49FTour on|r" end
+    if self.sv.enabled then
+        local done, total = self:ZoneProgress()
+        parts[#parts + 1] = Gray("Zones ") .. string.format("%d/%d", done, total)
+    end
+    if guildId and guildId ~= 0 then
+        local apps = GetGuildFinderNumGuildApplications(guildId)
+        parts[#parts + 1] = Gray("Applications ") .. (apps > 0 and ("|cFFCC66" .. apps .. "|r") or "0")
+    end
+    if self.sv.leads then
+        local n = U.Count(self.sv.leadList)
+        parts[#parts + 1] = Gray("Whispers ") .. "|c9FD49Flistening|r" .. (n > 0 and Gray(string.format(" (%d %s)", n, n == 1 and "lead" or "leads")) or "")
+    else
+        parts[#parts + 1] = Gray("Whispers ") .. "|c999999off|r"
+    end
+    self.barText:SetText(table.concat(parts, "    "))
+    FuryGMTRecruitBar:SetWidth(self.barText:GetTextWidth() + 24)
+end
+
+function Recruit:BarTip()
+    return "Recruiting status. Zones: zones you posted in that are still on cooldown, out of every zone the tour can visit. Applications: pending guild applications. Whispers: whether whispers with your keywords become leads. Drag to move; turn it off in /gtsettings under Recruiting."
+end
+
+function Recruit:SaveBarPosition()
+    self.sv.barX, self.sv.barY = FuryGMTRecruitBar:GetLeft(), FuryGMTRecruitBar:GetTop()
+end
+
+function Recruit:ResetBarPosition()
+    self.sv.barX, self.sv.barY = nil, nil
+    FuryGMTRecruitBar:ClearAnchors()
+    FuryGMTRecruitBar:SetAnchor(TOP, GuiRoot, TOP, 0, 70)
 end
 
 function Recruit:OnPlayerActivated()
     self:MoveOldWelcome()
     self:BuildZoneList()
+    self:RefreshBar()
     -- Every load screen (the tour waits for the one after a jump).
     EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitArrive", EVENT_PLAYER_ACTIVATED, function() self:OnArrived() end)
     EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitArrive", EVENT_PLAYER_DEACTIVATED, function() self:OnLeaving() end)
@@ -347,6 +435,7 @@ function Recruit:OnChat(channel, text, fromDisplayName)
         self.pasted = nil
         self.sv.posted[zoneId] = GetTimeStamp()
         U.Print("Ad posted in %s. It's on cooldown for %d minutes.", self:ZoneName(zoneId), self.sv.cooldownMinutes)
+        self:RefreshBar()
         GT.Report:RefreshIfShown()
         -- Travel a moment later, once the chat box has closed.
         if self.touring then zo_callLater(function() if self.touring and not self.trip then self:TravelNext() end end, 1000) end
@@ -375,6 +464,7 @@ function Recruit:StartTour()
     end
     self.touring = true
     if not self.zones then self:BuildZoneList() end
+    self:RefreshBar()
     local waiting = {}
     for _, zone in ipairs(self.zones) do
         local left = self:CooldownLeft(zone.id)
@@ -395,6 +485,7 @@ function Recruit:StopTour(reason)
     if not self.touring then return end
     self.touring = false
     self.trip = nil
+    self:RefreshBar()
     EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
     U.Print(reason or "Zone tour stopped.")
     GT.Report:RefreshIfShown()
@@ -916,6 +1007,12 @@ function Recruit:BuildSettings(options)
           getFunc = function() return sv.cooldownMinutes end, setFunc = function(v) sv.cooldownMinutes = v; refresh() end, default = d.cooldownMinutes },
         { type = "checkbox", name = "Travel through friends too", tooltip = "Besides guildmates, the tour can travel to friends in a zone.",
           getFunc = function() return sv.useFriends end, setFunc = function(v) sv.useFriends = v end, default = d.useFriends },
+        { type = "dropdown", name = "Status bar", choices = { "Off", "While the zone tour runs", "Always" }, choicesValues = { "off", "tour", "always" },
+          tooltip = "A small bar on screen with zones posted out of the total (x/y), pending guild applications and whether whisper leads are listening. Drag it to move it. It hides in menus like the rest of the HUD.",
+          getFunc = function() return sv.statusBar end, setFunc = function(v) sv.statusBar = v; self:RefreshBar() end, default = d.statusBar },
+        { type = "button", name = "Reset bar position", width = "half",
+          tooltip = "Moves the status bar back to the top middle of the screen.",
+          func = function() self:ResetBarPosition() end },
         { type = "checkbox", name = "Travel to my houses when nobody is there", tooltip = "If no guildmate or friend is in a zone, the tour travels to a house you own there (you arrive outside).",
           getFunc = function() return sv.useHouses end, setFunc = function(v) sv.useHouses = v end, default = d.useHouses },
         { type = "header", name = "Invites" },
