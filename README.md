@@ -1,6 +1,6 @@
 # Fury's Guild Management Toolset
 
-**AI disclosure:** Most of this addon's code was written with an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it.
+**AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it.
 
 An Elder Scrolls Online addon for guild leaders and officers: guild bank theft and bank-space alerts, a bank-hopper report and watchlist, a log of every automatic action with the reason, member status and inactivity alerts, weekly trader sales, tax, bids and donations, a history log with export, recruiting tools (zone ads and zone tour, whisper leads, welcomes), a raffle (tickets bought with guild bank or mailed gold, and the winners draw), and the Guild Crier message menu. Every feature starts turned off; turn on what you want in `/gtsettings`.
 

@@ -1,6 +1,6 @@
 # Fury's Guild Management Toolset (ESO addon) v1.10.1
 
-**AI disclosure:** Most of this addon's code was written with an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
+**AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
 **Credits:**
 
@@ -314,4 +314,4 @@ Bug reports and ideas are welcome in the comments on ESOUI.
 
 ---
 
-<sub>**AI disclosure:** Most of this addon's code was written with an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.</sub>
+<sub>**AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.</sub>
