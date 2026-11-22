@@ -325,7 +325,8 @@ function Recruit:OnChat(channel, text, fromDisplayName)
         self.sv.posted[zoneId] = GetTimeStamp()
         U.Print("Ad posted in %s. It's on cooldown for %d minutes.", self:ZoneName(zoneId), self.sv.cooldownMinutes)
         GT.Report:RefreshIfShown()
-        if self.touring then self:TravelNext() end
+        -- Travel a moment later, once the chat box has closed.
+        if self.touring then zo_callLater(function() if self.touring and not self.trip then self:TravelNext() end end, 1000) end
     elseif channel == CHAT_CHANNEL_WHISPER and fromDisplayName ~= me and self.sv.leads then
         self:CheckLead(fromDisplayName, text or "")
     end
@@ -434,37 +435,57 @@ function Recruit:Jump(trip)
     -- The game reports a refused jump ("not in same group", "can't travel there") as a social
     -- error; a jump that never starts (cancelled, they moved) just times out.
     EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR, function()
-        if self.trip == trip and trip.token == token and not trip.started then self:JumpFailed(trip) end
+    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR, function(_, result)
+        if self.trip == trip and trip.token == token and not trip.started then self:JumpFailed(trip, GetString("SI_SOCIALACTIONRESULT", result)) end
     end)
     zo_callLater(function()
         if self.trip == trip and trip.token == token and not trip.started then self:JumpFailed(trip) end
     end, TRAVEL_TIMEOUT_MS)
 end
 
-function Recruit:JumpFailed(trip)
+-- reason: the game's own text for a refused jump, or nil when the travel never started.
+-- The next try always waits a moment. Jumping again straight from the game's error event
+-- would register the next attempt's listener while that same error is still being handed
+-- out, so one refusal would count as a failure for every attempt in a row (1.5.5 bug).
+-- The same refusal for two different people in a row means it's about you, not them
+-- (for example a travel cooldown or combat): the trip stops there instead of using up the list.
+local RETRY_DELAY_MS = 2000
+
+function Recruit:JumpFailed(trip, reason)
     EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
     trip.token = nil
     local way, zone = trip.ways[trip.index], trip.zone
-    self.badTargets[way.kind == "house" and ("house:" .. zone.id) or way.name] = true
-    if trip.tries >= MAX_TRIP_TRIES then
+    local why = (reason and reason ~= "") and reason or "the travel didn't start"
+    U.Print("Couldn't travel to %s: %s.", way.name, why)
+    if reason and reason ~= "" and reason == trip.lastReason then
         self.trip = nil
-        local why = string.format("Travel didn't work after %d tries.", trip.tries)
-        if self.touring then self:StopTour(why .. " Zone tour stopped. Start it again to keep going.") else U.Print(why) end
+        self.badTargets[trip.lastTarget] = nil   -- it wasn't their fault either
+        U.Print("The game gave the same answer twice, so it's about you right now, not them. Press the Next zone key to try again.")
         return
     end
-    if trip.index < #trip.ways then
-        trip.index = trip.index + 1
-        U.Print("Couldn't travel to %s. Trying %s instead.", way.name, trip.ways[trip.index].name)
-        self:Jump(trip)
-    elseif trip.oneZone then
+    trip.lastReason = reason
+    trip.lastTarget = way.kind == "house" and ("house:" .. zone.id) or way.name
+    self.badTargets[trip.lastTarget] = true
+    if trip.tries >= MAX_TRIP_TRIES then
         self.trip = nil
-        U.Print("Couldn't travel to anyone in %s.", zone.name)
-    else
-        trip.exclude[zone.id] = true
-        U.Print("Couldn't travel to anyone in %s. Trying the next zone.", zone.name)
-        self:StartTrip(trip)
+        local msg = string.format("Travel didn't work after %d tries.", trip.tries)
+        if self.touring then self:StopTour(msg .. " Zone tour stopped. Start it again to keep going.") else U.Print(msg) end
+        return
     end
+    zo_callLater(function()
+        if self.trip ~= trip then return end
+        if trip.index < #trip.ways then
+            trip.index = trip.index + 1
+            self:Jump(trip)
+        elseif trip.oneZone then
+            self.trip = nil
+            U.Print("Couldn't travel to anyone in %s.", zone.name)
+        else
+            trip.exclude[zone.id] = true
+            U.Print("Nobody else to try in %s. Trying the next zone.", zone.name)
+            self:StartTrip(trip)
+        end
+    end, RETRY_DELAY_MS)
 end
 
 -- The load screen started: the jump worked.
