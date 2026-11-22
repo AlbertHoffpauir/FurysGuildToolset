@@ -405,12 +405,13 @@ end
 
 -- Draw ----------------------------------------------------------------------------
 
-function Raffle:CanDraw()
+-- now: End and draw now skips the wait for late deposits and the mailbox check.
+function Raffle:CanDraw(now)
     local status = self:Status()
     if status ~= "closed" then return false, "Ticket sales haven't ended yet." end
     local r = self.sv.raffle
-    if r.useBank and r.guildId ~= 0 and GetTimeStamp() < self:EndTime() + DRAW_DELAY_S then return false, "Wait a minute after sales end, so the last deposits can arrive." end
-    if r.useMail and r.mailCheckedAt < self:EndTime() then return false, "Open your mailbox once first, so gold mailed before the end counts." end
+    if not now and r.useBank and r.guildId ~= 0 and GetTimeStamp() < self:EndTime() + DRAW_DELAY_S then return false, "Wait a minute after sales end, so the last deposits can arrive." end
+    if not now and r.useMail and r.mailCheckedAt < self:EndTime() then return false, "Open your mailbox once first, so gold mailed before the end counts." end
     if not self:IsCaughtUp() then return false, "The bank history is still loading (LibHistoire). Try again in a moment." end
     if self:GetTally().total == 0 then return false, "Nobody has any tickets." end
     return true
@@ -449,8 +450,22 @@ function Raffle:DrawOne(tally, results)
     end
 end
 
-function Raffle:Draw()
-    local ok, why = self:CanDraw()
+-- Ends sales this second and draws at once (Albert, 1.6.3). Asks first.
+function Raffle:EndAndDraw()
+    local why
+    if not self:IsCaughtUp() then why = "The bank history is still loading (LibHistoire). Try again in a moment." end
+    if self:GetTally().total == 0 then why = "Nobody has any tickets yet." end
+    if why then U.Print(why); return end
+    GT.Actions.Confirm("End raffle and draw winners", "End ticket sales now and draw the winners right away?\n\nOnly tickets counted so far are in the draw: a deposit made in the last few seconds, or a mail you haven't opened yet, won't count. The draw can't be redone.", function()
+        self.sv.raffle.endedAt = GetTimeStamp() - 1
+        self.tally = nil
+        self.lastStatus = "closed"
+        self:Draw(true)
+    end)
+end
+
+function Raffle:Draw(now)
+    local ok, why = self:CanDraw(now)
     if not ok then U.Print(why); return end
     local r = self.sv.raffle
     local tally = self:GetTally()
@@ -740,7 +755,8 @@ function Raffle:TabFooter()
     if status == "setup" then
         footer[#footer + 1] = { label = "Start sales now", tip = "Starts ticket sales now. They run for the length set in /gtsettings under Raffle.", fn = function() self:StartNow() end }
     elseif status == "selling" then
-        footer[#footer + 1] = { label = "End sales now", tip = "Ends ticket sales early. Asks first.", fn = function() self:EndNow() end }
+        footer[#footer + 1] = { label = "End sales now", tip = "Ends ticket sales early, so you can draw a minute later. Asks first.", fn = function() self:EndNow() end }
+        footer[#footer + 1] = { label = "End and draw now", tip = "Ends ticket sales and draws the winners right away, with the tickets counted so far. Asks first. The draw can't be redone.", fn = function() self:EndAndDraw() end }
     end
     if status == "scheduled" or status == "selling" then
         footer[#footer + 1] = { label = "Announce", tip = "Puts a raffle announcement (prize, price, how to buy, time left) in the guild chat box for you to press Enter. Without a raffle guild, shows it to copy.", fn = function() self:Announce() end }
