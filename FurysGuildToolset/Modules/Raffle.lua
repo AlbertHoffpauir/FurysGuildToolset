@@ -34,6 +34,9 @@ local DRAW_DELAY_S = 60           -- wait this long after the sale ends for late
 local MAX_CHAT = 350
 local UPDATE_NAME = "FuryGMTRaffle"
 
+-- Which prize a draw result is for: its own slot, or the draw number for results from before 1.7.0.
+local function Slot(res) return res.slot or res.n end
+
 Raffle.defaults = {
     enabled = false,        -- every feature starts off on a new install (Albert, 1.3.0)
     buyNotice = false,      -- chat line when someone buys tickets
@@ -79,7 +82,7 @@ function Raffle:Initialize(sv)
         sv.settingsVersion = 2
     end
     if sv.enabled then
-        EVENT_MANAGER:RegisterForUpdate(UPDATE_NAME, 30000, function() self:Tick() end)
+        EVENT_MANAGER:RegisterForUpdate(UPDATE_NAME, 1000, function() self:Tick() end)
         EVENT_MANAGER:RegisterForEvent(UPDATE_NAME, EVENT_MAIL_INBOX_UPDATE, function() self:ScanMail() end)
         EVENT_MANAGER:RegisterForEvent(UPDATE_NAME, EVENT_MAIL_OPEN_MAILBOX, function() self:ScanMail() end)
         EVENT_MANAGER:RegisterForEvent(UPDATE_NAME, EVENT_MAIL_READABLE, function(_, mailId) self:OnMailReadable(mailId) end)
@@ -234,7 +237,35 @@ local function NiceLeft(seconds)
     return string.format("%dm", m)
 end
 
--- Every 30 s while the feature is on: tells you when sales end, keeps the countdown fresh.
+-- "1d 02:03:04", "2:03:04" or "3:04".
+local function Clock(seconds)
+    seconds = math.max(0, math.floor(seconds))
+    local d, h, m, sec = math.floor(seconds / 86400), math.floor(seconds % 86400 / 3600), math.floor(seconds % 3600 / 60), seconds % 60
+    if d > 0 then return string.format("%dd %02d:%02d:%02d", d, h, m, sec) end
+    if h > 0 then return string.format("%d:%02d:%02d", h, m, sec) end
+    return string.format("%d:%02d", m, sec)
+end
+
+-- The countdown for the tab button and the top line, or nil when nothing is counting down.
+function Raffle:Countdown()
+    local status = self:Status()
+    local now = GetTimeStamp()
+    if status == "selling" then return "ends in " .. Clock(self:EndTime() - now) end
+    if status == "scheduled" then return "starts in " .. Clock(self:StartTime() - now) end
+end
+
+function Raffle:TabTitle()
+    local status = self:Status()
+    if status == "selling" then
+        local left = self:EndTime() - GetTimeStamp()
+        return "Raffle " .. (left >= 86400 and NiceLeft(left) or Clock(left))
+    end
+    if status == "closed" then return "Raffle: draw!" end
+    return "Raffle"
+end
+
+-- Every second while the feature is on: tells you when sales start and end, and keeps the
+-- countdown on the Raffle tab button and the top line ticking without rebuilding the list.
 function Raffle:Tick()
     local status = self:Status()
     if self.lastStatus and self.lastStatus ~= status then
@@ -244,9 +275,22 @@ function Raffle:Tick()
             U.Alert("Raffle ticket sales have ended. Open /gt raffle and click Draw winners.")
         end
         self.tally = nil
+        self.lastStatus = status
+        GT.Report:RefreshIfShown()
+        return
     end
     self.lastStatus = status
-    if GT.Report.currentTab == "raffle" then GT.Report:RefreshIfShown() end
+    local Report = GT.Report
+    if not Report.control or Report.control:IsHidden() then return end
+    if status ~= "selling" and status ~= "scheduled" then return end
+    for i, tab in ipairs(Report.tabs) do
+        if tab.id == "raffle" then Report.tabButtons[i]:SetText(self:TabTitle()) end
+    end
+    if Report.currentTab == "raffle" then
+        local summary = self:TabSummary()
+        if #self:GetTally().list > 0 then summary = summary .. "  " .. Report.MENU_HINT end
+        Report.summary:SetText(summary)
+    end
 end
 
 -- Tickets -------------------------------------------------------------------------
@@ -501,7 +545,7 @@ function Raffle:DrawOne(tally, results)
     local ticket = pool[math.random(poolSize)]
     for _, b in ipairs(tally.list) do
         if b.from and ticket >= b.from and ticket <= b.to then
-            local res = { n = #results + 1, ticket = ticket, who = b.who, from = b.from, to = b.to, tickets = b.tickets, pool = poolSize }
+            local res = { n = #results + 1, ticket = ticket, who = b.who, from = b.from, to = b.to, tickets = b.tickets, pool = poolSize, slot = #results + 1 }
             results[#results + 1] = res
             return res
         end
@@ -533,13 +577,13 @@ function Raffle:Draw(now)
     end
     r.draw = draw
     for _, res in ipairs(draw.results) do
-        U.Print("Raffle draw %d: ticket #%d of %d, %s (tickets %d-%d).", res.n, res.ticket, tally.total, res.who, res.from, res.to)
+        U.Print("Raffle draw %d: ticket #%d of %d, %s (tickets %d-%d)%s.", res.n, res.ticket, tally.total, res.who, res.from, res.to, self:ForPrize(res))
     end
     if #draw.results < r.winners then
         U.Print("Only %d %s could be drawn: there aren't enough buyers.", #draw.results, #draw.results == 1 and "winner" or "winners")
     end
-    U.Print("Click Post results to put them in the guild chat box.")
-    GT.Report:RefreshIfShown()
+    U.Print("To announce the winners, click Winners to guild chat or Winners for Discord at the bottom of the Raffle tab.")
+    GT.Report:Show("raffle")
 end
 
 -- A winner who can't take the prize: their win is voided and another ticket is drawn.
@@ -555,12 +599,20 @@ function Raffle:Redraw(who)
         local res = self:DrawOne(self:GetTally(), draw.results)
         if res then
             res.replaces = who
-            U.Print("Raffle draw %d (replaces %s): ticket #%d of %d, %s (tickets %d-%d).", res.n, who, res.ticket, draw.total, res.who, res.from, res.to)
+            res.slot = Slot(voided)
+            U.Print("Raffle draw %d (replaces %s): ticket #%d of %d, %s (tickets %d-%d)%s.", res.n, who, res.ticket, draw.total, res.who, res.from, res.to, self:ForPrize(res))
         else
             U.Print("No tickets are left to draw a replacement from.")
         end
         GT.Report:RefreshIfShown()
     end)
+end
+
+-- " for (prize)" when the prizes differ per winner, else "".
+function Raffle:ForPrize(res)
+    if #self:Prizes() < 2 then return "" end
+    local prize = self:PrizeFor(Slot(res))
+    return prize and (" for " .. prize) or ""
 end
 
 function Raffle:WinsOf(who)
@@ -592,9 +644,45 @@ local function SplitParts(header, entries, closing)
     return parts
 end
 
+-- Prizes: one per line or separated by ";" (1.7.0). The first goes to the winner of draw 1,
+-- and so on. A single prize is everyone's prize.
+function Raffle:Prizes()
+    local list = {}
+    for raw in string.gmatch(self.sv.raffle.prize or "", "[^;\n]+") do
+        local prize = zo_strtrim(raw)
+        if prize ~= "" then list[#list + 1] = prize end
+    end
+    return list
+end
+
+function Raffle:PrizeFor(slot)
+    local list = self:Prizes()
+    if #list == 1 then return list[1] end
+    return list[slot]
+end
+
+-- The raffle's name in posts: its prize, "4 prizes", or "the raffle".
 function Raffle:PrizeText()
-    local prize = zo_strtrim(self.sv.raffle.prize or "")
-    return prize ~= "" and prize or "the raffle"
+    local list = self:Prizes()
+    if #list == 1 then return list[1] end
+    if #list > 1 then return string.format("%d prizes", #list) end
+    return "the raffle"
+end
+
+-- "1) A, 2) B" for posts.
+function Raffle:PrizeListText()
+    local list, parts = self:Prizes(), {}
+    for i, prize in ipairs(list) do parts[#parts + 1] = string.format("%d) %s", i, prize) end
+    return table.concat(parts, ", ")
+end
+
+function Raffle:SetPrizes(text)
+    self:SetValue("prize", zo_strtrim(text or ""))
+    local count = #self:Prizes()
+    if count > 1 and count ~= self.sv.raffle.winners then
+        self.sv.raffle.winners = math.min(20, count)
+        U.Print("Raffle: %d prizes listed, so the number of winners is now %d.", count, self.sv.raffle.winners)
+    end
 end
 
 function Raffle:AnnounceParts()
@@ -615,8 +703,10 @@ function Raffle:AnnounceParts()
         local word = zo_strtrim(r.mailSubject or "")
         ways[#ways + 1] = string.format("mail gold to %s%s", GetDisplayName(), word ~= "" and string.format(" with \"%s\" in the subject", word) or "")
     end
-    local text = string.format("RAFFLE for %s! Tickets are %s each: %s (every %s in one deposit or mail is one ticket, so send a multiple of it). %s %s Good luck!",
-        self:PrizeText(), U.FormatGold(r.price), table.concat(ways, " or "), U.FormatGold(r.price), when, rules)
+    local prizes = #self:Prizes() > 1 and ("! Prizes: " .. self:PrizeListText() .. ".") or (" for " .. self:PrizeText() .. "!")
+    local text = string.format("RAFFLE%s Tickets are %s each: %s (every %s in one deposit or mail is one ticket, so send a multiple of it). %s %s Good luck!",
+        prizes, U.FormatGold(r.price), table.concat(ways, " or "), U.FormatGold(r.price), when, rules)
+    self.announceWays, self.announceWhen, self.announceRules = ways, when, rules
     return SplitParts("", { text })
 end
 
@@ -631,11 +721,70 @@ function Raffle:ResultParts()
         if res.void then
             entries[#entries + 1] = string.format("Draw %d: %s (could not take the prize).", res.n, res.who)
         else
-            entries[#entries + 1] = string.format("Draw %d: ticket #%d goes to %s (tickets %d-%d)%s.", res.n, res.ticket, res.who, res.from, res.to,
-                res.replaces and (", replacing " .. res.replaces) or "")
+            entries[#entries + 1] = string.format("Draw %d: ticket #%d goes to %s (tickets %d-%d)%s%s.", res.n, res.ticket, res.who, res.from, res.to,
+                self:ForPrize(res), res.replaces and (", replacing " .. res.replaces) or "")
         end
     end
     return SplitParts(header, entries, "Congratulations, and thanks to everyone who bought tickets!")
+end
+
+-- Discord ---------------------------------------------------------------------------
+-- The same posts as several lines with Discord's **bold**, shown in the copy window.
+
+function Raffle:ShowCopy(text, what)
+    local Report = GT.Report
+    Report.exportParts = { text }
+    Report.exportIndex = 1
+    if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
+    Report:ShowExportPart(0)
+    U.Print("%s is in the copy window. Click Select all, press Ctrl+C, and paste it into Discord.", what)
+end
+
+function Raffle:DiscordAnnounce()
+    local r = self.sv.raffle
+    self:AnnounceParts()   -- fills announceWays, announceWhen, announceRules
+    local lines = { string.format("**RAFFLE: %s**", self:PrizeText()) }
+    local list = self:Prizes()
+    if #list > 1 then
+        lines[#lines + 1] = "Prizes:"
+        for i, prize in ipairs(list) do lines[#lines + 1] = string.format("%d. %s", i, prize) end
+    end
+    lines[#lines + 1] = string.format("Tickets: **%s** each. To buy, %s. Every %s in one deposit or mail is one ticket, so send a multiple of it.",
+        U.FormatGold(r.price), table.concat(self.announceWays, " or "), U.FormatGold(r.price))
+    -- Discord shows <t:...> timestamps in each reader's own time zone.
+    lines[#lines + 1] = string.format("Sales end <t:%d:F> (<t:%d:R>).", self:EndTime(), self:EndTime())
+    lines[#lines + 1] = self.announceRules .. " Good luck!"
+    return table.concat(lines, "\n")
+end
+
+function Raffle:DiscordResults()
+    local draw = self.sv.raffle.draw
+    local tally = self:GetTally()
+    local buyers = 0
+    for _, b in ipairs(tally.list) do if b.tickets > 0 then buyers = buyers + 1 end end
+    local lines = { string.format("**Raffle results: %s**", self:PrizeText()),
+        string.format("%d tickets from %d %s.", draw.total, buyers, buyers == 1 and "buyer" or "buyers"), "" }
+    for _, res in ipairs(draw.results) do
+        local prize = self:PrizeFor(Slot(res))
+        if res.void then
+            lines[#lines + 1] = string.format("~~Draw %d: %s~~ (could not take the prize)", res.n, res.who)
+        else
+            lines[#lines + 1] = string.format("Draw %d: **%s**%s, ticket #%d (held tickets %d-%d)%s", res.n, res.who,
+                (#self:Prizes() > 1 and prize) and (" wins **" .. prize .. "**") or "", res.ticket, res.from, res.to,
+                res.replaces and (", replacing " .. res.replaces) or "")
+        end
+    end
+    lines[#lines + 1] = ""
+    lines[#lines + 1] = "Congratulations, and thanks to everyone who bought tickets!"
+    return table.concat(lines, "\n")
+end
+
+function Raffle:Discord()
+    if self:Status() == "drawn" then
+        self:ShowCopy(self:DiscordResults(), "The winners post")
+    elseif self:HasSource() and (self:Status() == "selling" or self:Status() == "scheduled") then
+        self:ShowCopy(self:DiscordAnnounce(), "The raffle announcement")
+    end
 end
 
 -- With a guild: into that guild's chat box. Without one: in the copy window, to paste anywhere
@@ -675,8 +824,8 @@ end
 
 local STATUS_TEXT = {
     setup = "|cAAAAAANot started.|r Set it up in /gtsettings under Raffle, then click Start sales now.",
-    scheduled = "|cFFCC66Starts %s|r (in %s).",
-    selling = "|c9FD49FSelling|r until %s (%s left).",
+    scheduled = "|cFFCC66Sales start in %s|r (%s).",
+    selling = "|cFFD700Sales end in %s|r (%s).",
     closed = "|cFF9933Sales ended %s.|r",
     drawn = "|c9FD49FWinners drawn %s.|r",
 }
@@ -687,8 +836,8 @@ function Raffle:TabSummary()
     local now = GetTimeStamp()
     local head
     if status == "setup" then head = STATUS_TEXT.setup
-    elseif status == "scheduled" then head = string.format(STATUS_TEXT.scheduled, NiceDate(self:StartTime()), NiceLeft(self:StartTime() - now))
-    elseif status == "selling" then head = string.format(STATUS_TEXT.selling, NiceDate(self:EndTime()), NiceLeft(self:EndTime() - now))
+    elseif status == "scheduled" then head = string.format(STATUS_TEXT.scheduled, Clock(self:StartTime() - now), NiceDate(self:StartTime()))
+    elseif status == "selling" then head = string.format(STATUS_TEXT.selling, Clock(self:EndTime() - now), NiceDate(self:EndTime()))
     elseif status == "closed" then head = string.format(STATUS_TEXT.closed, NiceDate(self:EndTime()))
     else head = string.format(STATUS_TEXT.drawn, NiceDate(r.draw.ts)) end
     if not self:HasSource() then return head end
@@ -699,13 +848,22 @@ function Raffle:TabSummary()
     if r.useMail then where[#where + 1] = "mail" end
     return string.format("%s  %s: %s, %s a ticket, %d %s%s. %d tickets, %s.%s", head, table.concat(where, " + "), self:PrizeText(),
         U.FormatGold(r.price), r.winners, r.winners == 1 and "winner" or "winners", (r.oneWin and r.winners > 1) and " (one each)" or "",
-        tally.total, U.FormatGold(tally.gold), loading)
+        tally.total, U.FormatGold(tally.gold), loading) .. self:PrizeWarning()
+end
+
+-- A warning on the top line when several prizes are listed but the number of winners differs.
+function Raffle:PrizeWarning()
+    local count = #self:Prizes()
+    if count < 2 or count == self.sv.raffle.winners then return "" end
+    return string.format("  |cFF9933%d prizes listed for %d winners.|r", count, self.sv.raffle.winners)
 end
 
 function Raffle:ResultText(b)
     local parts = {}
     for _, res in ipairs(self:WinsOf(b.who)) do
-        parts[#parts + 1] = res.void and string.format("|c888888draw %d void|r", res.n) or string.format("|cFFD700WON draw %d|r", res.n)
+        local prize = #self:Prizes() > 1 and self:PrizeFor(Slot(res))
+        parts[#parts + 1] = res.void and string.format("|c888888draw %d void|r", res.n)
+            or (prize and string.format("|cFFD700WON %s|r", prize) or string.format("|cFFD700WON draw %d|r", res.n))
     end
     if #parts > 0 then return table.concat(parts, ", ") end
     if b.excluded then return "|cFF6666left out|r" end
@@ -723,7 +881,7 @@ function Raffle:RowTooltip(b)
         if c.who == b.who then lines[#lines + 1] = string.format("%s: %s", U.FormatDate(c.ts), c.text) end
     end
     for _, res in ipairs(self:WinsOf(b.who)) do
-        lines[#lines + 1] = string.format("Draw %d: ticket #%d of %d%s.", res.n, res.ticket, self.sv.raffle.draw.total, res.void and " (voided)" or "")
+        lines[#lines + 1] = string.format("Draw %d: ticket #%d of %d%s%s.", res.n, res.ticket, self.sv.raffle.draw.total, self:ForPrize(res), res.void and " (voided)" or "")
     end
     return table.concat(lines, "\n")
 end
@@ -751,7 +909,8 @@ end
 
 function Raffle:MailWinner(res)
     local r = self.sv.raffle
-    local body = string.format("Congratulations! Your ticket #%d won draw %d of the raffle for %s.\n\nYour code: ", res.ticket, res.n, self:PrizeText())
+    local prize = self:PrizeFor(Slot(res)) or self:PrizeText()
+    local body = string.format("Congratulations! Your ticket #%d won draw %d of the raffle. Your prize: %s.\n\nYour code: ", res.ticket, res.n, prize)
     GT.Actions.Warn(res.who, "You won the raffle!", body, "mail")
 end
 
@@ -763,7 +922,7 @@ Raffle.columns = {
     { title = "Not used", width = 110, tip = "Gold that didn't buy a ticket: each payment's remainder below the ticket price (dropped, not carried over), and gold over the per-person limit." },
     { title = "Chance", width = 80, tip = "Share of all tickets." },
     { title = "Last payment", width = 150 },
-    { title = "Result", width = 150, tip = "Who won which draw." },
+    { title = "Result", width = 150, tip = "Who won which prize." },
 }
 
 function Raffle:TabRows()
@@ -817,13 +976,15 @@ function Raffle:TabFooter()
         footer[#footer + 1] = { label = "End and draw now", tip = "Ends ticket sales and draws the winners right away, with the tickets counted so far. Asks first. The draw can't be redone.", fn = function() self:EndAndDraw() end }
     end
     if status == "scheduled" or status == "selling" then
-        footer[#footer + 1] = { label = "Announce", tip = "Puts a raffle announcement (prize, price, how to buy, time left) in the guild chat box for you to press Enter. Without a raffle guild, shows it to copy.", fn = function() self:Announce() end }
+        footer[#footer + 1] = { label = "Announce in guild", tip = "Puts a raffle announcement (prizes, price, how to buy, time left) in the guild chat box for you to press Enter. Without a raffle guild, shows it to copy.", fn = function() self:Announce() end }
+        footer[#footer + 1] = { label = "Text for Discord", tip = "Shows the raffle announcement as text to copy and paste into Discord.", fn = function() self:Discord() end }
     end
     if status == "closed" then
         footer[#footer + 1] = { label = "Draw winners", tip = function() local ok, why = self:CanDraw(); return ok and "Draws the winners now. Each draw picks a random ticket. This can't be redone." or why end, fn = function() self:Draw() end }
     end
     if status == "drawn" then
-        footer[#footer + 1] = { label = "Post results", tip = "Puts the draw results in the guild chat box, one part at a time, for you to press Enter. Without a raffle guild, shows them to copy.", fn = function() self:PostResults() end }
+        footer[#footer + 1] = { label = "Winners to guild chat", tip = "Puts the winners (and their prizes) in the guild chat box, one part at a time, for you to press Enter. Without a raffle guild, shows them to copy.", fn = function() self:PostResults() end }
+        footer[#footer + 1] = { label = "Winners for Discord", tip = "Shows the winners and their prizes as text to copy and paste into Discord.", fn = function() self:Discord() end }
     end
     if status ~= "setup" then
         footer[#footer + 1] = { label = "New raffle", tip = "Puts this raffle away (its results are kept) and starts setting up the next one. Asks first.", fn = function() self:NewRaffle() end }
@@ -834,7 +995,7 @@ end
 function Raffle:RegisterTab()
     GT.Report:RegisterTab({
         id = "raffle",
-        title = "Raffle",
+        title = function() return self:TabTitle() end,
         tip = "Raffle tickets bought with gold deposited into a guild bank or mailed to you, and the winners draw.",
         GetOffText = function() return GT:FeatureOffText(self.sv.enabled, "The raffle") end,
         GetSummary = function() return self:TabSummary() end,
@@ -927,8 +1088,8 @@ function Raffle:BuildSettings(options)
           getFunc = function() return r.useMail end, setFunc = function(v) self:SetValue("useMail", v) end, disabled = SalesLocked },
         { type = "editbox", name = "Mail subject must include", tooltip = "Empty (the default): every mail with gold buys tickets, like every bank deposit. Type a word to count only mails whose subject contains it.",
           getFunc = function() return r.mailSubject end, setFunc = function(v) self:SetValue("mailSubject", zo_strtrim(v or "")) end, disabled = Locked },
-        { type = "editbox", name = "Prize", tooltip = "What the winners get, for the announcement and results, for example: 4 game codes.",
-          getFunc = function() return r.prize end, setFunc = function(v) self:SetValue("prize", zo_strtrim(v or "")) end, disabled = Locked },
+        { type = "editbox", name = "Prizes (one per line, or separate with ;)", isMultiline = true, tooltip = "One prize per winner, in order: the first goes to the winner of draw 1, the second to draw 2, and so on. Listing several sets the number of winners to match. For one prize everyone wins, type it once.",
+          getFunc = function() return r.prize end, setFunc = function(v) self:SetPrizes(v) end, disabled = Locked },
         { type = "slider", name = "Ticket price (gold)", min = 100, max = 100000, step = 100, tooltip = "Gold per ticket. Locked once sales start.",
           getFunc = function() return r.price end, setFunc = function(v) self:SetValue("price", v) end, disabled = SalesLocked },
         { type = "slider", name = "Number of winners", min = 1, max = 20, step = 1, tooltip = "How many tickets to draw, one per prize.",

@@ -195,7 +195,7 @@ function Report:Initialize()
     previous = nil
     for i = 1, MAX_FOOTER_BUTTONS do
         local button = WINDOW_MANAGER:CreateControlFromVirtual("FuryGMTReportFooter" .. i, FuryGMTReportFooter, "ZO_DefaultButton")
-        button:SetDimensions(150, 28)
+        button:SetDimensions(180, 28)   -- 1.7.0: wider, for labels like "Winners for Discord"
         if previous then
             button:SetAnchor(LEFT, previous, RIGHT, 6, 0)
         else
