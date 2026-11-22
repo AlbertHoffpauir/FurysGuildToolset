@@ -970,7 +970,8 @@ function BankWatch:BuildSettings(options)
     local controls = {
         { type = "checkbox", name = "Enable bank alerts", getFunc = function() return sv.enabled end,
           setFunc = function(v) sv.enabled = v end, default = defaults.enabled, requiresReload = true },
-        { type = "description", text = "Limits, who to ignore, mail texts and auto-demote are set for each guild under Rules for (guild) below." },
+        { type = "description", text = "Limits, who to ignore, mail texts and auto-demote are set for each guild under Rules for (guild) on the Guild rules page." },
+        GT.Settings:RulesButton("Opens the Guild rules page, where each guild's bank limits, ignored ranks and names, warning and demotion mails, and auto-demote are set."),
         { type = "slider", name = "Auto-demote at most per session (all guilds)", min = 1, max = 20, step = 1,
           tooltip = "A safety cap for auto-demote, counted over all your guilds together.",
           getFunc = function() return sv.autoDemoteMaxPerSession end, setFunc = function(v) sv.autoDemoteMaxPerSession = v end,

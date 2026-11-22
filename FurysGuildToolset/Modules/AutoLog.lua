@@ -427,7 +427,8 @@ end
 function AutoLog:BuildSettings(options)
     local sv, defaults = self.sv, self.defaults
     options[#options + 1] = { type = "submenu", name = "Automatic actions", controls = {
-        { type = "description", text = "Every automatic action (auto-demote, the automatic demotion mail, hoppers added to the watchlist) is announced in chat with the reason and kept in the Auto tab (/gt auto)." },
+        { type = "description", text = "Every automatic action (auto-demote, the automatic demotion mail, hoppers added to the watchlist) is announced in chat with the reason and kept in the Auto tab (/gt auto). Whether each guild auto-demotes and sends the demotion mail is set under Rules for (guild) on the Guild rules page." },
+        GT.Settings:RulesButton("Opens the Guild rules page, where auto-demote and the automatic demotion mail are turned on or off for each guild."),
         { type = "checkbox", name = "Alert window for auto-demotes",
           tooltip = "Opens a big alert window when someone is auto-demoted. It stays on screen until you close it with its Close button, the X or Esc. Several demotions in a row are listed in the same window. Off: a short notice that fades by itself instead.",
           getFunc = function() return sv.alertWindow end, setFunc = function(v) sv.alertWindow = v end, default = defaults.alertWindow },

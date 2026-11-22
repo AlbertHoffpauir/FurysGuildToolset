@@ -388,7 +388,8 @@ function HopperWatch:BuildSettings(options)
     local controls = {
         { type = "checkbox", name = "Enable hopper report", getFunc = function() return sv.enabled end,
           setFunc = function(v) sv.enabled = v; self:UpdateEventRegistration() end, default = defaults.enabled, requiresReload = true },
-        { type = "description", text = "How soon a leave counts, kicks, the watchlist and the blacklist note are set for each guild under Rules for (guild) below. The watchlist itself is shared by all your guilds." },
+        { type = "description", text = "How soon a leave counts, kicks, the watchlist and the blacklist note are set for each guild under Rules for (guild) on the Guild rules page. The watchlist itself is shared by all your guilds." },
+        GT.Settings:RulesButton("Opens the Guild rules page, where each guild's hopper settings are set: how soon a leave counts, kicks, the watchlist and the blacklist note."),
         { type = "checkbox", name = "Open the report at login when there are new hoppers",
           getFunc = function() return sv.openWindowOnLogin end, setFunc = function(v) sv.openWindowOnLogin = v end,
           default = defaults.openWindowOnLogin },

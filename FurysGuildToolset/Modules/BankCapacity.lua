@@ -133,7 +133,8 @@ function BankCapacity:BuildSettings(options)
     options[#options + 1] = { type = "submenu", name = "Guild bank space", controls = {
         { type = "checkbox", name = "Alert when a guild bank is nearly full", getFunc = function() return sv.enabled end,
           setFunc = function(v) sv.enabled = v end, default = defaults.enabled },
-        { type = "description", text = "The game only shows guild bank slots while the bank is open, so the count is taken each time you open a guild bank. Between visits you see the last count and how long ago it was taken. How full counts as nearly full is set for each guild under Rules for (guild) below." },
+        { type = "description", text = "The game only shows guild bank slots while the bank is open, so the count is taken each time you open a guild bank. Between visits you see the last count and how long ago it was taken. How full counts as nearly full is set for each guild under Rules for (guild) on the Guild rules page." },
+        GT.Settings:RulesButton("Opens the Guild rules page, where each guild's \"nearly full\" level is set."),
     } }
 end
 

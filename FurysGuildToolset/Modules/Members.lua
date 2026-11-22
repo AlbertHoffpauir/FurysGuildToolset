@@ -701,7 +701,8 @@ function Members:BuildSettings(options)
     local controls = {
         { type = "checkbox", name = "Alert at login", tooltip = "Tell me at login how many members are over their limit.",
           getFunc = function() return sv.alertOnLogin end, setFunc = function(v) sv.alertOnLogin = v end, default = defaults.alertOnLogin },
-        { type = "description", text = "Inactivity limits, the limit for each rank and the contact texts are set for each guild under Rules for (guild) below." },
+        { type = "description", text = "Inactivity limits, the limit for each rank and the contact texts are set for each guild under Rules for (guild) on the Guild rules page." },
+        GT.Settings:RulesButton("Opens the Guild rules page, where each guild's inactivity limits, the limit for each rank, and the \"we miss you\", kick and blacklist mails are set."),
     }
     options[#options + 1] = { type = "submenu", name = "Members and inactivity", controls = controls }
 end

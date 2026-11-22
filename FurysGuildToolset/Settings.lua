@@ -32,6 +32,13 @@ function Settings:AddPointer(options, title, text, open)
     } }
 end
 
+-- 1.10.1: an "Open Guild rules settings" button for main-page sections whose settings for
+-- each guild are on the Guild rules page.
+function Settings:RulesButton(tip)
+    return { type = "button", name = "Open Guild rules settings", width = "half", tooltip = tip,
+        func = function() self:OpenRules() end }
+end
+
 -- One checkbox per guild for the global "Guilds to get alerts from" setting.
 function Settings:AppendAlertGuildToggles(controls)
     controls[#controls + 1] = { type = "header", name = "Guilds to get alerts from" }
