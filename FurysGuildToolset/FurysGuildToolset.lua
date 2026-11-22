@@ -6,7 +6,7 @@ local GT = FuryGMT
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.4.0"
+GT.version = "1.5.0"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -247,6 +247,10 @@ function GT.RegisterSlashCommands()
             GT.Report:Show(arg)
         elseif arg == "trader" or arg == "week" or arg == "weekly" then
             GT.Report:Show("trader")
+        elseif arg == "recruit" then
+            GT.Report:Show("recruit")
+        elseif arg == "tour" then
+            GT.Recruit:ToggleTour()
         elseif arg == "sales" then
             GT.Report:Show("sales")
         elseif arg == "auto" or arg == "actions" then
@@ -274,7 +278,8 @@ function GT.RegisterSlashCommands()
             GT.Util.Print("Fury's Guild Management Toolset v%s", GT.version)
             GT.Util.Print("/gt  open the report window")
             -- No "|" here: ESO treats it as a text-formatting character and hides it.
-            GT.Util.Print("/gt bank, /gt hoppers, /gt watchlist, /gt history, /gt space, /gt members, /gt inactive, /gt trader, /gt sales, /gt auto  open a specific tab")
+            GT.Util.Print("/gt bank, /gt hoppers, /gt watchlist, /gt history, /gt space, /gt members, /gt inactive, /gt trader, /gt sales, /gt auto, /gt recruit  open a specific tab")
+            GT.Util.Print("/gt tour  start or stop the recruiting zone tour")
             GT.Util.Print("/gt crier (or /crier)  open the Guild Crier message menu")
             GT.Util.Print("/gt guilds  show which guilds send alerts")
             GT.Util.Print("/gt reset  rebuild bank alerts and hoppers from the History log with your current settings")

@@ -40,6 +40,7 @@ local defaults = {
     closeOnClick = false,  -- close the menu after clicking a message
     timerMinutes = 0,      -- rotation reminder interval, 0 = off
     timerAutoLoad = false, -- reminder loads the next rotation message into chat
+    timerLastAt = nil,     -- GetTimeStamp() of the last reminder, kept between sessions
     collapsed = {},        -- section name -> true when closed in the menu
 }
 
