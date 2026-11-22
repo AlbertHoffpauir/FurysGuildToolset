@@ -56,6 +56,7 @@ Recruit.defaults = {
     welcomeCooldownMinutes = 5,
     welcomeMail = false,      -- welcome mail to new members who were offline when they joined
     welcomeMailAuto = false,  -- send it without opening the mail window
+    welcomeMailOnline = false, -- also mail new members who join while online (not only offline ones)
     mailSubject = "Welcome to {guild}!",
     mailBody = "Hi {new},\n\nWelcome to {guild}! We're glad you joined.\n\nCheck the guild MOTD for our rules and links, say hi in guild chat when you're on, and ask an officer if you need anything.\n\nSee you in game!",
     posted = {},              -- [zoneId] = GetTimeStamp() of your last ad there
@@ -606,11 +607,9 @@ function Recruit:Welcome(guildId, name, mine)
     local index = GetGuildMemberIndexFromDisplayName(guildId, name)
     if not index then return end
     local _, _, _, status = GetGuildMemberInfo(guildId, index)
-    if status ~= PLAYER_STATUS_OFFLINE then
-        if self.sv.welcomeChat then self:WelcomeInChat(guildId, name) end
-    elseif self.sv.welcomeMail then
-        self:WelcomeMail(guildId, name)
-    end
+    local online = status ~= PLAYER_STATUS_OFFLINE
+    if online and self.sv.welcomeChat then self:WelcomeInChat(guildId, name) end
+    if self.sv.welcomeMail and (not online or self.sv.welcomeMailOnline) then self:WelcomeMail(guildId, name, online) end
 end
 
 -- Puts the welcome in the guild's chat box, if you aren't typing and the cooldown is over.
@@ -633,7 +632,7 @@ function Recruit:MailText(guildId, name)
     return Fill(self.sv.mailSubject, guildId, name), Fill(self.sv.mailBody, guildId, name)
 end
 
-function Recruit:WelcomeMail(guildId, name)
+function Recruit:WelcomeMail(guildId, name, online)
     if self.sv.welcomeMailAuto then
         local subject, body = self:MailText(guildId, name)
         A.SendMailNow(name, subject, body, function(ok, why)
@@ -648,7 +647,7 @@ function Recruit:WelcomeMail(guildId, name)
         return
     end
     self.sv.mailWaiting[guildId .. ":" .. name] = { guildId = guildId, name = name, at = GetTimeStamp() }
-    U.Print("%s joined %s while offline. %s", name, U.GuildName(guildId), Link("Write welcome mail", "mail", guildId, name))
+    U.Print("%s joined %s%s. %s", name, U.GuildName(guildId), online and "" or " while offline", Link("Write welcome mail", "mail", guildId, name))
     GT.Report:RefreshIfShown()
 end
 
@@ -880,6 +879,10 @@ function Recruit:BuildSettings(options)
         { type = "checkbox", name = "Welcome mail", requiresReload = true,
           tooltip = "When a new member joins while offline, you get a [Write welcome mail] link and a row on the Recruit tab. The mail opens filled in for you to send.",
           getFunc = function() return sv.welcomeMail end, setFunc = function(v) sv.welcomeMail = v; refresh() end, default = d.welcomeMail },
+        { type = "checkbox", name = "Mail new members who join while online too",
+          tooltip = "Normally only members who joined while offline get the welcome mail (online ones get the chat welcome). Tick this to mail everyone who joins, online or not.",
+          getFunc = function() return sv.welcomeMailOnline end, setFunc = function(v) sv.welcomeMailOnline = v end, default = d.welcomeMailOnline,
+          disabled = function() return not sv.welcomeMail end },
         { type = "checkbox", name = "Send the welcome mail automatically",
           tooltip = "Sends the welcome mail in the background instead of opening it (normal postage). Waits while you're in combat or busy. If sending fails, you get the link instead.",
           getFunc = function() return sv.welcomeMailAuto end, setFunc = function(v) sv.welcomeMailAuto = v end, default = d.welcomeMailAuto,

@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.5.4
+# Fury's Guild Management Toolset (ESO addon) v1.5.5
 
 **AI disclosure:** Most of this addon's code was written with an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -97,7 +97,7 @@ Turn on what you want in `/gtsettings` under **Recruiting**. The Recruit tab's t
 - **Whisper leads.** When someone whispers one of your keywords (inv, invite, join, guild by default), you get a chat line with an [Invite] link and a row on the Recruit tab. Nobody is invited until you click.
 - **Join notices.** A chat line when someone joins a guild where you can invite, with the member count, open slots, a warning when the guild is nearly full, and a note when it has no trader this week.
 - **Welcome message.** When a new member joins while online, the welcome (`{new}` = their @name) goes into that guild's chat box and you press Enter. If you're typing, or you welcomed someone a few minutes ago, you get a [Say welcome] link instead. You can welcome only the people you invited or accepted (the default, so two officers don't both welcome the same person) or everyone who joins.
-- **Welcome mail.** For new members who joined while offline: a [Write welcome mail] link and a row on the Recruit tab open the mail filled in for you to send. Turn on "Send the welcome mail automatically" to have it sent in the background instead (normal postage), like the demotion mail.
+- **Welcome mail.** For new members who joined while offline: a [Write welcome mail] link and a row on the Recruit tab open the mail filled in for you to send. Tick "Mail new members who join while online too" to mail everyone who joins. Turn on "Send the welcome mail automatically" to have it sent in the background instead (normal postage), like the demotion mail.
 
 ## What the ESO API allows
 
