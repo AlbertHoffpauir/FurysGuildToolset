@@ -102,7 +102,7 @@ function BankCapacity:TabExportLines()
 end
 
 function BankCapacity:TabSummary()
-    return "Counted each time you open a guild bank. Each guild's alert level is in /gtsettings under Rules for (guild)."
+    return "Counted each time you open a guild bank. Each guild's alert level is on the Guild rules settings page (/gtsettings > Open Guild rules settings)."
 end
 
 function BankCapacity:RegisterTab()

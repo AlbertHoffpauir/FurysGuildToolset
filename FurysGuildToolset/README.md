@@ -30,9 +30,9 @@ On first install the addon looks back 30 days (adjustable in settings), as far a
 1. Install the required libraries from ESOUI or Minion: **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer).
 2. Copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 3. **Choose your guilds:** in settings, "Guilds to get alerts from" has a checkbox per guild. None are ticked at first. Bank, hopper and watchlist alerts, inactivity, bank space (and auto-demote, if you turn it on) only happen in ticked guilds. The History tab still logs every guild. `/gt guilds` shows which are on.
-4. **Set each guild's rules:** every ticked guild gets its own "Rules for (guild)" section in settings, so one guild can allow 10 stacks a day and another 40. It holds that guild's bank limits, ignored ranks and names, warning and demotion texts, demote-to rank, auto-demote, put-back time, bank space alert, hopper settings, inactivity limits (including the limit for each rank) and contact texts. "Copy rules from" gives a guild the same settings as another. Guilds that aren't ticked get no section (tick one and reload to add it).
+4. **Set each guild's rules:** every ticked guild gets its own "Rules for (guild)" section on the **Guild rules** settings page (Add-Ons > "Fury's Guild Management - Guild rules"), so one guild can allow 10 stacks a day and another 40. It holds that guild's bank limits, ignored ranks and names, warning and demotion texts, demote-to rank, auto-demote, put-back time, bank space alert, hopper settings, inactivity limits (including the limit for each rank) and contact texts. "Copy rules from" gives a guild the same settings as another. Guilds that aren't ticked get no section (tick one and reload to add it).
 5. **Turn on the features you want:** bank alerts, hopper report, history log, bank space alerts, weekly trader totals, inactivity alerts (per guild), the kick and blacklist mails (per guild) and the login and alert options all start off.
-6. Settings: the gear at the top right of the report window, Esc > Settings > Add-Ons > Fury's Guild Management, or `/gtsettings`.
+6. Settings: the gear at the top right of the report window, Esc > Settings > Add-Ons > Fury's Guild Management, or `/gtsettings`. The bigger sections have pages of their own in the same Add-Ons list: "Fury's Guild Management - Guild rules", "- Recruiting", "- Raffle" and "- Crier". The main page has a button for each.
 
 ## Commands
 
@@ -64,7 +64,7 @@ Deposits never count, so officers stocking the bank never trigger anything. A st
 
 ## Auto-demote (optional, off by default)
 
-Settings > Rules for (guild) > "Auto-demote at the demote threshold", for each guild separately. When on, the addon demotes someone with no dialog when they reach the demote threshold, with these limits:
+Settings > Guild rules > Rules for (guild) > "Auto-demote at the demote threshold", for each guild separately. When on, the addon demotes someone with no dialog when they reach the demote threshold, with these limits:
 
 - Only withdrawals made after you turn it on count. Turning it on never acts on old history.
 - Never anyone at or above your rank, and never ignored names or ranks.
@@ -83,7 +83,7 @@ Warn and Demote open a filled-in mail ("On (date) you withdrew (amount)..."): th
 
 ## Kick and blacklist mails (optional, off by default)
 
-Settings > Rules for (guild) > "Mail when you kick or blacklist", for each guild separately:
+Settings > Guild rules > Rules for (guild) > "Mail when you kick or blacklist", for each guild separately:
 
 - **Mail members kicked for inactivity.** Kick on the Inactive tab mails them why they were removed (days offline and the limit for their rank) and that they're welcome back if they return to the game.
 - **Mail members you blacklist.** Kick and blacklist, or Blacklist, on any tab (Members, Inactive, Bank, Hoppers, Watchlist) mails them the reason.
@@ -92,7 +92,7 @@ Kick, Kick and blacklist and Blacklist open a confirm window. When blacklisting 
 
 ## Recruiting (optional, every part off by default)
 
-Turn on what you want in `/gtsettings` under **Recruiting**. The Recruit tab's top line shows the guild you recruit for, its members and open slots (out of 500), pending applications, and whether it has a trader this week.
+Turn on what you want on the **Recruiting** settings page (Add-Ons > "Fury's Guild Management - Recruiting", or the button under Recruiting in `/gtsettings`). The Recruit tab's top line shows the guild you recruit for, its members and open slots (out of 500), pending applications, and whether it has a trader this week.
 
 - **Zone ads and zone tour.** Write a zone ad for each guild (`{guild}` becomes the guild's name). "Put ad in chat" (a button and a keybind) puts it in the zone chat box and you press Enter. When your ad goes out, that zone goes on cooldown (15 minutes by default, up to 4 hours; it counts from each post, so set it longer than a whole tour takes if you run the tour twice) and the Recruit tab lists every zone as ready or on cooldown. If you try to post in a zone that's still on cooldown, it asks first. **Start tour:** the ad goes in the chat box, and each time you press Enter to post it you travel to the next ready zone's open world (through a guildmate or friend standing in the zone itself, never one inside a dungeon, delve, trial or other instance, or a house you own there) and the ad is waiting in the chat box when you arrive. Nothing moves until you post. If a jump fails (for example "not in same group", or the person moved), it tries the next person in that zone, then the next ready zone, and stops the tour only after 8 failed tries. Right-click a zone to travel there, clear its cooldown, or leave it out of the tour. There's also a keybind that travels once to the next ready zone.
 - **Status bar.** A small bar on screen (off by default; turn it on for the zone tour only or always) shows the guild you recruit for, zones posted out of the total (for example 5/23, zones on cooldown out of every zone the tour can visit), pending guild applications, and whether whisper leads are listening. Drag it anywhere; it hides in menus like the rest of the HUD.
@@ -105,7 +105,7 @@ Turn on what you want in `/gtsettings` under **Recruiting**. The Recruit tab's t
 
 ## Raffle (optional, off by default)
 
-Turn it on in `/gtsettings` under **Raffle** (reload when asked), then set it up there. The raffle settings also have their own panel, "Fury's Guild Management - Raffle", which the **Raffle settings** button and **New / other raffles > New raffle** on the Raffle tab open. The settings work on the raffle shown on the Raffle tab:
+Turn it on and set it up on the **Raffle** settings page, "Fury's Guild Management - Raffle" in the Add-Ons list (reload when asked). The button under Raffle in `/gtsettings` opens it, and so do the **Raffle settings** button and **New / other raffles > New raffle** on the Raffle tab. The settings work on the raffle shown on the Raffle tab:
 
 - **How tickets are bought:** gold deposited into the raffle guild's bank, gold mailed to you, or both. Pick "(no guild)" for a mail-only raffle, for groups that aren't a guild.
 - **Prizes:** one per line (or separated by `;`). The first goes to the winner of draw 1, the second to draw 2, and so on, and the number of winners is set to match. For one prize, type it once. List the prize names here, not the codes themselves, since they appear in the posts.

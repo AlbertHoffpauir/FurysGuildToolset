@@ -1552,27 +1552,18 @@ function Raffle:SetPrice(r, text)
     self:PrintWarnings(r)
 end
 
--- 1.8.1: the raffle settings are in the main panel (Raffle section) and also have a panel of
--- their own, "Fury's Guild Management - Raffle", which New raffle and Raffle settings open.
+-- The raffle settings have a page of their own, "Fury's Guild Management - Raffle" (1.8.1),
+-- which New raffle and Raffle settings open. Since 1.10.0 the main page only points to it.
 function Raffle:BuildSettings(options)
-    options[#options + 1] = { type = "submenu", name = "Raffle", controls = self:SettingsControls() }
-    local LAM = LibAddonMenu2
-    self.panel = LAM:RegisterAddonPanel("FuryGMTRafflePanel", {
-        type = "panel",
-        name = "Fury's Guild Management - Raffle",
-        displayName = "Fury's Guild Management Toolset: Raffle",
-        author = "Furyous",
-        version = GT.version,
-        registerForRefresh = true,
-    })
-    LAM:RegisterOptionControls("FuryGMTRafflePanel", self:SettingsControls())
+    self.panel = GT.Settings:AddPage("Raffle", "Raffle", self:SettingsControls(), false)
+    GT.Settings:AddPointer(options, "Raffle", "Turning the raffle on, prizes, ticket price, sale times and running several raffles are on their own page: \"Fury's Guild Management - Raffle\" in the Add-Ons list. The Raffle settings button on the Raffle tab (/gt raffle) opens it too.",
+        function() self:OpenSettings() end)
 end
 
 function Raffle:OpenSettings()
     LibAddonMenu2:OpenToPanel(self.panel)
 end
 
--- A fresh list of the raffle setting controls each call (LAM needs separate tables per panel).
 -- Every control works on the raffle shown on the Raffle tab (1.9.0).
 function Raffle:SettingsControls()
     local sv = self.sv

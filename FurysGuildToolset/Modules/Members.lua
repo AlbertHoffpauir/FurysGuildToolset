@@ -667,7 +667,7 @@ function Members:RegisterTabs()
     GT.Report:RegisterTab({
         id = "inactive",
             GetOffText = function() return GT:FeatureOffText(self:AnyInactiveOn(), "Inactivity alerts (in Rules for each guild)", true) end,
-        tip = "Members who have been offline longer than the limit for their rank, and how many guild slots are open. Limits and ranks are in /gtsettings.",
+        tip = "Members who have been offline longer than the limit for their rank, and how many guild slots are open. Limits and ranks are on the Guild rules settings page (/gtsettings > Open Guild rules settings).",
         title = function() return string.format("Inactive (%d)", #self:GetInactive()) end,
         columns = function() return self:GetInactiveColumns() end,
         sortKey = function() return self.sv.inactiveFilter.sort, self.sv.inactiveFilter.desc end,
