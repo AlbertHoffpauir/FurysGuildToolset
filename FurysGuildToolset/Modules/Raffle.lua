@@ -500,8 +500,9 @@ function Raffle:NewRaffle()
         r.startText, r.startedAt, r.endedAt, r.draw, r.mailCheckedAt = "", nil, nil, nil, 0
         r.adjust, r.excluded, r.changes = {}, {}, {}
         self.tally = nil
-        U.Print("Ready for a new raffle. Check the settings in /gtsettings under Raffle, then click Start sales now.")
+        U.Print("Ready for a new raffle. Set it up here, then click Start sales now on the Raffle tab.")
         GT.Report:RefreshIfShown()
+        self:OpenSettings()
     end)
 end
 
@@ -970,7 +971,8 @@ function Raffle:TabFooter()
     local status = self:Status()
     local footer = {}
     if status == "setup" then
-        footer[#footer + 1] = { label = "Start sales now", tip = "Starts ticket sales now. They run for the length set in /gtsettings under Raffle.", fn = function() self:StartNow() end }
+        footer[#footer + 1] = { label = "Raffle settings", tip = "Opens the raffle setup: guild, prizes, ticket price, winners, start and length.", fn = function() self:OpenSettings() end }
+        footer[#footer + 1] = { label = "Start sales now", tip = "Starts ticket sales now. They run for the length set in the raffle settings.", fn = function() self:StartNow() end }
     elseif status == "selling" then
         footer[#footer + 1] = { label = "End sales now", tip = "Ends ticket sales early, so you can draw a minute later. Asks first.", fn = function() self:EndNow() end }
         footer[#footer + 1] = { label = "End and draw now", tip = "Ends ticket sales and draws the winners right away, with the tickets counted so far. Asks first. The draw can't be redone.", fn = function() self:EndAndDraw() end }
@@ -987,7 +989,7 @@ function Raffle:TabFooter()
         footer[#footer + 1] = { label = "Winners for Discord", tip = "Shows the winners and their prizes as text to copy and paste into Discord.", fn = function() self:Discord() end }
     end
     if status ~= "setup" then
-        footer[#footer + 1] = { label = "New raffle", tip = "Puts this raffle away (its results are kept) and starts setting up the next one. Asks first.", fn = function() self:NewRaffle() end }
+        footer[#footer + 1] = { label = "New raffle", tip = "Puts this raffle away (its results are kept) and opens the raffle settings to set up the next one. Asks first.", fn = function() self:NewRaffle() end }
     end
     return footer
 end
@@ -1069,12 +1071,33 @@ function Raffle:SetStartText(text)
     self:SetValue("startText", text)
 end
 
+-- 1.8.1: the raffle settings are in the main panel (Raffle section) and also have a panel of
+-- their own, "Fury's Guild Management - Raffle", which New raffle and Raffle settings open.
 function Raffle:BuildSettings(options)
+    options[#options + 1] = { type = "submenu", name = "Raffle", controls = self:SettingsControls() }
+    local LAM = LibAddonMenu2
+    self.panel = LAM:RegisterAddonPanel("FuryGMTRafflePanel", {
+        type = "panel",
+        name = "Fury's Guild Management - Raffle",
+        displayName = "Fury's Guild Management Toolset: Raffle",
+        author = "Furyous",
+        version = GT.version,
+        registerForRefresh = true,
+    })
+    LAM:RegisterOptionControls("FuryGMTRafflePanel", self:SettingsControls())
+end
+
+function Raffle:OpenSettings()
+    LibAddonMenu2:OpenToPanel(self.panel)
+end
+
+-- A fresh list of the raffle setting controls each call (LAM needs separate tables per panel).
+function Raffle:SettingsControls()
     local sv, r = self.sv, self.sv.raffle
     local names, ids = self:GuildChoices()
     local function Locked() return r.draw ~= nil end
     local function SalesLocked() return r.draw ~= nil or self:Started() end
-    options[#options + 1] = { type = "submenu", name = "Raffle", controls = {
+    return {
         { type = "description", text = "Sell raffle tickets for gold deposited into a guild bank or mailed to you, then draw the winners in the Raffle tab (/gt raffle). Changes here apply to the current raffle until its winners are drawn." },
         { type = "checkbox", name = "Turn on the raffle", tooltip = "Reads guild bank gold deposits (through LibHistoire) and gold mails when you open your mailbox, and shows the Raffle tab.",
           getFunc = function() return sv.enabled end, setFunc = function(v) sv.enabled = v end, default = false, requiresReload = true },
@@ -1102,5 +1125,5 @@ function Raffle:BuildSettings(options)
           getFunc = function() return r.startText end, setFunc = function(v) self:SetStartText(v) end, disabled = Locked },
         { type = "slider", name = "Sale length (hours)", min = 1, max = 336, step = 1, tooltip = "How long ticket sales run from the start. You can make it longer or shorter while sales run.",
           getFunc = function() return r.hours end, setFunc = function(v) r.endedAt = nil; self:SetValue("hours", v) end, disabled = Locked },
-    } }
+    }
 end
