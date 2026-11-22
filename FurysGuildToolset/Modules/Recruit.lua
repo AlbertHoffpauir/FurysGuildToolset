@@ -25,7 +25,7 @@ local LINK_TYPE = "furygmt"
 local LEAD_KEEP_SECONDS = 24 * 3600
 local INVITE_KEEP_SECONDS = 7 * 86400
 local MAIL_KEEP_SECONDS = 3 * 86400
-local TRAVEL_TIMEOUT_MS = 25000
+local TRAVEL_TIMEOUT_MS = 15000   -- no load screen by then: the jump failed or was cancelled
 
 local GUILD_CHANNELS = {
     CHAT_CHANNEL_GUILD_1, CHAT_CHANNEL_GUILD_2, CHAT_CHANNEL_GUILD_3,
@@ -70,6 +70,7 @@ Recruit.defaults = {
 function Recruit:Initialize(sv)
     self.sv = sv
     self.lastWelcome = {}
+    self.badTargets = {}   -- people (and houses) a jump failed on this session
     self:Prune()
     self:RegisterTab()
     EVENT_MANAGER:RegisterForEvent("FuryGMTRecruit", EVENT_CHAT_MESSAGE_CHANNEL, function(_, channel, _, text, _, fromDisplayName)
@@ -89,6 +90,7 @@ function Recruit:OnPlayerActivated()
     self:BuildZoneList()
     -- Every load screen (the tour waits for the one after a jump).
     EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitArrive", EVENT_PLAYER_ACTIVATED, function() self:OnArrived() end)
+    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitArrive", EVENT_PLAYER_DEACTIVATED, function() self:OnLeaving() end)
 end
 
 -- Roster history tells us who invited or accepted whom; only needed for welcomes.
@@ -200,37 +202,48 @@ function Recruit:OwnedHouses()
     return houses
 end
 
--- Someone to travel to in a zone: a guildmate, then a friend, then a house you own.
--- Returns { kind =, name =, houseId = } or nil.
-function Recruit:FindWayInto(zoneId, houses)
-    local me = GetDisplayName()
+-- Everyone you could travel to in a zone, best first: guildmates standing in the zone itself,
+-- then guildmates in a part of it (a delve, a town), then friends, then a house you own.
+-- People a jump already failed on this session are left out.
+-- Returns a list of { kind =, name =, houseId = } (empty when there's no way in).
+function Recruit:FindWaysInto(zoneId, houses)
+    local me, bad = GetDisplayName(), self.badTargets
+    local exact, inside, seen = {}, {}, {}
     for _, guildId in ipairs(U.GetGuildIds()) do
         for i = 1, GetNumGuildMembers(guildId) do
             local name, _, _, status = GetGuildMemberInfo(guildId, i)
-            if status ~= PLAYER_STATUS_OFFLINE and name ~= me then
+            if status ~= PLAYER_STATUS_OFFLINE and name ~= me and not bad[name] and not seen[name] then
                 local _, _, _, _, _, _, _, memberZoneId = GetGuildMemberCharacterInfo(guildId, i)
-                if GetParentZoneId(memberZoneId) == zoneId then return { kind = "guild", name = name } end
+                if memberZoneId == zoneId then
+                    seen[name] = true
+                    exact[#exact + 1] = { kind = "guild", name = name }
+                elseif GetParentZoneId(memberZoneId) == zoneId then
+                    seen[name] = true
+                    inside[#inside + 1] = { kind = "guild", name = name }
+                end
             end
         end
     end
+    local ways = exact
+    for _, way in ipairs(inside) do ways[#ways + 1] = way end
     if self.sv.useFriends then
         for i = 1, GetNumFriends() do
             local name, _, status = GetFriendInfo(i)
-            if status ~= PLAYER_STATUS_OFFLINE then
+            if status ~= PLAYER_STATUS_OFFLINE and not bad[name] and not seen[name] then
                 local _, _, _, _, _, _, _, friendZoneId = GetFriendCharacterInfo(i)
-                if GetParentZoneId(friendZoneId) == zoneId then return { kind = "friend", name = name } end
+                if GetParentZoneId(friendZoneId) == zoneId then ways[#ways + 1] = { kind = "friend", name = name } end
             end
         end
     end
-    if self.sv.useHouses and houses[zoneId] then
-        return { kind = "house", name = houses[zoneId].name, houseId = houses[zoneId].houseId }
+    if self.sv.useHouses and houses[zoneId] and not bad["house:" .. zoneId] then
+        ways[#ways + 1] = { kind = "house", name = houses[zoneId].name, houseId = houses[zoneId].houseId }
     end
-    return nil
+    return ways
 end
 
--- The next zone in list order after the one you're in that's ready, not skipped, and has a
--- way in. Returns zone, way.
-function Recruit:NextReadyZone()
+-- The next zone in list order after the one you're in that's ready, not skipped, not in
+-- exclude, and has a way in. Returns zone, ways.
+function Recruit:NextReadyZone(exclude)
     if not self.zones then self:BuildZoneList() end
     local here = self:CurrentZoneId()
     local start = 0
@@ -241,9 +254,9 @@ function Recruit:NextReadyZone()
     local count = #self.zones
     for step = 1, count do
         local zone = self.zones[(start + step - 1) % count + 1]
-        if zone.id ~= here and not self.sv.skipZones[zone.id] and self:CooldownLeft(zone.id) == 0 then
-            local way = self:FindWayInto(zone.id, houses)
-            if way then return zone, way end
+        if zone.id ~= here and not self.sv.skipZones[zone.id] and not (exclude and exclude[zone.id]) and self:CooldownLeft(zone.id) == 0 then
+            local ways = self:FindWaysInto(zone.id, houses)
+            if #ways > 0 then return zone, ways end
         end
     end
     return nil
@@ -327,17 +340,37 @@ end
 function Recruit:StopTour(reason)
     if not self.touring then return end
     self.touring = false
-    self.travelTo = nil
+    self.trip = nil
+    EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
     U.Print(reason or "Zone tour stopped.")
     GT.Report:RefreshIfShown()
 end
 
--- One jump. Called by your ad post during a tour, the Next zone key, or a row's menu.
+-- One trip. Called by your ad post during a tour, the Next zone key, or a row's menu.
+-- If a jump fails (the game says no, or the travel never starts), the same trip tries the
+-- next person in that zone, then the next ready zone, up to MAX_TRIP_TRIES jumps. It never
+-- goes on to a second trip by itself: after you arrive, the next trip waits for your post.
+local MAX_TRIP_TRIES = 8
+
 function Recruit:TravelNext()
-    local zone, way = self:NextReadyZone()
+    self:StartTrip({ exclude = {} })
+end
+
+function Recruit:StartTrip(trip, zoneId)
+    local zone, ways
+    if zoneId then
+        zone = { id = zoneId, name = self:ZoneName(zoneId) }
+        ways = self:FindWaysInto(zoneId, self.sv.useHouses and self:OwnedHouses() or {})
+        if #ways == 0 then
+            U.Print("Nobody you can travel to is in %s right now.", zone.name)
+            return
+        end
+    else
+        zone, ways = self:NextReadyZone(trip.exclude)
+    end
     if not zone then
         local soonest
-        for _, z in ipairs(self.zones) do
+        for _, z in ipairs(self.zones or {}) do
             if not self.sv.skipZones[z.id] then
                 local left = self:CooldownLeft(z.id)
                 if left > 0 and (not soonest or left < soonest) then soonest = left end
@@ -348,35 +381,75 @@ function Recruit:TravelNext()
         if self.touring then self:StopTour("Zone tour finished. " .. msg) else U.Print(msg) end
         return
     end
-    self:TravelTo(zone, way)
+    trip.zone, trip.ways, trip.index, trip.tries, trip.oneZone = zone, ways, 1, trip.tries or 0, zoneId ~= nil
+    self.trip = trip
+    self:Jump(trip)
 end
 
-function Recruit:TravelTo(zone, way)
-    local from = self:CurrentZoneId()
+function Recruit:Jump(trip)
+    local way, zone = trip.ways[trip.index], trip.zone
+    trip.tries = trip.tries + 1
+    trip.from = self:CurrentZoneId()
+    trip.started = false
+    local token = {}
+    trip.token = token
+    U.Print("Traveling to %s in %s...", way.name, zone.name)
     if way.kind == "house" then
-        U.Print("Traveling to %s in %s...", way.name, zone.name)
         RequestJumpToHouse(way.houseId, true)   -- true: arrive outside the house, in the zone
     elseif way.kind == "friend" then
-        U.Print("Traveling to %s in %s...", way.name, zone.name)
         JumpToFriend(way.name)
     else
-        U.Print("Traveling to %s in %s...", way.name, zone.name)
         JumpToGuildMember(way.name)
     end
-    local token = {}
-    self.travelTo = { zoneId = zone.id, token = token }
+    -- The game reports a refused jump ("not in same group", "can't travel there") as a social
+    -- error; a jump that never starts (cancelled, they moved) just times out.
+    EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
+    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR, function()
+        if self.trip == trip and trip.token == token and not trip.started then self:JumpFailed(trip) end
+    end)
     zo_callLater(function()
-        if self.travelTo and self.travelTo.token == token and self:CurrentZoneId() == from then
-            self.travelTo = nil
-            local why = string.format("Travel to %s didn't happen (cancelled, in combat, or they moved).", zone.name)
-            if self.touring then self:StopTour(why .. " Zone tour stopped.") else U.Print(why) end
-        end
+        if self.trip == trip and trip.token == token and not trip.started then self:JumpFailed(trip) end
     end, TRAVEL_TIMEOUT_MS)
 end
 
+function Recruit:JumpFailed(trip)
+    EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
+    trip.token = nil
+    local way, zone = trip.ways[trip.index], trip.zone
+    self.badTargets[way.kind == "house" and ("house:" .. zone.id) or way.name] = true
+    if trip.tries >= MAX_TRIP_TRIES then
+        self.trip = nil
+        local why = string.format("Travel didn't work after %d tries.", trip.tries)
+        if self.touring then self:StopTour(why .. " Zone tour stopped. Start it again to keep going.") else U.Print(why) end
+        return
+    end
+    if trip.index < #trip.ways then
+        trip.index = trip.index + 1
+        U.Print("Couldn't travel to %s. Trying %s instead.", way.name, trip.ways[trip.index].name)
+        self:Jump(trip)
+    elseif trip.oneZone then
+        self.trip = nil
+        U.Print("Couldn't travel to anyone in %s.", zone.name)
+    else
+        trip.exclude[zone.id] = true
+        U.Print("Couldn't travel to anyone in %s. Trying the next zone.", zone.name)
+        self:StartTrip(trip)
+    end
+end
+
+-- The load screen started: the jump worked.
+function Recruit:OnLeaving()
+    local trip = self.trip
+    if trip and trip.token then
+        trip.started = true
+        EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
+    end
+end
+
 function Recruit:OnArrived()
-    if not self.travelTo then return end
-    self.travelTo = nil
+    local trip = self.trip
+    if not trip or not trip.started then return end
+    self.trip = nil
     if self.touring then
         -- Give the chat window a moment after the load screen.
         zo_callLater(function() if self.touring then self:PasteAd() end end, 1500)
@@ -385,13 +458,7 @@ function Recruit:OnArrived()
 end
 
 function Recruit:TravelToZone(zoneId)
-    local houses = self.sv.useHouses and self:OwnedHouses() or {}
-    local way = self:FindWayInto(zoneId, houses)
-    if not way then
-        U.Print("Nobody you can travel to is in %s right now.", self:ZoneName(zoneId))
-        return
-    end
-    self:TravelTo({ id = zoneId, name = self:ZoneName(zoneId) }, way)
+    self:StartTrip({ exclude = {} }, zoneId)
 end
 
 -- Invites and leads ----------------------------------------------------------
