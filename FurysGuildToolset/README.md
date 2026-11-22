@@ -311,3 +311,7 @@ Addons only run while you're logged in. Anything that happened while you were aw
 The menus do what the game lets your rank do. If your rank can't demote, kick or invite in that guild, the game won't allow it.
 
 Bug reports and ideas are welcome in the comments on ESOUI.
+
+---
+
+<sub>**AI disclosure:** Most of this addon's code was written with an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.</sub>
