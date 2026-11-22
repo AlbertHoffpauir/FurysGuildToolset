@@ -287,17 +287,39 @@ function Recruit:PasteAd(skipCheck)
     if #ad > MAX_CHAT then
         U.Print("Your ad is %d characters. ESO cuts chat at %d.", #ad, MAX_CHAT)
     end
+    self.pasted = { zoneId = zoneId, at = GetTimeStamp() }
     StartChatInput(ad, CHAT_CHANNEL_ZONE)
 end
 
 -- Your own zone message that matches the ad starts that zone's cooldown, and moves the tour on.
+-- Compares chat text by what it says: links become their names, colors and extra spaces go,
+-- case doesn't matter. The game can send a posted message back with links or spacing
+-- written a little differently from how it was typed.
+local function Plain(text)
+    text = tostring(text or ""):gsub("|H[^|]*|h(.-)|h", "%1"):gsub("|c%x%x%x%x%x%x", ""):gsub("|r", "")
+    return zo_strlower(zo_strtrim((text:gsub("%s+", " "))))
+end
+
+-- A zone post counts as your ad when it reads the same as the ad, or when it's the first
+-- thing you post in that zone within a few minutes of the addon putting the ad in your chat box.
+local PASTE_WINDOW_SECONDS = 300
+
+function Recruit:IsAdPost(text, zoneId)
+    local ad = self:AdText()
+    if ad ~= "" and Plain(text) == Plain(ad) then return true end
+    local pasted = self.pasted
+    return pasted ~= nil and pasted.zoneId == zoneId and GetTimeStamp() - pasted.at <= PASTE_WINDOW_SECONDS
+end
+
 function Recruit:OnChat(channel, text, fromDisplayName)
     local me = GetDisplayName()
     if channel == CHAT_CHANNEL_ZONE and fromDisplayName == me then
         if not self.sv.enabled then return end
-        local ad = self:AdText()
-        if ad == "" or zo_strtrim(text or "") ~= ad then return end
-        self.sv.posted[self:CurrentZoneId()] = GetTimeStamp()
+        local zoneId = self:CurrentZoneId()
+        if not self:IsAdPost(text, zoneId) then return end
+        self.pasted = nil
+        self.sv.posted[zoneId] = GetTimeStamp()
+        U.Print("Ad posted in %s. It's on cooldown for %d minutes.", self:ZoneName(zoneId), self.sv.cooldownMinutes)
         GT.Report:RefreshIfShown()
         if self.touring then self:TravelNext() end
     elseif channel == CHAT_CHANNEL_WHISPER and fromDisplayName ~= me and self.sv.leads then
@@ -324,7 +346,14 @@ function Recruit:StartTour()
         return
     end
     self.touring = true
+    if not self.zones then self:BuildZoneList() end
+    local waiting = {}
+    for _, zone in ipairs(self.zones) do
+        local left = self:CooldownLeft(zone.id)
+        if left > 0 and not self.sv.skipZones[zone.id] then waiting[#waiting + 1] = zone.name .. " (" .. U.FormatDuration(left) .. ")" end
+    end
     U.Print("Zone tour started. Press Enter to post the ad; you'll travel to the next ready zone after each post. Use the tour key or /gt tour to stop.")
+    if #waiting > 0 then U.Print("Left out while on cooldown: %s.", table.concat(waiting, ", ")) end
     local here = self:CurrentZoneId()
     if self:CooldownLeft(here) == 0 and not self.sv.skipZones[here] then
         self:PasteAd(true)
@@ -797,8 +826,8 @@ function Recruit:BuildSettings(options)
         { type = "editbox", name = "Zone ad", isMultiline = true, isExtraWide = true,
           tooltip = "The ad for the guild picked above. {guild} becomes the guild's name. ESO cuts chat at 350 characters.",
           getFunc = function() return sv.ads[self:GuildId()] or "" end, setFunc = function(v) sv.ads[self:GuildId()] = v end, default = "" },
-        { type = "slider", name = "Zone cooldown (minutes)", min = 5, max = 120, step = 5,
-          tooltip = "After you post the ad in a zone, wait this long before posting there again. The tour skips zones on cooldown.",
+        { type = "slider", name = "Zone cooldown (minutes)", min = 5, max = 240, step = 5,
+          tooltip = "After you post the ad in a zone, wait this long before posting there again. The tour leaves zones on cooldown out. The time counts from each post, so if a whole tour takes longer than this, the first zones are ready again by the end.",
           getFunc = function() return sv.cooldownMinutes end, setFunc = function(v) sv.cooldownMinutes = v; refresh() end, default = d.cooldownMinutes },
         { type = "checkbox", name = "Travel through friends too", tooltip = "Besides guildmates, the tour can travel to friends in a zone.",
           getFunc = function() return sv.useFriends end, setFunc = function(v) sv.useFriends = v end, default = d.useFriends },
