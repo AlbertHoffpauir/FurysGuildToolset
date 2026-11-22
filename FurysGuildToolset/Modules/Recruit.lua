@@ -202,13 +202,15 @@ function Recruit:OwnedHouses()
     return houses
 end
 
--- Everyone you could travel to in a zone, best first: guildmates standing in the zone itself,
--- then guildmates in a part of it (a delve, a town), then friends, then a house you own.
--- People a jump already failed on this session are left out.
+-- Everyone you could travel to in a zone's open world: guildmates, then friends, then a house
+-- you own there. Only people standing in the zone itself count. Anyone inside a public
+-- dungeon, delve, group dungeon, trial or any other instance has a different zone id (the
+-- zone is only its parent), so they are skipped. People a jump already failed on this
+-- session are left out too.
 -- Returns a list of { kind =, name =, houseId = } (empty when there's no way in).
 function Recruit:FindWaysInto(zoneId, houses)
     local me, bad = GetDisplayName(), self.badTargets
-    local exact, inside, seen = {}, {}, {}
+    local ways, seen = {}, {}
     for _, guildId in ipairs(U.GetGuildIds()) do
         for i = 1, GetNumGuildMembers(guildId) do
             local name, _, _, status = GetGuildMemberInfo(guildId, i)
@@ -216,22 +218,17 @@ function Recruit:FindWaysInto(zoneId, houses)
                 local _, _, _, _, _, _, _, memberZoneId = GetGuildMemberCharacterInfo(guildId, i)
                 if memberZoneId == zoneId then
                     seen[name] = true
-                    exact[#exact + 1] = { kind = "guild", name = name }
-                elseif GetParentZoneId(memberZoneId) == zoneId then
-                    seen[name] = true
-                    inside[#inside + 1] = { kind = "guild", name = name }
+                    ways[#ways + 1] = { kind = "guild", name = name }
                 end
             end
         end
     end
-    local ways = exact
-    for _, way in ipairs(inside) do ways[#ways + 1] = way end
     if self.sv.useFriends then
         for i = 1, GetNumFriends() do
             local name, _, status = GetFriendInfo(i)
             if status ~= PLAYER_STATUS_OFFLINE and not bad[name] and not seen[name] then
                 local _, _, _, _, _, _, _, friendZoneId = GetFriendCharacterInfo(i)
-                if GetParentZoneId(friendZoneId) == zoneId then ways[#ways + 1] = { kind = "friend", name = name } end
+                if friendZoneId == zoneId then ways[#ways + 1] = { kind = "friend", name = name } end
             end
         end
     end
@@ -449,6 +446,17 @@ end
 function Recruit:OnArrived()
     local trip = self.trip
     if not trip or not trip.started then return end
+    -- Landed somewhere other than the open zone (they went into an instance during the cast):
+    -- this jump counts as failed, and the trip goes on to the next way in.
+    -- (Outside a house you may stand in a town that belongs to the zone, which is fine.)
+    local actual = GetZoneId(GetUnitZoneIndex("player"))
+    local way = trip.ways[trip.index]
+    local ok = actual == trip.zone.id or (way.kind == "house" and GetParentZoneId(actual) == trip.zone.id)
+    if not ok then
+        U.Print("That put you in %s, not the open zone.", zo_strformat("<<C:1>>", GetZoneNameById(actual)))
+        self:JumpFailed(trip)
+        return
+    end
     self.trip = nil
     if self.touring then
         -- Give the chat window a moment after the load screen.
