@@ -52,19 +52,22 @@ Recruit.defaults = {
     traderWarning = true,     -- the join line also says when the guild has no trader
     welcomeChat = false,      -- put a welcome in the guild chat box when someone joins
     welcomeWho = "mine",      -- "mine" = people you invited or accepted, "all" = everyone
-    welcomeText = "Welcome to {guild}, {new}! Glad to have you here. Check the guild MOTD for our rules and say hi any time.",
     welcomeCooldownMinutes = 5,
     welcomeMail = false,      -- welcome mail to new members who were offline when they joined
     welcomeMailAuto = false,  -- send it without opening the mail window
     welcomeMailOnline = false, -- also mail new members who join while online (not only offline ones)
-    mailSubject = "Welcome to {guild}!",
-    mailBody = "Hi {new},\n\nWelcome to {guild}! We're glad you joined.\n\nCheck the guild MOTD for our rules and links, say hi in guild chat when you're on, and ask an officer if you need anything.\n\nSee you in game!",
+    welcomes = {},            -- [guildId] = { on =, text =, subject =, body = }: each guild's own welcome; no entry = no welcome there
     posted = {},              -- [zoneId] = GetTimeStamp() of your last ad there
     skipZones = {},           -- [zoneId] = true: the tour never goes there
     leadList = {},            -- ["@name"] = { at =, text = }
     invited = {},             -- ["guildId:@name"] = when you invited them
     mailWaiting = {},         -- ["guildId:@name"] = { guildId =, name =, at = }
 }
+
+-- Starting text when you turn welcomes on for a guild. Each guild keeps its own copy.
+local WELCOME_TEXT = "Welcome to {guild}, {new}! Glad to have you here. Check the guild MOTD for our rules and say hi any time."
+local MAIL_SUBJECT = "Welcome to {guild}!"
+local MAIL_BODY = "Hi {new},\n\nWelcome to {guild}! We're glad you joined.\n\nCheck the guild MOTD for our rules and links, say hi in guild chat when you're on, and ask an officer if you need anything.\n\nSee you in game!"
 
 -- Settings -------------------------------------------------------------------
 
@@ -91,6 +94,7 @@ function Recruit:Initialize(sv)
 end
 
 function Recruit:OnPlayerActivated()
+    self:MoveOldWelcome()
     self:BuildZoneList()
     -- Every load screen (the tour waits for the one after a jump).
     EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitArrive", EVENT_PLAYER_ACTIVATED, function() self:OnArrived() end)
@@ -119,6 +123,25 @@ function Recruit:Prune()
     for key, job in pairs(self.sv.mailWaiting) do
         if now - job.at > MAIL_KEEP_SECONDS then self.sv.mailWaiting[key] = nil end
     end
+end
+
+-- Up to 1.5.6 there was one welcome for every guild. It belongs to the guild you set
+-- recruiting up for, so it moves there; no other guild gets a welcome until you turn it on.
+function Recruit:MoveOldWelcome()
+    local sv = self.sv
+    if sv.welcomeText == nil and sv.mailSubject == nil and sv.mailBody == nil then return end
+    local guildId = self:GuildId()
+    if guildId and guildId ~= 0 and not sv.welcomes[guildId] then
+        sv.welcomes[guildId] = { on = (sv.welcomeChat or sv.welcomeMail) == true,
+            text = sv.welcomeText or WELCOME_TEXT, subject = sv.mailSubject or MAIL_SUBJECT, body = sv.mailBody or MAIL_BODY }
+    end
+    sv.welcomeText, sv.mailSubject, sv.mailBody = nil, nil, nil
+end
+
+-- This guild's welcome, or nil when welcomes are off for it.
+function Recruit:WelcomeFor(guildId)
+    local w = self.sv.welcomes[guildId]
+    if w and w.on then return w end
 end
 
 -- The guild you recruit for: the one picked in settings, or your first guild.
@@ -585,8 +608,11 @@ end
 -- the roster yet) and again when they accept. Only the second one is a join.
 function Recruit:OnMemberAdded(guildId, name)
     if name == GetDisplayName() or not U.IsMember(guildId, name) then return end
+    -- Only the guild you recruit for and guilds you turned welcomes on for. Nothing for your other guilds.
+    local welcome = self:WelcomeFor(guildId)
+    if not welcome and guildId ~= self:GuildId() then return end
     if self.sv.joinNotice and U.HasPermission(guildId, GUILD_PERMISSION_INVITE) then self:JoinNotice(guildId, name) end
-    if self.sv.welcomeChat or self.sv.welcomeMail then self:Welcome(guildId, name, self:IsMine(guildId, name)) end
+    if welcome and (self.sv.welcomeChat or self.sv.welcomeMail) then self:Welcome(guildId, name, self:IsMine(guildId, name)) end
 end
 
 -- Did you bring them in? You invited them (from this addon, or the game's invite as roster
@@ -636,9 +662,10 @@ end
 -- Puts the welcome in the guild's chat box, if you aren't typing and the cooldown is over.
 -- Otherwise you get a chat line with a link that does it when you're ready.
 function Recruit:WelcomeInChat(guildId, name, fromLink)
+    local welcome = self:WelcomeFor(guildId)
     local channel = GuildChannel(guildId)
-    if not channel then return end
-    local text = Fill(self.sv.welcomeText, guildId, name)
+    if not (welcome and channel) or zo_strtrim(welcome.text or "") == "" then return end
+    local text = Fill(welcome.text, guildId, name)
     local recent = self.lastWelcome[guildId] and (GetTimeStamp() - self.lastWelcome[guildId] < self.sv.welcomeCooldownMinutes * 60)
     if fromLink or (not recent and not CHAT_SYSTEM:IsTextEntryOpen()) then
         self.lastWelcome[guildId] = GetTimeStamp()
@@ -650,10 +677,13 @@ function Recruit:WelcomeInChat(guildId, name, fromLink)
 end
 
 function Recruit:MailText(guildId, name)
-    return Fill(self.sv.mailSubject, guildId, name), Fill(self.sv.mailBody, guildId, name)
+    local welcome = self:WelcomeFor(guildId)
+    if not welcome or zo_strtrim(welcome.body or "") == "" then return end
+    return Fill(welcome.subject or "", guildId, name), Fill(welcome.body, guildId, name)
 end
 
 function Recruit:WelcomeMail(guildId, name, online)
+    if not self:MailText(guildId, name) then return end
     if self.sv.welcomeMailAuto then
         local subject, body = self:MailText(guildId, name)
         A.SendMailNow(name, subject, body, function(ok, why)
@@ -675,6 +705,11 @@ end
 function Recruit:OpenWelcomeMail(guildId, name)
     local subject, body = self:MailText(guildId, name)
     self.sv.mailWaiting[guildId .. ":" .. name] = nil
+    if not body then
+        U.Print("Welcomes are off for %s, so there's no welcome mail to write.", U.GuildName(guildId))
+        GT.Report:RefreshIfShown()
+        return
+    end
     A.Warn(name, subject, body, "mail")
     GT.Report:RefreshIfShown()
 end
@@ -847,6 +882,23 @@ function Recruit:BuildSettings(options)
         ids[#ids + 1] = guildId
     end
     local refresh = function() GT.Report:RefreshIfShown() end
+    -- Which guild's welcome the boxes below edit (not saved; starts on the guild you recruit for).
+    local welcomeNames, welcomeIds = {}, {}
+    for _, guildId in ipairs(U.GetGuildIds()) do
+        welcomeNames[#welcomeNames + 1] = U.GuildName(guildId)
+        welcomeIds[#welcomeIds + 1] = guildId
+    end
+    local editing = self:GuildId()
+    local function W() return sv.welcomes[editing] end
+    local function SetW(key, v)
+        local w = sv.welcomes[editing]
+        if not w then
+            w = { on = false, text = WELCOME_TEXT, subject = MAIL_SUBJECT, body = MAIL_BODY }
+            sv.welcomes[editing] = w
+        end
+        w[key] = v
+    end
+    local function NotOn() local w = W(); return not (w and w.on) end
     local controls = {
         { type = "description", text = "Everything here starts off. Chat is never sent for you: ads and welcomes go into the chat box and you press Enter. Nobody is invited until you click Invite." },
         { type = "header", name = "Zone ads and zone tour" },
@@ -878,7 +930,7 @@ function Recruit:BuildSettings(options)
           getFunc = function() return sv.keywords end, setFunc = function(v) sv.keywords = v end, default = d.keywords },
         { type = "header", name = "New members" },
         { type = "checkbox", name = "Join notices",
-          tooltip = "A chat line when someone joins a guild where you can invite, with the member count and open slots.",
+          tooltip = "A chat line when someone joins the guild you recruit for, or a guild you turned welcomes on for (if your rank there can invite), with the member count and open slots. Your other guilds get nothing.",
           getFunc = function() return sv.joinNotice end, setFunc = function(v) sv.joinNotice = v end, default = d.joinNotice },
         { type = "slider", name = "Warn when open slots are at or below", min = 0, max = 50, step = 1,
           tooltip = "The join notice says the guild is nearly full. 0 = never.",
@@ -891,9 +943,17 @@ function Recruit:BuildSettings(options)
         { type = "checkbox", name = "Welcome message in guild chat", requiresReload = true,
           tooltip = "When a new member joins while online, the welcome goes into that guild's chat box and you press Enter to post it. If you're typing, or the cooldown hasn't ended, you get a [Say welcome] link instead.",
           getFunc = function() return sv.welcomeChat end, setFunc = function(v) sv.welcomeChat = v end, default = d.welcomeChat },
+        { type = "description", text = "Each guild has its own welcome message and mail. A guild only gets a welcome after you pick it below and tick \"Welcome new members in this guild\". Your other guilds get nothing." },
+        { type = "dropdown", name = "Welcome settings for", choices = welcomeNames, choicesValues = welcomeIds,
+          tooltip = "Pick a guild to see and edit its own welcome. This only chooses what the boxes below show.",
+          getFunc = function() return editing end, setFunc = function(v) editing = v end, default = self:GuildId() },
+        { type = "checkbox", name = "Welcome new members in this guild",
+          tooltip = "Turns the welcome message and welcome mail on for the guild picked above only, using that guild's own text below.",
+          getFunc = function() local w = W(); return w and w.on or false end, setFunc = function(v) SetW("on", v) end, default = false },
         { type = "editbox", name = "Welcome message", isMultiline = true, isExtraWide = true,
-          tooltip = "{new} = the new member's @name, {guild} = the guild's name.",
-          getFunc = function() return sv.welcomeText end, setFunc = function(v) sv.welcomeText = v end, default = d.welcomeText },
+          tooltip = "For the guild picked above only. {new} = the new member's @name, {guild} = the guild's name. Leave it empty for no chat welcome in this guild.",
+          getFunc = function() local w = W(); return w and w.text or WELCOME_TEXT end, setFunc = function(v) SetW("text", v) end, default = WELCOME_TEXT,
+          disabled = NotOn },
         { type = "slider", name = "Welcome cooldown (minutes)", min = 0, max = 60, step = 1,
           tooltip = "After a welcome, the next one in the same guild waits this long and comes as a link instead, so a burst of joins doesn't flood guild chat.",
           getFunc = function() return sv.welcomeCooldownMinutes end, setFunc = function(v) sv.welcomeCooldownMinutes = v end, default = d.welcomeCooldownMinutes },
@@ -908,10 +968,13 @@ function Recruit:BuildSettings(options)
           tooltip = "Sends the welcome mail in the background instead of opening it (normal postage). Waits while you're in combat or busy. If sending fails, you get the link instead.",
           getFunc = function() return sv.welcomeMailAuto end, setFunc = function(v) sv.welcomeMailAuto = v end, default = d.welcomeMailAuto,
           disabled = function() return not sv.welcomeMail end },
-        { type = "editbox", name = "Welcome mail subject", tooltip = "{new} = their @name, {guild} = the guild's name.",
-          getFunc = function() return sv.mailSubject end, setFunc = function(v) sv.mailSubject = v end, default = d.mailSubject },
-        { type = "editbox", name = "Welcome mail text", isMultiline = true, isExtraWide = true, tooltip = "{new} = their @name, {guild} = the guild's name.",
-          getFunc = function() return sv.mailBody end, setFunc = function(v) sv.mailBody = v end, default = d.mailBody },
+        { type = "editbox", name = "Welcome mail subject", tooltip = "For the guild picked above only. {new} = their @name, {guild} = the guild's name.",
+          getFunc = function() local w = W(); return w and w.subject or MAIL_SUBJECT end, setFunc = function(v) SetW("subject", v) end, default = MAIL_SUBJECT,
+          disabled = NotOn },
+        { type = "editbox", name = "Welcome mail text", isMultiline = true, isExtraWide = true,
+          tooltip = "For the guild picked above only. {new} = their @name, {guild} = the guild's name. Leave it empty for no welcome mail in this guild.",
+          getFunc = function() local w = W(); return w and w.body or MAIL_BODY end, setFunc = function(v) SetW("body", v) end, default = MAIL_BODY,
+          disabled = NotOn },
     }
     options[#options + 1] = { type = "submenu", name = "Recruiting", controls = controls }
 end
