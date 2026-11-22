@@ -81,6 +81,9 @@ function Recruit:Initialize(sv)
     end)
     LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_MOUSE_UP_EVENT, self.OnLink, self)
     LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_CLICKED_EVENT, self.OnLink, self)
+    -- Accepting an application from the game's Applications list.
+    self.acceptedAt = {}
+    ZO_PreHook("AcceptGuildApplication", function(guildId) self.acceptedAt[guildId] = GetTimeStamp() end)
     ZO_PostHook(CHAT_SYSTEM, "ShowPlayerContextMenu", function(_, playerName, rawName)
         self:AddPlayerMenu(playerName, rawName)
     end)
@@ -556,9 +559,26 @@ end
 
 -- Joins and welcomes ---------------------------------------------------------
 
+-- The game fires this twice for an invite: once when the invite goes out (they aren't on
+-- the roster yet) and again when they accept. Only the second one is a join.
 function Recruit:OnMemberAdded(guildId, name)
-    if not self.sv.joinNotice or name == GetDisplayName() then return end
-    if not U.HasPermission(guildId, GUILD_PERMISSION_INVITE) then return end
+    if name == GetDisplayName() or not U.IsMember(guildId, name) then return end
+    if self.sv.joinNotice and U.HasPermission(guildId, GUILD_PERMISSION_INVITE) then self:JoinNotice(guildId, name) end
+    if self.sv.welcomeChat or self.sv.welcomeMail then self:Welcome(guildId, name, self:IsMine(guildId, name)) end
+end
+
+-- Did you bring them in? You invited them (from this addon, or the game's invite as roster
+-- history shows it), or you accepted an application in that guild in the last minute.
+local ACCEPT_WINDOW_SECONDS = 60
+function Recruit:IsMine(guildId, name)
+    local key = guildId .. ":" .. name
+    local invited = self.sv.invited[key] ~= nil
+    self.sv.invited[key] = nil
+    local accepted = self.acceptedAt[guildId] and GetTimeStamp() - self.acceptedAt[guildId] <= ACCEPT_WINDOW_SECONDS
+    return invited or accepted == true
+end
+
+function Recruit:JoinNotice(guildId, name)
     local open, numMembers = self:OpenSlots(guildId)
     local line = string.format("%s joined %s. %d/%d members, %d open.", name, U.GuildName(guildId), numMembers, GUILD_MAX_MEMBERS, open)
     if self.sv.nearlyFull > 0 and open <= self.sv.nearlyFull then
@@ -570,20 +590,13 @@ function Recruit:OnMemberAdded(guildId, name)
     U.Print(line)
 end
 
--- Roster history: who invited and who accepted whom. Live joins get a welcome.
+-- Roster history: invites you sent from the game's own menus, so "People I invited or
+-- accepted" knows about them. Welcomes themselves come from the join (OnMemberAdded), which
+-- arrives at once; history can arrive later.
 function Recruit:OnHistoryEvent(guildId, category, info, isLive)
-    local t, me = info.eventType, GetDisplayName()
-    if t == GUILD_HISTORY_ROSTER_EVENT_INVITE then
-        if info.actingDisplayName == me and GetTimeStamp() - info.timestampS < INVITE_KEEP_SECONDS then
-            self.sv.invited[guildId .. ":" .. info.targetDisplayName] = info.timestampS
-        end
-    elseif isLive and t == GUILD_HISTORY_ROSTER_EVENT_APPLICATION_ACCEPTED then
-        self:Welcome(guildId, info.targetDisplayName, info.actingDisplayName == me)
-    elseif isLive and t == GUILD_HISTORY_ROSTER_EVENT_JOIN then
-        local key = guildId .. ":" .. info.actingDisplayName
-        local mine = self.sv.invited[key] ~= nil
-        self.sv.invited[key] = nil
-        self:Welcome(guildId, info.actingDisplayName, mine)
+    if info.eventType == GUILD_HISTORY_ROSTER_EVENT_INVITE and info.actingDisplayName == GetDisplayName()
+        and GetTimeStamp() - info.timestampS < INVITE_KEEP_SECONDS and not U.IsMember(guildId, info.targetDisplayName) then
+        self.sv.invited[guildId .. ":" .. info.targetDisplayName] = info.timestampS
     end
 end
 
@@ -610,7 +623,7 @@ function Recruit:WelcomeInChat(guildId, name, fromLink)
     if fromLink or (not recent and not CHAT_SYSTEM:IsTextEntryOpen()) then
         self.lastWelcome[guildId] = GetTimeStamp()
         StartChatInput(text, channel)
-        if not fromLink then U.Print("%s joined %s. The welcome is in the guild chat box; press Enter to post it.", name, U.GuildName(guildId)) end
+        if not fromLink then U.Print("Welcome for %s is in the %s chat box. Press Enter to post it.", name, U.GuildName(guildId)) end
     else
         U.Print("%s joined %s. %s", name, U.GuildName(guildId), Link("Say welcome", "welcome", guildId, name))
     end
