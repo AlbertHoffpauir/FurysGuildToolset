@@ -1149,7 +1149,12 @@ end
 -- Also returns the trial short names it saw ("ss" -> "sunspire").
 function Events.WantsVeteran(ev)
     local text = zo_strlower(ev.title .. "\n" .. table.concat(ev.desc, "\n"))
-    local veteran = (text:find("veteran") or (" " .. text:gsub("%A", " ") .. " "):find(" vet ", 1, true)) and true or false
+    -- 1.16.9: plain ifs. In game "(find(...) or ...) and true or false" gave 39 (the position),
+    -- and SetVeteranDifficulty refuses a number.
+    local words = " " .. text:gsub("%A", " ") .. " "
+    local veteran = false
+    if text:find("veteran", 1, true) then veteran = true end
+    if words:find(" vet ", 1, true) then veteran = true end
     local aliases = {}
     for word in text:gmatch("%a+") do
         local prefix, rest = word:sub(1, 1), word:sub(2)
