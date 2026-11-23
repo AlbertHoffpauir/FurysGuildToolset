@@ -1179,19 +1179,23 @@ function Events:PickTrial(ev)
     return string.format("%s (%s)", options[pick].name, primary ~= "" and primary or (veteran and "Veteran" or "Normal"))
 end
 
--- Players per role for the listing: who plays that role in your group now, plus the open
--- slots (sign-up slots nobody has taken). Sign-ups who aren't here yet keep their slot, so the
--- listing doesn't fill it. Never more than the listing's size.
-function Events:ListingRoles(state)
+-- Players per role for the listing (1.15.3, Albert): the whole group, not the open slots. The
+-- Group Finder shows itself who is there and what's still needed. Each role is the limit of its
+-- sign-up section; a trial with no limit for a role gets 2 tanks, 2 healers, 8 DPS. Never fewer
+-- than already play that role in the group, never more than the listing's size (DPS trimmed
+-- first). nil when nothing gives a number (a custom event with no limits).
+local TRIAL_ROLES = { tank = 2, heal = 2, dps = 8 }
+function Events:ListingRoles(state, isTrial)
     local numRoles = GetGroupFinderUserTypeGroupListingNumRoles(DRAFT)
-    local any = false
+    local limit = {}
     for _, section in ipairs(state.ev.sections) do
-        if ROLE_OF_KIND[section.kind] and section.max then any = true end
+        if ROLE_OF_KIND[section.kind] and section.max then limit[section.kind] = (limit[section.kind] or 0) + section.max end
     end
-    if not any then return nil, numRoles end
+    if not isTrial and next(limit) == nil then return nil, numRoles end
     local desired, total = {}, 0
     for kind, role in pairs(ROLE_OF_KIND) do
-        desired[role] = GetGroupFinderUserTypeGroupListingAttainedRoleCount(DRAFT, role) + (state.open[kind] or 0)
+        local want = limit[kind] or (isTrial and TRIAL_ROLES[kind]) or 0
+        desired[role] = math.max(want, GetGroupFinderUserTypeGroupListingAttainedRoleCount(DRAFT, role))
         total = total + desired[role]
     end
     for _, role in ipairs({ LFG_ROLE_DPS, LFG_ROLE_HEAL, LFG_ROLE_TANK }) do
@@ -1202,6 +1206,16 @@ function Events:ListingRoles(state)
         end
     end
     return desired, numRoles
+end
+
+-- "2 tanks, 2 healers, 8 DPS" for the listing's roles.
+local function RolesText(desired)
+    local parts = {}
+    for _, kind in ipairs({ "tank", "heal", "dps" }) do
+        local n = desired[ROLE_OF_KIND[kind]]
+        parts[#parts + 1] = string.format("%d %s", n, NEED_WORDS[kind][n == 1 and 1 or 2])
+    end
+    return table.concat(parts, ", ")
 end
 
 -- The listing's description: the description from the sesh post (1.15.2, Albert). The Group
@@ -1286,14 +1300,14 @@ function Events:AskListing()
     local description = self:ListingDescription(state)
     local maxDesc = GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH
     if #description > maxDesc then description = description:sub(1, maxDesc) end
-    local need = self:NeedText(state)
+    local roles = self:ListingRoles(state, trial ~= nil)
     self:OpenInput({
         title = "Group Finder listing",
         hint = string.format("First line: the listing's title (letters and spaces, up to %d characters; numbers and symbols are taken out). The rest: its description (up to %d characters). %s%s%s Edit it, then press Create listing.",
             GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH, maxDesc,
             trial and ("Activity: " .. trial .. ". ") or "Activity: Custom (no trial named in the post). ",
             (ev.minCP or 0) > 0 and string.format("Requires CP %d. ", ev.minCP) or "",
-            need ~= "" and ("Roles wanted: " .. need .. ".") or ""),
+            roles and ("Group: " .. RolesText(roles) .. " (the Group Finder shows who's there and who's still needed).") or ""),
         okLabel = "Create listing",
         okTip = "Creates the Group Finder listing. Accept applicants in the game's Group Finder window.",
         text = CleanTitle(ev.title) .. "\n" .. description,
@@ -1339,10 +1353,7 @@ function Events:CreateListing(text)
     end
     SetGroupFinderUserTypeGroupListingTitle(DRAFT, title)
     SetGroupFinderUserTypeGroupListingDescription(DRAFT, description)
-    local minCP = ev.minCP or 0
-    SetGroupFinderUserTypeGroupListingRequiresChampion(DRAFT, minCP > 0)
-    if minCP > 0 then SetGroupFinderUserTypeGroupListingChampionPoints(DRAFT, minCP) end
-    local desired, numRoles = self:ListingRoles(state)
+    local desired, numRoles = self:ListingRoles(state, trial ~= nil)
     SetGroupFinderUserTypeGroupListingEnforceRoles(DRAFT, desired ~= nil)
     if desired then
         local total = 0
@@ -1352,6 +1363,10 @@ function Events:CreateListing(text)
         end
         SetGroupFinderUserTypeGroupListingRoleCount(DRAFT, LFG_ROLE_INVALID, math.max(0, numRoles - total))
     end
+    -- CP last, points before the checkbox.
+    local minCP = ev.minCP or 0
+    if minCP > 0 then SetGroupFinderUserTypeGroupListingChampionPoints(DRAFT, minCP) end
+    SetGroupFinderUserTypeGroupListingRequiresChampion(DRAFT, minCP > 0)
     self.listingPending = true
     RequestCreateGroupListing()
     U.Print("Asking the game to create the Group Finder listing \"%s\"...", title)
