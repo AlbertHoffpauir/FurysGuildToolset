@@ -1236,6 +1236,13 @@ local function RolesText(desired)
     return table.concat(parts, ", ")
 end
 
+-- Voice (1.16.1, Albert): a post with "learn" in it needs voice chat. The listing ticks Voice
+-- Chat Required and says VOICE REQUIRED in the title and the description.
+local VOICE = "VOICE REQUIRED"
+local function NeedsVoice(ev)
+    return zo_strlower(ev.title .. "\n" .. table.concat(ev.desc, "\n")):find("learn") ~= nil
+end
+
 -- The listing's description: the description from the sesh post (1.15.2, Albert). The Group
 -- Finder shows the roles filled and needed itself. Paragraphs are joined; a list of short lines
 -- becomes "a, b, c"; a line like "THERE ARE REQUIREMENTS" takes the list under it ("...: a, b").
@@ -1273,6 +1280,8 @@ function Events:ListingDescription(state)
     end
     local description = table.concat(parts, " ")
     local max = GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH
+    local voice = NeedsVoice(ev) and (VOICE .. ". ") or ""
+    max = max - #voice
     if #description > max then
         -- Cut after the last sentence or list item that fits; at a word if that leaves too little.
         local head = description:sub(1, max)
@@ -1280,20 +1289,32 @@ function Events:ListingDescription(state)
         if not cut or #cut < max / 2 then cut = description:sub(1, max + 1):match("^(.*)%s") or head end
         description = Trim(cut):gsub("[,:;]$", "")
     end
-    return description
+    return voice .. description
 end
 
 -- A title the Group Finder takes (1.13.3): letters and spaces only (digits, emoji and symbols
 -- become spaces), single spaces, cut at a word to the length limit, ending with a letter.
-local function CleanTitle(text)
+local function CleanTitle(text, max)
     local title = Printable(text):gsub("[^%a%s]", " "):gsub("%s+", " ")
     title = Trim(title)
-    local max = GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH
+    max = max or GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH
     if #title > max then
         local cut = title:sub(1, max + 1):match("^(.*)%s") or title:sub(1, max)
         title = Trim(cut)
     end
     return (title:gsub("[^%a]+$", ""))
+end
+
+local function WithVoiceTitle(title)
+    if title:find(VOICE, 1, true) then return title end
+    local base = CleanTitle(title, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH - #VOICE - 1)
+    return base ~= "" and (base .. " " .. VOICE) or VOICE
+end
+
+-- Text cut at a word to max characters.
+local function CutAtWord(text, max)
+    if #text <= max then return text end
+    return Trim(text:sub(1, max + 1):match("^(.*)%s") or text:sub(1, max))
 end
 
 local function TitleOK(title)
@@ -1330,7 +1351,7 @@ function Events:AskListing()
             roles and ("Group: " .. RolesText(roles) .. " (the Group Finder shows who's there and who's still needed).") or ""),
         okLabel = "Create listing",
         okTip = "Creates the Group Finder listing. Accept applicants in the game's Group Finder window.",
-        text = CleanTitle(ev.title) .. "\n" .. description,
+        text = (NeedsVoice(ev) and WithVoiceTitle(ev.title) or CleanTitle(ev.title)) .. "\n" .. description,
         onOk = function(text) self:CreateListing(text) end,
     })
 end
@@ -1345,13 +1366,22 @@ function Events:CreateListing(text)
     -- Tidy the title instead of refusing it: digits and symbols out, cut to the limit. If the
     -- game still won't take it, fall back to the event's name, tidied the same way.
     local typed = title
-    if not TitleOK(title) then title = CleanTitle(title) end
-    if not TitleOK(title) then title = CleanTitle(ev.title) end
-    if not TitleOK(title) then
-        local trial = self:PickTrial(ev)
-        if trial then title = CleanTitle(trial) end
+    local voice = NeedsVoice(ev)
+    local candidates = { title, CleanTitle(title), CleanTitle(ev.title) }
+    local pickedTrial = self:PickTrial(ev)
+    if pickedTrial then candidates[#candidates + 1] = CleanTitle(pickedTrial) end
+    title = nil
+    for _, candidate in ipairs(candidates) do
+        local try = voice and WithVoiceTitle(candidate) or candidate
+        if not title and TitleOK(try) then title = try end
     end
-    if not TitleOK(title) then
+    for _, candidate in ipairs(candidates) do
+        if not title and TitleOK(candidate) then title = candidate end
+    end
+    if voice and not description:find(VOICE, 1, true) then
+        description = VOICE .. ". " .. CutAtWord(description, GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH - #VOICE - 2)
+    end
+    if not title then
         U.Print("The Group Finder won't take \"%s\" as a title: %s", typed, ZO_GroupFinder_GetGroupTitleViolationString(typed))
         return
     end
@@ -1375,6 +1405,7 @@ function Events:CreateListing(text)
         local playstyle = self:PickPlaystyle(ev)
         if playstyle then SetGroupFinderUserTypeGroupListingPlaystyle(DRAFT, playstyle) end
     end
+    SetGroupFinderUserTypeGroupListingRequiresVOIP(DRAFT, voice)
     SetGroupFinderUserTypeGroupListingTitle(DRAFT, title)
     SetGroupFinderUserTypeGroupListingDescription(DRAFT, description)
     local desired, numRoles = self:ListingRoles(state, trial ~= nil)
