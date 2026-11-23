@@ -1231,7 +1231,7 @@ end
 
 local function TitleOK(title)
     return title ~= "" and #title <= GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH
-        and select("#", IsValidGroupFinderListingTitle(title)) == 0
+        and #{ IsValidGroupFinderListingTitle(title) } == 0   -- 1.15.1: count violations like ZOS does (select("#") counted a nil return as one)
 end
 
 function Events:AskListing()
@@ -1279,7 +1279,11 @@ function Events:CreateListing(text)
     if not TitleOK(title) then title = CleanTitle(title) end
     if not TitleOK(title) then title = CleanTitle(ev.title) end
     if not TitleOK(title) then
-        U.Print("The Group Finder won't take \"%s\" as a title, even with the numbers and symbols taken out. Try other words (letters and spaces, short).", typed)
+        local trial = self:PickTrial(ev)
+        if trial then title = CleanTitle(trial) end
+    end
+    if not TitleOK(title) then
+        U.Print("The Group Finder won't take \"%s\" as a title: %s", typed, ZO_GroupFinder_GetGroupTitleViolationString(typed))
         return
     end
     if title ~= typed then U.Print("Title changed to \"%s\" (the Group Finder takes letters and spaces only, up to %d characters).", title, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH) end
