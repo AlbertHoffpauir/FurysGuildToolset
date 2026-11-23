@@ -1418,10 +1418,21 @@ function Events:CreateListing(text)
         end
         SetGroupFinderUserTypeGroupListingRoleCount(DRAFT, LFG_ROLE_INVALID, math.max(0, numRoles - total))
     end
-    -- CP last, points before the checkbox.
+    -- CP last. Tick the box first, then the points, the same order as the game's own window
+    -- (points set before the box didn't stick in game). Capped like the game's window caps it.
     local minCP = ev.minCP or 0
-    if minCP > 0 then SetGroupFinderUserTypeGroupListingChampionPoints(DRAFT, minCP) end
     SetGroupFinderUserTypeGroupListingRequiresChampion(DRAFT, minCP > 0)
+    if minCP > 0 then
+        local maxCP = GetMaxSpendableChampionPointsInAttribute() * GetNumChampionDisciplines()
+        if minCP > maxCP then minCP = maxCP end
+        SetGroupFinderUserTypeGroupListingChampionPoints(DRAFT, minCP)
+        local ticked = DoesGroupFinderUserTypeGroupListingRequireChampion(DRAFT)
+        local points = GetGroupFinderCreateGroupListingChampionPoints(DRAFT)
+        if not ticked or points ~= minCP then
+            U.Print("The game didn't take the CP requirement (asked for CP %d, it has %s). Check Champion Points Required in the Group Finder window.",
+                minCP, ticked and tostring(points) or "none")
+        end
+    end
     self.listingPending = true
     RequestCreateGroupListing()
     U.Print("Asking the game to create the Group Finder listing \"%s\"...", title)
