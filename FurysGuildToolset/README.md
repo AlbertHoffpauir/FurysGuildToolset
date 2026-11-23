@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.10.1
+# Fury's Guild Management Toolset (ESO addon) v1.11.0
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -10,7 +10,7 @@
 - Thanks to Dack for code review feedback on how guild history should be read.
 - The Guild Crier started as my own separate addon, "Fury's Guild Crier", and is now part of this toolset.
 
-**An officer toolkit for ESO guild leaders and officers.** It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members and run raffles.
+**An officer toolkit for ESO guild leaders and officers.** It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
 
 **Every feature starts turned off.** Nothing runs, alerts, logs or mails until you turn it on, so you can switch on only what you want. Updating from an older version keeps your settings as they were.
 
@@ -18,9 +18,9 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.10.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.10.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.11.0.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.11.0.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
-**Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Questions](#questions)
+**Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
 ## Getting started
 
@@ -43,15 +43,15 @@
 
 ### The settings pages
 
-- Esc > Settings > Add-Ons, or `/gtsettings`. There are five pages, all starting with "Fury's Guild Management":
+- Esc > Settings > Add-Ons, or `/gtsettings`. There are six pages, all starting with "Fury's Guild Management":
 - **Fury's Guild Management** (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
 - **- Guild rules:** a **Rules for (guild)** section for each ticked guild.
-- **- Recruiting**, **- Raffle** and **- Crier:** everything for those features.
+- **- Recruiting**, **- Raffle**, **- Events** and **- Crier:** everything for those features.
 
 ### Commands
 
 - `/gt`: open or close the report window.
-- `/gt bank`, `hoppers`, `watchlist`, `history`, `space`, `members`, `inactive`, `trader`, `sales`, `auto`, `recruit`, `raffle`, `crier`: open that tab.
+- `/gt bank`, `hoppers`, `watchlist`, `history`, `space`, `members`, `inactive`, `trader`, `sales`, `auto`, `recruit`, `raffle`, `events`, `crier`: open that tab.
 - `/gtsettings` (or `/gt settings`): open the settings.
 - `/gt tour`: start or stop the recruiting zone tour.
 - `/gt raffle add @name 3 (reason)` and `/gt raffle remove @name 3`: change someone's raffle tickets by hand.
@@ -284,10 +284,44 @@ Sell raffle tickets for gold and draw the winners. Works without a guild too, fo
 - Two raffles taking mail at the same time each need a **mail subject keyword**; a mail counts for the raffle whose keyword is in its subject.
 - Anything unclear goes to **Unassigned payments** (in the New / other raffles menu). Right-click to count it for a raffle or ignore it. A raffle won't draw while something unassigned might belong to it.
 
+## Events
+
+See who signed up for a guild event in Discord (sesh bot) and who actually showed up, then fill the empty slots. Works for trials with Tank, Healer and DPS limits, and for classes or any event with no limit.
+
+### Turn it on
+
+- Open the **Events** settings page (or the button under Events in `/gtsettings`) and tick **Turn on Events**.
+- Under **Guilds to advertise in**, tick the guilds that should get your ads for open slots.
+- Change the whisper, mail and guild ad texts if you like. {name}, {event}, {time}, {need}, {cp} and {me} are filled in for you.
+
+### Read the sign-ups
+
+- In Discord, select the sesh event post from its title down to the last name under the last role, and press Ctrl+C.
+- On the **Events** tab (`/gt events`), click **Paste sign-ups**, click in the box, press Ctrl+V, then **Read sign-ups**.
+- The addon reads the title, time, CP requirement ("160 CP"), required addons, and every sign-up section with its limit: "Tank (1 / 2)", "DPS (1 / 8)", "Standby (0)" or "Attendees (4)". Any number of tanks or DPS works, and so does a section with no limit.
+
+### Who's here, who's missing
+
+- Each sign-up shows as **In group**, **In group as (another role)**, **Online, not in group** or **Offline** (with how long), plus their group role and CP. CP under the requirement shows in red.
+- People in your group who didn't sign up show as **Not signed up**.
+- Discord names are matched to @accounts by name (fancy letters and spaces are ignored). If a match is wrong or missing, right-click the row > **Set account**. The addon remembers it for every event.
+- The line at the top shows each section's sign-ups and how many are here, and the open slots (for example "Open: 1 tank, 2 healers").
+
+### Ping the missing people
+
+- Right-click a sign-up to **Whisper** them (the text waits in the chat box), **Invite** them to the group, or **Mail** them (the mail opens for you to send).
+- **Invite online** sends a group invite to every sign-up who is online and not in your group (not Standby).
+- **Copy for Discord** gives you a message with the missing names and open slots to paste into Discord.
+
+### Fill the empty slots
+
+- **Advertise in guilds** puts an ad for the open slots in the chat box of each ticked guild, one after another. Press Enter for each.
+- **Group Finder** shows a listing to check: the first line is its title, the rest its description (time, CP, required addons). It picks the trial and Normal or Veteran from the post ("Sunspire", "vSS"), sets the CP minimum, and asks for the open tanks, healers and DPS. Edit it, then press **Create listing**. You accept applicants in the game's Group Finder window.
+
 ## Questions
 
 **Will it kick, blacklist or invite people on its own?**  
-No. Kick, blacklist and invite always need your click, and kicks and blacklists ask to confirm. The only thing it can do by itself is demote, and only if you turn on auto-demote.
+No. Kick, blacklist, invites and Group Finder listings always need your click, and kicks and blacklists ask to confirm. The only thing it can do by itself is demote, and only if you turn on auto-demote.
 
 **I just installed it and already have a pile of alerts. Did it do anything?**  
 No. The first time, it looks back 30 days so you can review older withdrawals. Nothing is done to anyone for those.

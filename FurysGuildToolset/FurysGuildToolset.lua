@@ -6,7 +6,7 @@ local GT = FuryGMT
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.10.1"
+GT.version = "1.11.0"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -255,6 +255,8 @@ function GT.RegisterSlashCommands()
             GT.Report:Show("trader")
         elseif arg == "recruit" then
             GT.Report:Show("recruit")
+        elseif arg == "events" or arg == "event" then
+            GT.Report:Show("events")
         elseif arg == "tour" then
             GT.Recruit:ToggleTour()
         elseif arg == "sales" then
@@ -284,7 +286,7 @@ function GT.RegisterSlashCommands()
             GT.Util.Print("Fury's Guild Management Toolset v%s", GT.version)
             GT.Util.Print("/gt  open the report window")
             -- No "|" here: ESO treats it as a text-formatting character and hides it.
-            GT.Util.Print("/gt bank, /gt hoppers, /gt watchlist, /gt history, /gt space, /gt members, /gt inactive, /gt trader, /gt sales, /gt auto, /gt recruit  open a specific tab")
+            GT.Util.Print("/gt bank, /gt hoppers, /gt watchlist, /gt history, /gt space, /gt members, /gt inactive, /gt trader, /gt sales, /gt auto, /gt recruit, /gt events  open a specific tab")
             GT.Util.Print("/gt tour  start or stop the recruiting zone tour")
             GT.Util.Print("/gt raffle  open the Raffle tab;  /gt raffle add @name 3 (reason), /gt raffle remove @name 3 (reason)  change someone's tickets by hand")
             GT.Util.Print("/gt crier (or /crier)  open the Guild Crier message menu")
