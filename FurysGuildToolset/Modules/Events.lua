@@ -56,11 +56,27 @@ Events.defaults = {
     whisperText = "Hi {name}, {event} is forming up now. Are you still coming? I can send you an invite.",
     mailSubject = "{event} is starting",
     mailText = "Hi {name},\n\nYou signed up for {event} ({time}) and we're forming up now. If you can still make it, log in and whisper {me} for an invite.\n\nThanks!",
-    adText = "LFM {need} for {event}{cp}. Whisper {me} for an invite!",
+    -- Once the group forms: the ad for replacements, join now (1.12.1 wording from Albert).
+    adText = "Sign up for {event}, {time}{cp}! Still open: {need}. Type {code} into guild chat or whisper {me}.",
     -- 1.12.0: before the group forms, ads ask people to sign up for the slots nobody has taken.
-    signupAdText = "Sign up for {event}, {time}{cp}! Still open: {need}. Sign up in our Discord or whisper {me}.",
+    signupAdText = "Sign up for {event}, {time}{cp}! Still open: {need}. Sign up in our Discord",
     formUpMinutes = 15,       -- the group forms this many minutes before the start time
+    -- 1.12.1: once the group forms, someone who types the invite code in a ticked guild's chat
+    -- (or whispers it) gets a group invite. Off on a new install.
+    autoInvite = false,
+    inviteCode = "+trial",
 }
+
+-- Ad texts that were the default in an earlier version. A saved text still equal to one of
+-- them was never changed, so it moves to the new default.
+local OLD_DEFAULTS = {
+    adText = { "LFM {need} for {event}{cp}. Whisper {me} for an invite!" },
+    signupAdText = { "Sign up for {event}, {time}{cp}! Still open: {need}. Sign up in our Discord or whisper {me}." },
+}
+
+local CODE_EVENT_NAME = "FuryGMTEventsCode"
+local CODE_HOURS_AFTER_START = 2   -- the invite code works until this long after the start time
+local MAX_GROUP = 12
 
 Events.columns = {
     { title = "Signed up as", width = 130, tip = "The sign-up section in the sesh post (Tank, Healer, DPS, Standby, Attendees...)." },
@@ -291,6 +307,11 @@ end
 
 function Events:Initialize(sv)
     self.sv = sv
+    for key, olds in pairs(OLD_DEFAULTS) do
+        for _, old in ipairs(olds) do
+            if sv[key] == old then sv[key] = Events.defaults[key] end
+        end
+    end
     self:RegisterTab()
     SCENE_MANAGER:RegisterTopLevel(FuryGMTEventsInput, false)
     FuryGMTEventsInputTextBox:SetMaxInputChars(MAX_PASTE)
@@ -299,6 +320,7 @@ function Events:Initialize(sv)
     EVENT_MANAGER:RegisterForEvent("FuryGMTEventsListing", EVENT_GROUP_FINDER_CREATE_GROUP_LISTING_RESULT,
         function(_, result) self:OnListingResult(result) end)
     self:RegisterWatch()
+    self:RegisterCode()
 end
 
 -- Group and online changes refresh the tab while it's showing. Only while the feature is on.
@@ -329,6 +351,7 @@ end
 function Events:SetEnabled(on)
     self.sv.enabled = on
     self:RegisterWatch()
+    self:RegisterCode()
     GT.Report:RefreshIfShown()
 end
 
@@ -574,6 +597,7 @@ function Events:Values(state, name, open)
         event = ev.title, time = ev.time or "now", me = GetDisplayName(), name = name or "",
         need = need ~= "" and need or "more people",
         cp = (ev.minCP or 0) > 0 and string.format(" (CP %d+)", ev.minCP) or "",
+        code = self.sv.inviteCode or Events.defaults.inviteCode,
     }
 end
 
@@ -828,6 +852,97 @@ function Events:InviteOnline()
     end
 end
 
+-- Invite code ------------------------------------------------------------------------------
+
+-- Listens to guild chat and whispers while inviting by code is on. The handler only acts when
+-- a whole message is the code.
+function Events:RegisterCode()
+    EVENT_MANAGER:UnregisterForEvent(CODE_EVENT_NAME, EVENT_CHAT_MESSAGE_CHANNEL)
+    if self.sv.enabled and self.sv.autoInvite then
+        EVENT_MANAGER:RegisterForEvent(CODE_EVENT_NAME, EVENT_CHAT_MESSAGE_CHANNEL, function(_, channelType, _, text, _, fromDisplayName)
+            self:OnCodeMessage(channelType, text, fromDisplayName)
+        end)
+    end
+end
+
+-- The guild (guildId) a guild chat channel belongs to, or nil.
+local function GuildOfChannel(channelType)
+    for i, channel in ipairs(GUILD_CHANNELS) do
+        if channel == channelType and i <= GetNumGuilds() then return GetGuildId(i) end
+    end
+    return nil
+end
+
+-- The CP someone shows in a guild you share, or nil when unknown.
+local function GuildCP(name, guildId)
+    local ids = guildId and { guildId } or U.GetGuildIds()
+    for _, id in ipairs(ids) do
+        local index = GetGuildMemberIndexFromDisplayName(id, name)
+        if index then
+            local _, _, _, _, _, _, championRank = GetGuildMemberCharacterInfo(id, index)
+            return championRank
+        end
+    end
+    return nil
+end
+
+-- Whether the code works now: an event pasted, the group has formed (start time minus the
+-- forming minutes) and it's not more than CODE_HOURS_AFTER_START past the start time. Returns
+-- the state, or nil and why.
+function Events:CodeWindow()
+    local state = self:State()
+    if not state then return nil, "no event pasted" end
+    if state.mode ~= "now" then return nil, "the group hasn't formed yet" end
+    if state.startTs and GetTimeStamp() > state.startTs + CODE_HOURS_AFTER_START * 3600 then return nil, "the event started too long ago" end
+    return state
+end
+
+-- The group size the event needs: its role limits (Standby left out), or a full group.
+local function GroupLimit(ev)
+    local total = 0
+    for _, section in ipairs(ev.sections) do
+        if section.max and (ROLE_OF_KIND[section.kind] or section.kind == "any") then total = total + section.max end
+    end
+    return (total > 0 and total < MAX_GROUP) and total or MAX_GROUP
+end
+
+function Events:OnCodeMessage(channelType, text, fromDisplayName)
+    local code = zo_strlower(zo_strtrim(self.sv.inviteCode or ""))
+    if code == "" or zo_strlower(zo_strtrim(text or "")) ~= code then return end
+    if not fromDisplayName or fromDisplayName == "" or fromDisplayName == GetDisplayName() then return end
+    local guildId = GuildOfChannel(channelType)
+    if guildId then
+        if not self.sv.adGuilds[guildId] then return end
+    elseif channelType ~= CHAT_CHANNEL_WHISPER then
+        return
+    end
+    local state, why = self:CodeWindow()
+    if not state then return end
+    local group = self:BuildGroup()
+    if group[Norm(fromDisplayName)] then return end
+    self.codeSeen = self.codeSeen or {}
+    local now = GetTimeStamp()
+    if self.codeSeen[fromDisplayName] and now - self.codeSeen[fromDisplayName] < 60 then return end
+    self.codeSeen[fromDisplayName] = now
+    local link = ZO_LinkHandler_CreateDisplayNameLink(fromDisplayName)
+    if not IsUnitSoloOrGroupLeader("player") then
+        U.Print("%s typed the invite code, but only the group leader can invite.", link)
+        return
+    end
+    if GetGroupSize() >= GroupLimit(state.ev) then
+        U.Print("%s typed the invite code, but the group is full. Not invited.", link)
+        return
+    end
+    local minCP = state.ev.minCP or 0
+    local cp = GuildCP(fromDisplayName, guildId)
+    if minCP > 0 and cp and cp < minCP then
+        U.Print("%s typed the invite code, but has CP %d (the event needs %d). Not invited.", link, cp, minCP)
+        return
+    end
+    GroupInviteByName(fromDisplayName)
+    U.Print("Invited %s (typed the invite code%s).", link, cp and string.format(", CP %d", cp) or "")
+end
+
 -- Asks which kind of ad: sign-ups for the slots nobody has taken (before the group forms) or
 -- replacements for what the group is missing now. The one that fits the time comes first.
 function Events:AdMenu(control, fn)
@@ -872,6 +987,9 @@ function Events:Advertise(mode)
     local template = mode == "now" and self.sv.adText or (self.sv.signupAdText or Events.defaults.signupAdText)
     local text = Fill(template, self:Values(state, nil, open))
     if #text > MAX_CHAT then text = text:sub(1, MAX_CHAT) end
+    if template:find("{code}", 1, true) and not self.sv.autoInvite then
+        U.Print("The ad mentions your invite code, but inviting by code is off. Turn it on under Events settings (Invite code), or people who type it won't get an invite.")
+    end
     for i = 1, GetNumGuilds() do
         local guildId = GetGuildId(i)
         if self.sv.adGuilds[guildId] then posts[#posts + 1] = { channel = GUILD_CHANNELS[i], guildId = guildId, text = text } end
@@ -1146,7 +1264,7 @@ function Events:SettingsControls()
         { type = "description", text = "Copy a sesh event post in Discord and paste it into the Events tab (/gt events > Paste sign-ups). The tab shows each sign-up next to who is in your group, and lets you whisper, invite or mail the missing people, advertise the open slots in your guilds, and create a Group Finder listing. Nothing is sent without a click or Enter from you." },
         { type = "checkbox", name = "Turn on Events", tooltip = "Shows the Events tab and keeps it up to date while people join your group or log in.",
           getFunc = function() return sv.enabled end, setFunc = function(v) self:SetEnabled(v) end, default = false },
-        { type = "description", title = "Texts", text = "You can use {name} (their Discord name), {event} (the event title), {time}, {need} (open slots, like \"1 tank, 2 DPS\": sign-up slots nobody took before the group forms, what the group is missing after), {cp} (\" (CP 160+)\" when the post has a CP requirement) and {me} (your @account)." },
+        { type = "description", title = "Texts", text = "You can use {name} (their Discord name), {event} (the event title), {time}, {need} (open slots, like \"1 tank, 2 DPS\": sign-up slots nobody took before the group forms, what the group is missing after), {cp} (\" (CP 160+)\" when the post has a CP requirement), {code} (your invite code) and {me} (your @account)." },
         { type = "editbox", name = "Whisper", tooltip = "Goes in the chat box when you right-click a sign-up > Whisper. You press Enter.",
           getFunc = function() return sv.whisperText end, setFunc = function(v) sv.whisperText = v end, default = Events.defaults.whisperText },
         { type = "editbox", name = "Mail subject", tooltip = "For right-click > Mail. The mail opens filled in; you press Send.",
@@ -1158,6 +1276,12 @@ function Events:SettingsControls()
           getFunc = function() return sv.formUpMinutes or 15 end, setFunc = function(v) sv.formUpMinutes = v; self.cache = nil end, default = Events.defaults.formUpMinutes },
         { type = "editbox", name = "Guild ad for sign-ups", tooltip = "Before the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is the sign-up slots nobody has taken. Up to 350 characters.",
           getFunc = function() return sv.signupAdText or Events.defaults.signupAdText end, setFunc = function(v) sv.signupAdText = v end, default = Events.defaults.signupAdText },
+        { type = "checkbox", name = "Invite by code",
+          tooltip = "Once the group forms (until 2 hours after the start time), anyone who types the invite code in the chat of a guild ticked below, or whispers it to you, gets a group invite. Not when the group is full, when you aren't the leader, or when their CP is under the post's requirement. Put {code} in the replacement ad so people know it.",
+          getFunc = function() return sv.autoInvite end, setFunc = function(v) sv.autoInvite = v; self:RegisterCode() end, default = false },
+        { type = "editbox", name = "Invite code", tooltip = "The whole message has to be this (upper or lower case). {code} in the ads.",
+          getFunc = function() return sv.inviteCode or Events.defaults.inviteCode end, setFunc = function(v) sv.inviteCode = zo_strtrim(v) end, default = Events.defaults.inviteCode,
+          disabled = function() return not sv.autoInvite end },
         { type = "editbox", name = "Guild ad for replacements", tooltip = "Once the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is what your group is missing now, no-shows included. Up to 350 characters.",
           getFunc = function() return sv.adText end, setFunc = function(v) sv.adText = v end, default = Events.defaults.adText },
         { type = "header", name = "Guilds to advertise in" },

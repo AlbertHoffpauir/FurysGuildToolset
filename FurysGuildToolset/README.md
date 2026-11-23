@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.12.0
+# Fury's Guild Management Toolset (ESO addon) v1.13.0
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -18,7 +18,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.12.0.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.12.0.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.13.0.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.13.0.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -293,7 +293,8 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 - Open the **Events** settings page (or the button under Events in `/gtsettings`) and tick **Turn on Events**.
 - Under **Guilds to advertise in**, tick the guilds that should get your ads for open slots.
 - **Group forms (minutes before start)** is when your group starts forming (15 minutes before the start time by default). Before then, ads ask people to sign up. From then on, they ask for replacements.
-- Change the whisper, mail and guild ad texts if you like (one ad for sign-ups, one for replacements). {name}, {event}, {time}, {need}, {cp} and {me} are filled in for you.
+- Tick **Invite by code** and set your **Invite code** ("+trial" to start with) if people who type the code in guild chat should get a group invite (see Fill the empty slots).
+- Change the whisper, mail and guild ad texts if you like (one ad for sign-ups, one for replacements). {name}, {event}, {time}, {need}, {cp}, {code} and {me} are filled in for you.
 
 ### Read the sign-ups
 
@@ -318,13 +319,14 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 
 ### Fill the empty slots
 
+- With **Invite by code** on, anyone who types your invite code in the chat of a guild you advertise in, or whispers it to you, gets a group invite once the group forms (until 2 hours after the start time). The replacement ad tells people the code. Nobody is invited when the group is full, when you aren't the group leader, or when their CP (as their guild shows it) is under the post's requirement; you get a chat line instead.
 - **Advertise in guilds** puts an ad in the chat box of each ticked guild, one after another. Press Enter for each. Pick the kind from the menu: **Ask for sign-ups** (before the event, for the slots nobody signed up for) or **Ask for replacements, join now** (once the group forms, for no-shows and empty slots). The one that fits the time is first.
 - **Group Finder** shows a listing to check: the first line is its title, the rest its description (time, CP, required addons). It picks the trial and Normal or Veteran from the post ("Sunspire", "vSS"), sets the CP minimum, and asks for the open tanks, healers and DPS (what the group needs now, once it forms). Edit it, then press **Create listing**. You accept applicants in the game's Group Finder window.
 
 ## Questions
 
 **Will it kick, blacklist or invite people on its own?**  
-No. Kick, blacklist, invites and Group Finder listings always need your click, and kicks and blacklists ask to confirm. The only thing it can do by itself is demote, and only if you turn on auto-demote.
+Kick, blacklist and Group Finder listings always need your click, and kicks and blacklists ask to confirm. It can do two things by itself, and only if you turn them on: demote (auto-demote), and invite someone who types your event invite code (Invite by code on the Events page).
 
 **I just installed it and already have a pile of alerts. Did it do anything?**  
 No. The first time, it looks back 30 days so you can review older withdrawals. Nothing is done to anyone for those.
