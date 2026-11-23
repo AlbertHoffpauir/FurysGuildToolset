@@ -1082,7 +1082,7 @@ function Raffle:ShowCopy(text, what)
     local Report = GT.Report
     Report.exportParts = { text }
     Report.exportIndex = 1
-    if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
+    U.ShowOnTop(FuryGMTExport)
     Report:ShowExportPart(0)
     U.Print("%s is in the copy window. Click Select all, press Ctrl+C, and paste it into Discord.", what)
 end
@@ -1147,7 +1147,7 @@ function Raffle:Post(r, parts)
     local Report = GT.Report
     Report.exportParts = { table.concat(parts, "\n") }
     Report.exportIndex = 1
-    if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
+    U.ShowOnTop(FuryGMTExport)
     Report:ShowExportPart(0)
     U.Print("No raffle guild is set, so the text is in the copy window. Click Copy, then paste it where your group chats.")
 end

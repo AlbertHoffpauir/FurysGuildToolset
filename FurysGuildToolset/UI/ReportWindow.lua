@@ -113,7 +113,7 @@ function Report:ShowCopy(text)
     self.exportParts = { text }
     self.exportIndex = 1
     self.exportTitle = "Copy"
-    if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
+    GT.Util.ShowOnTop(FuryGMTExport)
     self:ShowExportPart(0)
     FuryGMTExportTextBox:TakeFocus()
     FuryGMTExportTextBox:SelectAll()
@@ -539,7 +539,7 @@ function Report:ShowExport(tabLines)
     self.exportParts = parts
     self.exportIndex = 1
     self.exportTitle = nil
-    if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
+    GT.Util.ShowOnTop(FuryGMTExport)
     self:ShowExportPart(0)
 end
 

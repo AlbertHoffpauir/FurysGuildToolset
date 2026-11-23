@@ -136,7 +136,7 @@
             </Controls>
         </TopLevelControl>
 
-        <TopLevelControl name="FuryGMTExport" hidden="true" mouseEnabled="true" movable="true" clampedToScreen="true">
+        <TopLevelControl name="FuryGMTExport" hidden="true" mouseEnabled="true" movable="true" clampedToScreen="true" tier="HIGH">
             <Dimensions x="900" y="560" />
             <Anchor point="CENTER" />
             <Controls>

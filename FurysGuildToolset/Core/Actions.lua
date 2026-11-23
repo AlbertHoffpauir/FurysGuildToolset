@@ -454,7 +454,7 @@ function Actions.ConfirmRemove(job)
     FuryGMTRemoveDialogReasonBox:SetText(job.reason or "")
     SetMailButtonText()
     LayoutRemoveDialog()
-    if FuryGMTRemoveDialog:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTRemoveDialog) end
+    U.ShowOnTop(FuryGMTRemoveDialog)
 end
 
 function Actions.CloseRemoveDialog()

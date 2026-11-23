@@ -782,7 +782,7 @@ function Events:OpenInput(def)
     FuryGMTEventsInputHint:SetText(def.hint or "")
     FuryGMTEventsInputOK:SetText(def.okLabel or "OK")
     FuryGMTEventsInputTextBox:SetText(def.text or "")
-    if FuryGMTEventsInput:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTEventsInput) end
+    U.ShowOnTop(FuryGMTEventsInput)
     FuryGMTEventsInputTextBox:TakeFocus()
 end
 
@@ -1107,7 +1107,7 @@ function Events:CopyForDiscord(mode)
     Report.exportParts = { table.concat(lines, "\n") }
     Report.exportTitle = "Copy for Discord"
     Report.exportIndex = 1
-    if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
+    U.ShowOnTop(FuryGMTExport)
     Report:ShowExportPart(0)
     U.Print("The Discord message is in the copy window. Click Select all, press Ctrl+C, and paste it into Discord.")
 end

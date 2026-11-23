@@ -125,7 +125,7 @@ function AutoLog:ShowAlert(entry)
     FuryGMTAutoAlertBody:SetText(table.concat(lines, "\n"))
     FuryGMTAutoAlert:SetHeight(20 + FuryGMTAutoAlertTitle:GetTextHeight() + 14 + FuryGMTAutoAlertBody:GetTextHeight() + 18 + 30 + 20)
     PlaySound(SOUNDS.GENERAL_ALERT_ERROR)
-    if FuryGMTAutoAlert:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTAutoAlert) end
+    U.ShowOnTop(FuryGMTAutoAlert)
 end
 
 function AutoLog:HideAlert()
