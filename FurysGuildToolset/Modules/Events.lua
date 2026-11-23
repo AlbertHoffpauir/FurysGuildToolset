@@ -1309,9 +1309,23 @@ end
 
 -- A title the Group Finder takes (1.13.3): letters and spaces only (digits, emoji and symbols
 -- become spaces), single spaces, cut at a word to the length limit, ending with a letter.
-local function CleanTitle(text, max)
+-- The game allows "four hyphens, apostrophes, or spaces at most" in a title (Albert's test,
+-- 1.16.5), so five words. Too many words: day names go first, then words from the end.
+local MAX_TITLE_WORDS = 5
+local DAY_NAMES = { monday = true, tuesday = true, wednesday = true, thursday = true, friday = true, saturday = true, sunday = true }
+local function FitWords(title, maxWords)
+    local words = {}
+    for word in title:gmatch("%S+") do words[#words + 1] = word end
+    for i = #words, 1, -1 do
+        if #words > maxWords and DAY_NAMES[zo_strlower(words[i])] then table.remove(words, i) end
+    end
+    while #words > maxWords do table.remove(words) end
+    return table.concat(words, " ")
+end
+
+local function CleanTitle(text, max, maxWords)
     local title = Printable(text):gsub("[^%a%s]", " "):gsub("%s+", " ")
-    title = Trim(title)
+    title = FitWords(Trim(title), maxWords or MAX_TITLE_WORDS)
     max = max or GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH
     if #title > max then
         local cut = title:sub(1, max + 1):match("^(.*)%s") or title:sub(1, max)
@@ -1322,7 +1336,7 @@ end
 
 local function WithVoiceTitle(title)
     if title:find(VOICE, 1, true) then return title end
-    local base = CleanTitle(title, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH - #VOICE - 1)
+    local base = CleanTitle(title, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH - #VOICE - 1, MAX_TITLE_WORDS - 2)
     return base ~= "" and (base .. " " .. VOICE) or VOICE
 end
 
@@ -1359,7 +1373,7 @@ function Events:AskListing()
     if trial and playstyle then trial = trial .. ", " .. playstyle end
     self:OpenInput({
         title = "Group Finder listing",
-        hint = string.format("First line: the listing's title (letters and spaces, up to %d characters; numbers and symbols are taken out). The rest: its description (up to %d characters). %s%s%s Edit it, then press Create listing.",
+        hint = string.format("First line: the listing's title (letters and spaces, at most 5 words and %d characters; numbers and symbols are taken out). The rest: its description (up to %d characters). %s%s%s Edit it, then press Create listing.",
             GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH, maxDesc,
             trial and ("Activity: " .. trial .. ". ") or "Activity: Custom (no trial named in the post). ",
             (ev.minCP or 0) > 0 and string.format("Requires CP %d. ", ev.minCP) or "",
@@ -1406,7 +1420,7 @@ function Events:CreateListing(text)
         return
     end
     if title ~= typed then
-        local why = string.format("the Group Finder takes letters and spaces only, up to %d characters", GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH)
+        local why = string.format("the Group Finder takes letters and spaces only, at most %d words and %d characters", MAX_TITLE_WORDS, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH)
         if refused and #refused <= GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH then
             why = string.format("the game refused \"%s\": %s", refused, ZO_GroupFinder_GetGroupTitleViolationString(refused))
         end
