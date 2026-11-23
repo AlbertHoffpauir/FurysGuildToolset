@@ -699,6 +699,7 @@ function TraderWeek:ContactMenu(control, e)
             GT.Actions.Warn(e.name, "", "", "mail")
         end
     end)
+    AddMenuItem("Copy " .. e.name, function() GT.Report:ShowCopy(e.name) end)
     if e.rank then
         AddMenuItem("Shout out " .. e.name .. " in guild chat", function()
             self:PostToGuild(e.g, { self:ShoutOutText(e) })

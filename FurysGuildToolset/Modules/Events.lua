@@ -729,6 +729,8 @@ function Events:MenuItems(info, state)
         end
         items[#items + 1] = { label = "Mail " .. account, fn = function() A.Warn(account, Fill(self.sv.mailSubject, values), Fill(self.sv.mailText, values), "mail") end }
     end
+    if account then items[#items + 1] = GT.Report.CopyItem(account) end
+    if info.person.base ~= "" and info.person.base ~= account then items[#items + 1] = GT.Report.CopyItem(info.person.base) end
     if info.how ~= "picked" and info.how ~= "post" then
         for _, name in ipairs(self:Suggestions(info.person, state.index)) do
             if name ~= account then
@@ -1103,6 +1105,7 @@ function Events:CopyForDiscord(mode)
     end
     local Report = GT.Report
     Report.exportParts = { table.concat(lines, "\n") }
+    Report.exportTitle = "Copy for Discord"
     Report.exportIndex = 1
     if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
     Report:ShowExportPart(0)

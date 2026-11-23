@@ -98,7 +98,26 @@ function Report.ContactItems(displayName)
     return {
         { label = "Whisper " .. displayName, tip = "Starts a whisper to them in the chat box.", fn = function() GT.Actions.Warn(displayName, "", "", "whisper") end },
         { label = "Mail " .. displayName, tip = "Opens an empty mail to them.", fn = function() GT.Actions.Warn(displayName, "", "", "mail") end },
+        Report.CopyItem(displayName),
     }
+end
+
+-- "Copy @name" for a right-click menu (1.14.0).
+function Report.CopyItem(text)
+    return { label = "Copy " .. text, tip = "Shows the name selected in a small window. Press Ctrl+C to copy it.", fn = function() Report:ShowCopy(text) end }
+end
+
+-- Addons can't write to the clipboard: the text goes in the export window, selected, and the
+-- player presses Ctrl+C.
+function Report:ShowCopy(text)
+    self.exportParts = { text }
+    self.exportIndex = 1
+    self.exportTitle = "Copy"
+    if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
+    self:ShowExportPart(0)
+    FuryGMTExportTextBox:TakeFocus()
+    FuryGMTExportTextBox:SelectAll()
+    GT.Util.Print("%s is selected. Press Ctrl+C to copy it.", text)
 end
 
 function Report:RegisterTab(def)
@@ -519,6 +538,7 @@ function Report:ShowExport(tabLines)
     parts[#parts + 1] = table.concat(current, "\n")
     self.exportParts = parts
     self.exportIndex = 1
+    self.exportTitle = nil
     if FuryGMTExport:IsHidden() then SCENE_MANAGER:ShowTopLevel(FuryGMTExport) end
     self:ShowExportPart(0)
 end
@@ -527,6 +547,7 @@ function Report:ShowExportPart(delta)
     local parts = self.exportParts or { "" }
     self.exportIndex = zo_clamp((self.exportIndex or 1) + delta, 1, #parts)
     FuryGMTExportTextBox:SetText(parts[self.exportIndex])
+    FuryGMTExportTitle:SetText(self.exportTitle or "Export")
     FuryGMTExportPart:SetText(string.format("Part %d of %d", self.exportIndex, #parts))
     FuryGMTExportPrev:SetHidden(#parts <= 1)
     FuryGMTExportNext:SetHidden(#parts <= 1)
