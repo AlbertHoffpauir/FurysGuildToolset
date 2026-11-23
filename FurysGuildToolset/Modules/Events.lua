@@ -1200,6 +1200,24 @@ function Events:ListingDescription(state)
     return table.concat(parts, " ")
 end
 
+-- A title the Group Finder takes (1.13.3): letters and spaces only (digits, emoji and symbols
+-- become spaces), single spaces, cut at a word to the length limit, ending with a letter.
+local function CleanTitle(text)
+    local title = Printable(text):gsub("[^%a%s]", " "):gsub("%s+", " ")
+    title = Trim(title)
+    local max = GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH
+    if #title > max then
+        local cut = title:sub(1, max + 1):match("^(.*)%s") or title:sub(1, max)
+        title = Trim(cut)
+    end
+    return (title:gsub("[^%a]+$", ""))
+end
+
+local function TitleOK(title)
+    return title ~= "" and #title <= GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH
+        and select("#", IsValidGroupFinderListingTitle(title)) == 0
+end
+
 function Events:AskListing()
     local state = self:State()
     if not state then U.Print("Paste a sesh sign-up post first."); return end
@@ -1220,14 +1238,14 @@ function Events:AskListing()
     local need = self:NeedText(state)
     self:OpenInput({
         title = "Group Finder listing",
-        hint = string.format("First line: the listing's title (letters, up to %d characters). The rest: its description (up to %d characters). %s%s%s Edit it, then press Create listing.",
+        hint = string.format("First line: the listing's title (letters and spaces, up to %d characters; numbers and symbols are taken out). The rest: its description (up to %d characters). %s%s%s Edit it, then press Create listing.",
             GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH, maxDesc,
             trial and ("Activity: " .. trial .. ". ") or "Activity: Custom (no trial named in the post). ",
             (ev.minCP or 0) > 0 and string.format("Requires CP %d. ", ev.minCP) or "",
             need ~= "" and ("Roles wanted: " .. need .. ".") or ""),
         okLabel = "Create listing",
         okTip = "Creates the Group Finder listing. Accept applicants in the game's Group Finder window.",
-        text = Printable(ev.title):sub(1, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH) .. "\n" .. description,
+        text = CleanTitle(ev.title) .. "\n" .. description,
         onOk = function(text) self:CreateListing(text) end,
     })
 end
@@ -1239,10 +1257,16 @@ function Events:CreateListing(text)
     local title, description = text:match("^([^\n]*)\n?(.*)$")
     title = Trim(title)
     description = Trim(description):sub(1, GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH)
-    if select("#", IsValidGroupFinderListingTitle(title)) > 0 or #title > GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH then
-        U.Print("The Group Finder won't take \"%s\" as a title. Use letters and spaces only, end with a letter, and keep it short.", title)
+    -- Tidy the title instead of refusing it: digits and symbols out, cut to the limit. If the
+    -- game still won't take it, fall back to the event's name, tidied the same way.
+    local typed = title
+    if not TitleOK(title) then title = CleanTitle(title) end
+    if not TitleOK(title) then title = CleanTitle(ev.title) end
+    if not TitleOK(title) then
+        U.Print("The Group Finder won't take \"%s\" as a title, even with the numbers and symbols taken out. Try other words (letters and spaces, short).", typed)
         return
     end
+    if title ~= typed then U.Print("Title changed to \"%s\" (the Group Finder takes letters and spaces only, up to %d characters).", title, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH) end
     local trial = self:PickTrial(ev)
     if not trial then
         SetGroupFinderUserTypeGroupListingCategory(DRAFT, GROUP_FINDER_CATEGORY_CUSTOM)
