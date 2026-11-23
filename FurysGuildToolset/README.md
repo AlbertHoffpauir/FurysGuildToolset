@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.16.11
+# Fury's Guild Management Toolset (ESO addon) v1.16.12
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 

@@ -381,6 +381,9 @@ function Recruit:AdText()
     return Fill(zo_strtrim(self.sv.ads[guildId] or ""), guildId)
 end
 
+-- How long after the ad goes in the chat box your first post in that zone still counts as the ad.
+local PASTE_WINDOW_SECONDS = 300
+
 -- Puts the ad in the zone chat box. Asks first if you posted in this zone too recently.
 function Recruit:PasteAd(skipCheck)
     if not self.sv.enabled then
@@ -403,7 +406,30 @@ function Recruit:PasteAd(skipCheck)
         U.Print("Your ad is %d characters. ESO cuts chat at %d.", #ad, MAX_CHAT)
     end
     self.pasted = { zoneId = zoneId, at = GetTimeStamp() }
+    self:PutInChatBox(ad)
+end
+
+-- The ad goes into the chat box's text first (zone channel), then the box opens.
+-- If the game window isn't in front (alt-tabbed during the load screen), opening can't take
+-- the keyboard, and the box can sit "open" without it, so Enter never reaches it. The text is
+-- already in the box either way, and the watch below closes a box that has no keyboard, keeping
+-- the text: pressing Enter then opens chat with the ad ready to post.
+local AD_WATCH_MS = 1000
+function Recruit:PutInChatBox(ad)
+    local textEntry = CHAT_SYSTEM.textEntry
+    CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_ZONE)
+    textEntry:SetText(ad)
     StartChatInput(ad, CHAT_CHANNEL_ZONE)
+    local pasted = self.pasted
+    EVENT_MANAGER:UnregisterForUpdate("FuryGMTRecruitAdBox")
+    EVENT_MANAGER:RegisterForUpdate("FuryGMTRecruitAdBox", AD_WATCH_MS, function()
+        if self.pasted ~= pasted or GetTimeStamp() - pasted.at > PASTE_WINDOW_SECONDS then
+            EVENT_MANAGER:UnregisterForUpdate("FuryGMTRecruitAdBox")
+        elseif CHAT_SYSTEM:IsTextEntryOpen() and not textEntry:GetEditControl():HasFocus() then
+            local KEEP_TEXT = true
+            CHAT_SYSTEM:CloseTextEntry(KEEP_TEXT)
+        end
+    end)
 end
 
 -- Your own zone message that matches the ad starts that zone's cooldown, and moves the tour on.
@@ -417,7 +443,6 @@ end
 
 -- A zone post counts as your ad when it reads the same as the ad, or when it's the first
 -- thing you post in that zone within a few minutes of the addon putting the ad in your chat box.
-local PASTE_WINDOW_SECONDS = 300
 
 function Recruit:IsAdPost(text, zoneId)
     local ad = self:AdText()
