@@ -64,7 +64,7 @@ Events.defaults = {
     -- 1.12.1: once the group forms, someone who types the invite code in a ticked guild's chat
     -- (or whispers it) gets a group invite. Off on a new install.
     autoInvite = false,
-    inviteCode = "+trial",
+    inviteCode = "X",        -- 1.13.2: was "+trial"
 }
 
 -- Ad texts that were the default in an earlier version. A saved text still equal to one of
@@ -72,6 +72,7 @@ Events.defaults = {
 local OLD_DEFAULTS = {
     adText = { "LFM {need} for {event}{cp}. Whisper {me} for an invite!" },
     signupAdText = { "Sign up for {event}, {time}{cp}! Still open: {need}. Sign up in our Discord or whisper {me}." },
+    inviteCode = { "+trial" },
 }
 
 local CODE_EVENT_NAME = "FuryGMTEventsCode"
@@ -1323,7 +1324,7 @@ function Events:SettingsControls()
         { type = "editbox", name = "Invite code", tooltip = "The whole message has to be this (upper or lower case). {code} in the ads.",
           getFunc = function() return sv.inviteCode or Events.defaults.inviteCode end, setFunc = function(v) sv.inviteCode = zo_strtrim(v) end, default = Events.defaults.inviteCode,
           disabled = function() return not sv.autoInvite end },
-        { type = "editbox", name = "Guild ad for replacements", tooltip = "Once the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is what your group is missing now, no-shows included. While Invite by code is off, the part with {code} is left out ("Type {code} into guild chat or whisper {me}." becomes "Whisper {me}."). Up to 350 characters.",
+        { type = "editbox", name = "Guild ad for replacements", tooltip = "Once the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is what your group is missing now, no-shows included. While Invite by code is off, the part with {code} is left out (\"Type {code} into guild chat or whisper {me}.\" becomes \"Whisper {me}.\"). Up to 350 characters.",
           getFunc = function() return sv.adText end, setFunc = function(v) sv.adText = v end, default = Events.defaults.adText },
         { type = "header", name = "Guilds to advertise in" },
     }

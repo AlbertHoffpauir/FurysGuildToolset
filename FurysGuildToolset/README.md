@@ -293,7 +293,7 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 - Open the **Events** settings page (or the button under Events in `/gtsettings`) and tick **Turn on Events**.
 - Under **Guilds to advertise in**, tick the guilds that should get your ads for open slots.
 - **Group forms (minutes before start)** is when your group starts forming (15 minutes before the start time by default). Before then, ads ask people to sign up. From then on, they ask for replacements.
-- Tick **Invite by code** and set your **Invite code** ("+trial" to start with) if people who type the code in guild chat should get a group invite (see Fill the empty slots).
+- Tick **Invite by code** and set your **Invite code** ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots).
 - Change the whisper, mail and guild ad texts if you like (one ad for sign-ups, one for replacements). {name}, {event}, {time} (how long until it starts, like "3d 4h 30m from now", right in every time zone), {date}, {need}, {cp}, {code} and {me} are filled in for you.
 
 ### Read the sign-ups
