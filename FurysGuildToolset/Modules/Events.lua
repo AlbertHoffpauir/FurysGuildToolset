@@ -1143,29 +1143,25 @@ end
 -- Group Finder ---------------------------------------------------------------------------
 
 -- Picks the trial in the Group Finder that the post names (full name, or vSS / nSS style
--- short names), and normal or veteran. Sets the draft's category and options. Returns
+-- short names), Veteran unless the post says normal. Sets the draft's category and options. Returns
 -- "Sunspire (Normal)" or nil when no trial is named.
--- Veteran when the post says veteran, vet or vSS-style names; "normal" anywhere wins.
--- Also returns the trial short names it saw ("ss" -> "sunspire").
+-- Veteran unless the post says normal (Albert, 1.16.10): "normal" anywhere, or an nSS-style
+-- short name, makes it Normal. Also returns the trial short names it saw ("ss" -> "sunspire").
 function Events.WantsVeteran(ev)
     local text = zo_strlower(ev.title .. "\n" .. table.concat(ev.desc, "\n"))
-    -- 1.16.9: plain ifs. In game "(find(...) or ...) and true or false" gave 39 (the position),
-    -- and SetVeteranDifficulty refuses a number.
-    local words = " " .. text:gsub("%A", " ") .. " "
-    local veteran = false
-    if text:find("veteran", 1, true) then veteran = true end
-    if words:find(" vet ", 1, true) then veteran = true end
+    -- Plain ifs (1.16.9): in game "(find(...) or ...) and true or false" gave a number.
+    local veteran = true
+    if text:find("normal", 1, true) then veteran = false end
     local aliases = {}
     for word in text:gmatch("%a+") do
         local prefix, rest = word:sub(1, 1), word:sub(2)
         if (prefix == "v" or prefix == "n") and TRIAL_ALIASES[rest] then
             aliases[#aliases + 1] = TRIAL_ALIASES[rest]
-            if prefix == "v" then veteran = true end
+            if prefix == "n" then veteran = false end
         elseif #word >= 3 and TRIAL_ALIASES[word] then
             aliases[#aliases + 1] = TRIAL_ALIASES[word]
         end
     end
-    if text:find("normal") then veteran = false end
     return veteran, aliases
 end
 
