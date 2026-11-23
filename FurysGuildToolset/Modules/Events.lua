@@ -206,6 +206,11 @@ local function KindOf(name)
     return "any"
 end
 
+local BARE_HEADERS = {
+    standby = true, bench = true, reserve = true, reserves = true, tentative = true, maybe = true,
+    late = true, backup = true, backups = true, absent = true, declined = true,
+}
+
 -- "Tank (1 / 2)" -> "Tank", 1, 2. "Attendees (4)" -> "Attendees", 4, nil. Otherwise nil.
 local function Header(line)
     local bare = Bare(line)
@@ -213,7 +218,12 @@ local function Header(line)
     if not name then
         name, count = bare:match("^(.-)%s*%(%s*(%d+)%s*%)$")
     end
-    if not name or name == "" or #name > 40 or not name:find("%a") then return nil end
+    if not name then
+        -- 1.16.11: sesh leaves the count off an empty section at the end ("Standby").
+        if BARE_HEADERS[zo_strlower(bare)] then return bare, nil, nil end
+        return nil
+    end
+    if name == "" or #name > 40 or not name:find("%a") then return nil end
     return name, tonumber(count), max and tonumber(max) or nil
 end
 
@@ -225,9 +235,21 @@ local function Person(raw)
     raw = Trim((raw:gsub("^\226\128\162%s*", "")))
     local base, nick = raw:match("^(.-)%s*%((.-)%)$")
     base = Trim(base or raw)
+    -- "sshogrin, barcabeagle, (sho)": one sign-up whose Discord name lists several names
+    -- (1.16.11). The first is the name, the others are tried for the account too.
+    local alts = {}
+    if base:find(",", 1, true) then
+        local parts = {}
+        for part in (base .. ","):gmatch("([^,]*),") do
+            part = Trim(part)
+            if part ~= "" then parts[#parts + 1] = part end
+        end
+        base = parts[1] or ""
+        for i = 2, #parts do alts[#alts + 1] = Norm(parts[i]) end
+    end
     local key = Norm(base)
     if key == "" then key = zo_strlower(base) end
-    return { raw = raw, base = base, nick = nick and Trim(nick) or nil, key = key }
+    return { raw = raw, base = base, nick = nick and Trim(nick) or nil, key = key, alts = alts }
 end
 
 -- Reads a pasted sesh post. Returns the event table, or nil and a reason.
@@ -276,14 +298,30 @@ function Events.Parse(text)
         local line = lines[i]
         local name, count, max = Header(line)
         if name and not valueLine[i] then
-            section = { name = name, kind = KindOf(name), count = count, max = max, people = {} }
+            section = { name = name, kind = KindOf(name), count = count, max = max, people = {}, lines = {} }
             ev.sections[#ev.sections + 1] = section
         elseif section and line ~= "" and line ~= "-" and not LABELS[zo_strlower(Bare(line))] and not valueLine[i] then
-            for part in (line .. ","):gmatch("([^,]+),") do
+            section.lines[#section.lines + 1] = line
+        end
+    end
+    -- One sign-up per line. A line is split at commas into several people only when the
+    -- section's count says there are more people than lines (1.16.11: "sshogrin, barcabeagle,
+    -- (sho)" is one tank in "Tank (2 / 2)").
+    for _, sec in ipairs(ev.sections) do
+        local split = not sec.count or #sec.lines < sec.count
+        for _, line in ipairs(sec.lines) do
+            local parts = {}
+            if split then
+                for part in (line .. ","):gmatch("([^,]+),") do parts[#parts + 1] = part end
+            else
+                parts[1] = line
+            end
+            for _, part in ipairs(parts) do
                 local person = Person(part)
-                if person.base ~= "" and person.base ~= "-" then section.people[#section.people + 1] = person end
+                if person.base ~= "" and person.base ~= "-" then sec.people[#sec.people + 1] = person end
             end
         end
+        sec.lines = nil
     end
     if #ev.sections == 0 then
         return nil, "No sign-up sections found. Copy the whole sesh post, down to the last name under the last role."
@@ -429,12 +467,15 @@ function Events:AccountFor(person, index, group)
     local picked = self.sv.map[person.key]
     if picked then return picked, "picked" end
     if person.base:sub(1, 1) == "@" then return person.base, "post" end
-    local nickKey = person.nick and Norm(person.nick) or nil
-    for _, key in ipairs({ person.key, nickKey }) do
-        if key and key ~= "" then
-            local hit = group[key] or index[key]
-            if hit then return hit.name, "name" end
-        end
+    local keys = { person.key }
+    for _, alt in ipairs(person.alts or {}) do keys[#keys + 1] = alt end
+    if person.nick then keys[#keys + 1] = Norm(person.nick) end
+    -- Someone already in the group wins over a guild member with a matching name.
+    for _, key in ipairs(keys) do
+        if key ~= "" and group[key] then return group[key].name, "name" end
+    end
+    for _, key in ipairs(keys) do
+        if key ~= "" and index[key] then return index[key].name, "name" end
     end
     return nil
 end
