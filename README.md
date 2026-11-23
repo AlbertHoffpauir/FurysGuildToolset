@@ -6,7 +6,7 @@ An Elder Scrolls Online addon for guild leaders and officers: guild bank theft a
 
 ## Downloads
 
-- **The addon:** get it from [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion. The same files are in [`FurysGuildToolset/`](FurysGuildToolset/) here, and as [FurysGuildToolset-1.15.3.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.15.3.zip).
+- **The addon:** get it from [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion. The same files are in [`FurysGuildToolset/`](FurysGuildToolset/) here, and as [FurysGuildToolset-1.16.0.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.16.0.zip).
 - **Requires:** LibHistoire (1112 or newer) and LibAddonMenu-2.0 (43 or newer), installed separately.
 
 ## Repository layout

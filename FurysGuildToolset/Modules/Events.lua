@@ -1208,6 +1208,24 @@ function Events:ListingRoles(state, isTrial)
     return desired, numRoles
 end
 
+-- The trial's playstyle from the post (1.16.0, Albert): "trainer" or "training" is
+-- Educational, "zerg" or "loot run" is Speed Run, anything else Standard. Picked by the game's
+-- own names for the playstyles. Returns the playstyle value and its name.
+function Events:PickPlaystyle(ev)
+    local text = zo_strlower(ev.title .. "\n" .. table.concat(ev.desc, "\n"))
+    local want = "standard"
+    if text:find("trainer") or text:find("training") then
+        want = "educat"
+    elseif text:find("zerg") or text:find("loot%s*run") then
+        want = "speed"
+    end
+    for flag in ZO_FlagHelpers.FlagIterator(GROUP_FINDER_PLAYSTYLE_ITERATION_BEGIN, GROUP_FINDER_PLAYSTYLE_ITERATION_END) do
+        local name = GetString("SI_GROUPFINDERPLAYSTYLE", flag)
+        if zo_strlower(name):find(want, 1, true) then return flag, name end
+    end
+    return nil
+end
+
 -- "2 tanks, 2 healers, 8 DPS" for the listing's roles.
 local function RolesText(desired)
     local parts = {}
@@ -1301,6 +1319,8 @@ function Events:AskListing()
     local maxDesc = GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH
     if #description > maxDesc then description = description:sub(1, maxDesc) end
     local roles = self:ListingRoles(state, trial ~= nil)
+    local _, playstyle = self:PickPlaystyle(ev)
+    if trial and playstyle then trial = trial .. ", " .. playstyle end
     self:OpenInput({
         title = "Group Finder listing",
         hint = string.format("First line: the listing's title (letters and spaces, up to %d characters; numbers and symbols are taken out). The rest: its description (up to %d characters). %s%s%s Edit it, then press Create listing.",
@@ -1350,6 +1370,10 @@ function Events:CreateListing(text)
             SetGroupFinderUserTypeGroupListingGroupSize(DRAFT, size)
             if GetGroupFinderUserTypeGroupListingNumRoles(DRAFT) >= wanted then break end
         end
+    end
+    if trial then
+        local playstyle = self:PickPlaystyle(ev)
+        if playstyle then SetGroupFinderUserTypeGroupListingPlaystyle(DRAFT, playstyle) end
     end
     SetGroupFinderUserTypeGroupListingTitle(DRAFT, title)
     SetGroupFinderUserTypeGroupListingDescription(DRAFT, description)
