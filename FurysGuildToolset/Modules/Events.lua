@@ -1145,9 +1145,10 @@ end
 -- Picks the trial in the Group Finder that the post names (full name, or vSS / nSS style
 -- short names), and normal or veteran. Sets the draft's category and options. Returns
 -- "Sunspire (Normal)" or nil when no trial is named.
-function Events:PickTrial(ev)
+-- Veteran when the post says veteran, vet or vSS-style names; "normal" anywhere wins.
+-- Also returns the trial short names it saw ("ss" -> "sunspire").
+function Events.WantsVeteran(ev)
     local text = zo_strlower(ev.title .. "\n" .. table.concat(ev.desc, "\n"))
-    local flat = Norm(text)
     local veteran = (text:find("veteran") or (" " .. text:gsub("%A", " ") .. " "):find(" vet ", 1, true)) and true or false
     local aliases = {}
     for word in text:gmatch("%a+") do
@@ -1160,6 +1161,13 @@ function Events:PickTrial(ev)
         end
     end
     if text:find("normal") then veteran = false end
+    return veteran, aliases
+end
+
+function Events:PickTrial(ev)
+    local text = zo_strlower(ev.title .. "\n" .. table.concat(ev.desc, "\n"))
+    local flat = Norm(text)
+    local veteran, aliases = Events.WantsVeteran(ev)
 
     SetGroupFinderUserTypeGroupListingCategory(DRAFT, GROUP_FINDER_CATEGORY_TRIAL)
     UpdateGroupFinderUserTypeGroupListingOptions(DRAFT)
@@ -1385,10 +1393,39 @@ function Events:AskListing()
     })
 end
 
-function Events:CreateListing(text)
+-- 1.16.6: the Group Finder lists a trial at your own difficulty (the game's window switches
+-- it with SetVeteranDifficulty when you pick Normal or Veteran), so switch it the same way and
+-- create the listing once the game says it changed (or after 3 seconds).
+function Events:SwitchDifficultyThen(veteran, fn)
+    U.Print("Switching your difficulty to %s for the listing, like the game's Group Finder does...", veteran and "Veteran" or "Normal")
+    local done = false
+    local function Go()
+        if done then return end
+        done = true
+        EVENT_MANAGER:UnregisterForEvent("FuryGMTEventsDifficulty", EVENT_VETERAN_DIFFICULTY_CHANGED)
+        EVENT_MANAGER:UnregisterForEvent("FuryGMTEventsDifficulty", EVENT_GROUP_VETERAN_DIFFICULTY_CHANGED)
+        fn()
+    end
+    local function Later() zo_callLater(Go, 300) end
+    EVENT_MANAGER:RegisterForEvent("FuryGMTEventsDifficulty", EVENT_VETERAN_DIFFICULTY_CHANGED, Later)
+    EVENT_MANAGER:RegisterForEvent("FuryGMTEventsDifficulty", EVENT_GROUP_VETERAN_DIFFICULTY_CHANGED, Later)
+    zo_callLater(Go, 3000)
+    SetVeteranDifficulty(veteran)
+end
+
+function Events:CreateListing(text, switched)
     local state = self:State()
     if not state then return end
     local ev = state.ev
+    if not switched and self:PickTrial(ev) then
+        local veteran = Events.WantsVeteran(ev)
+        local current
+        if IsUnitGrouped("player") then current = IsGroupUsingVeteranDifficulty() else current = IsUnitUsingVeteranDifficulty("player") end
+        if current ~= veteran then
+            self:SwitchDifficultyThen(veteran, function() self:CreateListing(text, true) end)
+            return
+        end
+    end
     local title, description = text:match("^([^\n]*)\n?(.*)$")
     title = Trim(title)
     description = Trim(description):sub(1, GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH)
