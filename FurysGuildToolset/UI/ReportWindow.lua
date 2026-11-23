@@ -30,7 +30,7 @@ local COLUMN_ROW_TYPE = 2
 local MAX_COLUMNS = 8
 local COLUMN_GAP = 8
 local ROW_HEIGHT = 32
-local MAX_FOOTER_BUTTONS = 6
+local MAX_FOOTER_BUTTONS = 7   -- 1.15.0: 7 for the Events tab (its buttons are narrower)
 local EXPORT_PART_CHARS = 20000
 
 Report.tabs = {}
@@ -433,6 +433,7 @@ function Report:Refresh()
         local action = footer[i]
         if action then
             button:SetText(action.label)
+            button:SetWidth(action.width or 180)
             button:SetHandler("OnClicked", function(control) action.fn(control) end)
             Report.SetTip(button, action.tip)
             button:SetHidden(false)

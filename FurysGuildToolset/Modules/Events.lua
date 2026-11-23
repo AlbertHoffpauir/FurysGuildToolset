@@ -748,12 +748,13 @@ end
 function Events:TabFooter()
     if not self.sv.enabled then return {} end
     return {
-        { label = "Paste sign-ups", tip = "Opens a box to paste a sesh event post into (Ctrl+V). Replaces the event shown now.", fn = function() self:AskPaste() end },
-        { label = "Invite online", tip = "Sends a group invite to every sign-up who is online and not in your group (not Standby). One click, one invite each.", fn = function() self:InviteOnline() end },
-        { label = "Advertise in guilds", tip = "Puts an ad in the chat box of each guild ticked in the Events settings, one guild after another. You press Enter for each. Pick the kind: sign-ups (before the group forms) or replacements (once it forms). The one that fits now is first.",
+        { label = "Paste sign-ups", width = 150, tip = "Opens a box to paste a sesh event post into (Ctrl+V). Replaces the event shown now.", fn = function() self:AskPaste() end },
+        { label = "Clear", width = 90, tip = "Clears the event shown now, for when it's over. The accounts you matched to Discord names are kept for the next event.", fn = function() self:ClearEvent() end },
+        { label = "Invite online", width = 140, tip = "Sends a group invite to every sign-up who is online and not in your group (not Standby). One click, one invite each.", fn = function() self:InviteOnline() end },
+        { label = "Advertise in guilds", width = 170, tip = "Puts an ad in the chat box of each guild ticked in the Events settings, one guild after another. You press Enter for each. Pick the kind: sign-ups (before the group forms) or replacements (once it forms). The one that fits now is first.",
           fn = function(control) self:AdMenu(control, function(mode) self:Advertise(mode) end) end },
-        { label = "Group Finder", tip = "Shows a Group Finder listing for the open slots (title, description, CP and roles from the post) to check. Nothing is listed until you press Create listing.", fn = function() self:AskListing() end },
-        { label = "Copy for Discord", tip = "Shows a message to copy into Discord: the open sign-up slots (before the group forms), or the missing names and the slots to fill now (once it forms). The one that fits now is first.",
+        { label = "Group Finder", width = 140, tip = "Shows a Group Finder listing for the open slots (title, description, CP and roles from the post) to check. Nothing is listed until you press Create listing.", fn = function() self:AskListing() end },
+        { label = "Copy for Discord", width = 170, tip = "Shows a message to copy into Discord: the open sign-up slots (before the group forms), or the missing names and the slots to fill now (once it forms). The one that fits now is first.",
           fn = function(control) self:AdMenu(control, function(mode) self:CopyForDiscord(mode) end) end },
     }
 end
@@ -825,6 +826,18 @@ function Events:ReadPaste(text)
     U.Print("Read %s: %d %s in %d %s%s.", ev.title, people, people == 1 and "sign-up" or "sign-ups", #ev.sections,
         #ev.sections == 1 and "section" or "sections", (ev.minCP or 0) > 0 and string.format(", CP %d+", ev.minCP) or "")
     GT.Report:Show("events")
+end
+
+-- Clears the pasted event (1.15.0). The Discord name to @account matches stay.
+function Events:ClearEvent()
+    local ev = self.sv.event
+    if not ev then U.Print("There's no event to clear."); return end
+    self.sv.event = nil
+    self.cache = nil
+    self.adQueue = nil
+    EVENT_MANAGER:UnregisterForEvent(CHAT_EVENT_NAME, EVENT_CHAT_MESSAGE_CHANNEL)
+    U.Print("Cleared %s. Your matched accounts are kept. Paste sign-ups to read the next event.", ev.title)
+    GT.Report:RefreshIfShown()
 end
 
 function Events:AskAccount(person, current)
