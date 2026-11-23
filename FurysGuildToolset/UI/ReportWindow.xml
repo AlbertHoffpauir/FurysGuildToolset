@@ -121,13 +121,26 @@
                     <Dimensions x="1160" y="32" />
                     <Anchor point="TOPLEFT" offsetX="16" offsetY="58" />
                 </Control>
-                <Backdrop name="$(parent)Search" inherits="ZO_SingleLineEditBackdrop_Keyboard" hidden="true">
-                    <Dimensions x="220" />
+                <!-- Search: a lighter box with a violet edge so it stands out on the dark window
+                     (colors set in ReportWindow.lua from the Fury Night palette), and an X that clears it. -->
+                <Backdrop name="$(parent)Search" hidden="true">
+                    <Dimensions x="250" y="30" />
                     <Anchor point="RIGHT" relativeTo="$(parent)Settings" relativePoint="LEFT" offsetX="-12" />
+                    <Edge edgeSize="2" />
                     <Controls>
                         <EditBox name="$(parent)Box" inherits="ZO_DefaultEditForBackdrop" defaultText="Search names or items">
+                            <Anchor point="TOPLEFT" offsetX="8" offsetY="5" />
+                            <Anchor point="BOTTOMRIGHT" offsetX="-30" offsetY="-4" />
                             <OnTextChanged>FuryGMT.Report.OnSearchChanged(self)</OnTextChanged>
                         </EditBox>
+                        <Button name="$(parent)Clear" alpha="0.5">
+                            <Dimensions x="22" y="22" />
+                            <Anchor point="RIGHT" offsetX="-5" />
+                            <Textures normal="/esoui/art/buttons/decline_up.dds" pressed="/esoui/art/buttons/decline_down.dds" mouseOver="/esoui/art/buttons/decline_over.dds" />
+                            <OnClicked>FuryGMT.Report.ClearSearch()</OnClicked>
+                            <OnMouseEnter>FuryGMT.Report.ShowTip(self, "Clear the search")</OnMouseEnter>
+                            <OnMouseExit>FuryGMT.Report.HideTip()</OnMouseExit>
+                        </Button>
                     </Controls>
                 </Backdrop>
                 <Label name="$(parent)Summary" font="ZoFontGameSmall" color="B4B0D8">

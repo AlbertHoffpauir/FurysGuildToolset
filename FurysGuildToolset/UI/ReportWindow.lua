@@ -145,6 +145,18 @@ function Report:Initialize()
     T.Window(FuryGMTAutoAlert, { bg = "BG", plain = true, font = "$(ANTIQUE_FONT)|34|soft-shadow-thick" })
     T.Window(FuryGMTRemoveDialog, { bg = "BG", plain = true })
     T.Window(FuryGMTRecruitBar, { bg = "BG", title = "Text", plain = true, font = "ZoFontGameSmall" })
+    -- Search box: lighter than the window, violet edge, bright text, so it's easy to find.
+    -- It sits in the title bar, so it has to draw above the theme's title glow (DL_BACKGROUND),
+    -- which otherwise covers it. Solid black with a violet edge and bright text (Albert).
+    self.search:SetDrawLayer(DL_CONTROLS)
+    self.search:SetDrawLevel(1)
+    self.searchBox:SetDrawLayer(DL_CONTROLS)
+    self.searchBox:SetDrawLevel(2)
+    FuryGMTReportSearchClear:SetDrawLayer(DL_CONTROLS)
+    FuryGMTReportSearchClear:SetDrawLevel(3)
+    self.search:SetCenterColor(0, 0, 0, 1)
+    self.search:SetEdgeColor(T.VIOLET:UnpackRGBA())
+    T.Paint(self.searchBox, T.TEXT)
     FuryGMTExportTextBox:SetMaxInputChars(EXPORT_PART_CHARS + 2000)
     -- Without these the edit box drops line breaks and everything runs together.
     FuryGMTExportTextBox:SetMultiLine(true)
@@ -486,6 +498,8 @@ function Report:RefreshIfShown()
 end
 
 function Report.OnSearchChanged(editBox)
+    -- The X is always there; it's brighter while there's something to clear.
+    FuryGMTReportSearchClear:SetAlpha((editBox:GetText() or "") == "" and 0.5 or 1)
     local tab = Report:GetTab(Report.currentTab)
     if not tab or not tab.searchable then return end
     local text = editBox:GetText() or ""
@@ -493,6 +507,13 @@ function Report.OnSearchChanged(editBox)
     tab.searchText = text
     if tab.OnSearchChanged then tab.OnSearchChanged(text) end
     Report:Refresh()
+end
+
+-- The X in the search box: empties it (the list updates through OnSearchChanged).
+function Report.ClearSearch()
+    Report.searchBox:SetText("")
+    Report.searchBox:LoseFocus()
+    Report.HideTip()
 end
 
 -- Export ---------------------------------------------------------------------

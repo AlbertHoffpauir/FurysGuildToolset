@@ -106,6 +106,10 @@ function Raffle:MakeRaffle(copyFrom)
     if copyFrom then
         for _, key in ipairs({ "guildId", "useBank", "useMail", "price", "maxTickets", "oneWin", "hours" }) do r[key] = copyFrom[key] end
     end
+    -- 1.20.0: new raffles number tickets in the order they were bought. Raffles made before
+    -- have no numbering field. Since 1.20.1 every raffle keeps the numbers it has handed out (KeepNumbers).
+    r.numbering = "time"
+    r.hand = {}
     return FillRaffle(r)
 end
 
@@ -628,15 +632,206 @@ function Raffle:GetTally(r)
         b.adjust = r.adjust[b.who] or 0
         b.excluded = r.excluded[b.who] == true
         b.tickets = b.excluded and 0 or math.max(0, bought + b.adjust)
-        if b.tickets > 0 then
+        b.ranges = {}
+        if r.numbering ~= "time" and b.tickets > 0 then
             b.from, b.to = total + 1, total + b.tickets
+            b.ranges[1] = { b.from, b.to }
             total = total + b.tickets
         end
         gold = gold + b.gold
     end
+    if r.numbering == "time" then total = self:NumberByTime(r, byName, price) end
+    total = self:KeepNumbers(r, list, byName, price)
     local tally = { list = list, byName = byName, total = total, gold = gold }
     self.tallies[r.id] = tally
     return tally
+end
+
+-- Numbering by time (1.20.0, new raffles): every payment's tickets, and every ticket added by
+-- hand, get the next numbers at the time they came in, so someone who buys again later gets
+-- numbers spread through the list. Tickets over the per-person cap are dropped from the later
+-- payments, tickets removed by hand come off the person's latest tickets, and someone left out
+-- of the draw gets no numbers. Returns the total number of tickets.
+function Raffle:NumberByTime(r, byName, price)
+    local real = {}
+    for who in pairs(byName) do real[zo_strlower(who)] = who end
+    local function Real(who) return real[zo_strlower(who)] or who end
+    local blocks, bought, removed, logged = {}, {}, {}, {}
+    for _, d in ipairs(self:Routing().byRaffle[r.id] or {}) do
+        local n = math.floor(d.amt / price)
+        if r.maxTickets > 0 then n = math.max(0, math.min(n, r.maxTickets - (bought[d.who] or 0))) end
+        bought[d.who] = (bought[d.who] or 0) + n
+        blocks[#blocks + 1] = { ts = d.ts, who = d.who, n = n }
+    end
+    for _, e in ipairs(r.hand or {}) do
+        local who = Real(e.who)
+        logged[who] = (logged[who] or 0) + e.n
+        if e.n > 0 then blocks[#blocks + 1] = { ts = e.ts, who = who, n = e.n }
+        else removed[who] = (removed[who] or 0) - e.n end
+    end
+    -- Hand changes made before they were timed (or merged from another spelling): the rest
+    -- goes last, or comes off the latest tickets.
+    for who, b in pairs(byName) do
+        local rest = b.adjust - (logged[who] or 0)
+        if rest > 0 then blocks[#blocks + 1] = { ts = math.huge, who = who, n = rest }
+        elseif rest < 0 then removed[who] = (removed[who] or 0) - rest end
+    end
+    for i, block in ipairs(blocks) do block.i = i end
+    table.sort(blocks, function(a, b)
+        if a.ts ~= b.ts then return a.ts < b.ts end
+        return a.i < b.i
+    end)
+    for i = #blocks, 1, -1 do
+        local block = blocks[i]
+        local take = math.min(removed[block.who] or 0, block.n)
+        if take > 0 then
+            block.n = block.n - take
+            removed[block.who] = removed[block.who] - take
+        end
+    end
+    local total = 0
+    for _, block in ipairs(blocks) do
+        local b = byName[block.who]
+        if b and block.n > 0 and not b.excluded then
+            local last = b.ranges[#b.ranges]
+            if last and last[2] == total then last[2] = total + block.n   -- right after their previous tickets
+            else b.ranges[#b.ranges + 1] = { total + 1, total + block.n } end
+            total = total + block.n
+        end
+    end
+    for _, b in pairs(byName) do
+        local count = 0
+        for _, range in ipairs(b.ranges) do count = count + range[2] - range[1] + 1 end
+        b.tickets = count
+        if count > 0 then b.from, b.to = b.ranges[1][1], b.ranges[#b.ranges][2] end
+    end
+    return total
+end
+
+-- 1.20.1: ticket numbers never move. Every number handed out is saved in r.issued (blocks of
+-- { who, from, to }), and only new tickets get new numbers, always after the highest number so
+-- far. Tickets taken away come off the person's highest numbers and those numbers are not used
+-- again. The first time a raffle is seen, the numbers it shows right then are saved as they are.
+-- Returns the number of tickets in the draw.
+local RESTORE_CUTOFF = 1795473600   -- 2026-11-23 22:40 UTC, just before 1.20.0's regrouping
+function Raffle:KeepNumbers(r, list, byName, price)
+    if not r.issued then
+        r.issued = {}
+        local seed = list
+        -- One-off for the raffle that 1.20.0 renumbered when a buyer paid again: start from the
+        -- numbers as they were before that payment (still grouped by buyer); later payments go
+        -- after them. Only for that guild's raffle that was running then, and only this week.
+        local started = self:StartTime(r) or 0
+        if not r.numbering and r.guildId == 927751 and started > 0 and started < RESTORE_CUTOFF
+            and GetTimeStamp() < RESTORE_CUTOFF + 7 * 86400 then
+            local before = {}
+            for _, d in ipairs(self:Routing().byRaffle[r.id] or {}) do
+                if d.ts < RESTORE_CUTOFF then
+                    local key = zo_strlower(d.who)
+                    before[key] = (before[key] or 0) + math.floor(d.amt / price)
+                end
+            end
+            seed = {}
+            for _, b in ipairs(list) do
+                local n = before[zo_strlower(b.who)] or 0
+                if r.maxTickets > 0 and n > r.maxTickets then n = r.maxTickets end
+                n = b.excluded and 0 or math.max(0, n + b.adjust)
+                seed[#seed + 1] = { who = b.who, ranges = n > 0 and { { 1, n } } or {} }
+            end
+            local at = 0
+            for _, b in ipairs(seed) do
+                if b.ranges[1] then
+                    local n = b.ranges[1][2]
+                    b.ranges[1] = { at + 1, at + n }
+                    at = at + n
+                end
+            end
+        end
+        for _, b in ipairs(seed) do
+            for _, range in ipairs(b.ranges) do r.issued[#r.issued + 1] = { who = b.who, from = range[1], to = range[2] } end
+        end
+        table.sort(r.issued, function(a, b) return a.from < b.from end)
+    end
+    -- What each person holds now, by lowercase name.
+    local held, nextNo = {}, 1
+    for _, block in ipairs(r.issued) do
+        local key = zo_strlower(block.who)
+        held[key] = held[key] or {}
+        table.insert(held[key], block)
+        nextNo = math.max(nextNo, block.to + 1)
+    end
+    r.nextTicket = math.max(r.nextTicket or 1, nextNo)
+    local function Count(blocks)
+        local n = 0
+        for _, block in ipairs(blocks or {}) do n = n + block.to - block.from + 1 end
+        return n
+    end
+    -- Take away tickets someone no longer has, from their highest numbers.
+    local wanted = {}
+    for _, b in ipairs(list) do wanted[zo_strlower(b.who)] = b.tickets end
+    for key, blocks in pairs(held) do
+        local extra = Count(blocks) - (wanted[key] or 0)
+        for i = #blocks, 1, -1 do
+            if extra <= 0 then break end
+            local block = blocks[i]
+            local take = math.min(extra, block.to - block.from + 1)
+            block.to = block.to - take
+            extra = extra - take
+        end
+    end
+    for i = #r.issued, 1, -1 do
+        if r.issued[i].to < r.issued[i].from then table.remove(r.issued, i) end
+    end
+    -- New tickets go after every number handed out so far, oldest payment first.
+    local new = {}
+    for _, b in ipairs(list) do
+        local n = b.tickets - Count(held[zo_strlower(b.who)])
+        if n > 0 then new[#new + 1] = { b = b, n = n } end
+    end
+    table.sort(new, function(x, y)
+        local a, b = x.b.last > 0 and x.b.last or math.huge, y.b.last > 0 and y.b.last or math.huge
+        if a ~= b then return a < b end
+        return x.b.who < y.b.who
+    end)
+    for _, item in ipairs(new) do
+        local block = { who = item.b.who, from = r.nextTicket, to = r.nextTicket + item.n - 1 }
+        r.issued[#r.issued + 1] = block
+        r.nextTicket = block.to + 1
+    end
+    -- Hand each buyer their numbers.
+    local total = 0
+    for _, b in ipairs(list) do b.ranges = {}; b.from, b.to = nil, nil end
+    local byKey = {}
+    for _, b in ipairs(list) do byKey[zo_strlower(b.who)] = b end
+    for _, block in ipairs(r.issued) do
+        local b = byKey[zo_strlower(block.who)]
+        if b then
+            local last = b.ranges[#b.ranges]
+            if last and last[2] + 1 == block.from then last[2] = block.to
+            else b.ranges[#b.ranges + 1] = { block.from, block.to } end
+            total = total + block.to - block.from + 1
+        end
+    end
+    for _, b in ipairs(list) do
+        if b.ranges[1] then b.from, b.to = b.ranges[1][1], b.ranges[#b.ranges][2] end
+    end
+    return total
+end
+
+-- "#4", "#4-8" or "#4-6, #11, #20-21": a buyer's ticket numbers.
+function Raffle.NumbersText(ranges)
+    local parts = {}
+    for _, range in ipairs(ranges) do
+        parts[#parts + 1] = range[1] == range[2] and ("#" .. range[1]) or string.format("#%d-%d", range[1], range[2])
+    end
+    return table.concat(parts, ", ")
+end
+
+-- A draw result's holder's tickets, for posts: "4-8" or "#4-6, #11" (numbered by time).
+local function HeldText(res)
+    if res.numbers then return res.numbers end
+    if res.from == res.to then return tostring(res.from) end
+    return string.format("%d-%d", res.from, res.to)
 end
 
 -- 1.6.4: a name typed in the wrong case (@marthowolf for @MarthOWolf) made a second buyer.
@@ -713,6 +908,7 @@ function Raffle:AddTickets(r, who, n, why)
     if not self:CanChangeTickets(r) then return end
     local new = (r.adjust[who] or 0) + n
     r.adjust[who] = new ~= 0 and new or nil
+    if r.hand then table.insert(r.hand, { ts = GetTimeStamp(), who = who, n = n }) end   -- when, for numbering by time
     local text = string.format("%s %d %s by hand", n > 0 and "added" or "removed", math.abs(n), math.abs(n) == 1 and "ticket" or "tickets")
     if why and why ~= "" then text = text .. ": " .. why end
     self:Change(r, who, text)
@@ -862,10 +1058,12 @@ function Raffle:DrawOne(r, tally, results)
     local poolSize = 0
     for _, b in ipairs(tally.list) do
         if b.tickets > 0 and not voided[b.who] and not (r.oneWin and won[b.who]) then
-            for t = b.from, b.to do
-                if not usedTickets[t] then
-                    poolSize = poolSize + 1
-                    pool[poolSize] = t
+            for _, range in ipairs(b.ranges) do
+                for t = range[1], range[2] do
+                    if not usedTickets[t] then
+                        poolSize = poolSize + 1
+                        pool[poolSize] = t
+                    end
                 end
             end
         end
@@ -873,10 +1071,13 @@ function Raffle:DrawOne(r, tally, results)
     if poolSize == 0 then return nil end
     local ticket = pool[math.random(poolSize)]
     for _, b in ipairs(tally.list) do
-        if b.from and ticket >= b.from and ticket <= b.to then
-            local res = { n = #results + 1, ticket = ticket, who = b.who, from = b.from, to = b.to, tickets = b.tickets, pool = poolSize, slot = #results + 1 }
-            results[#results + 1] = res
-            return res
+        for _, range in ipairs(b.ranges) do
+            if ticket >= range[1] and ticket <= range[2] then
+                local res = { n = #results + 1, ticket = ticket, who = b.who, from = b.from, to = b.to, tickets = b.tickets, pool = poolSize, slot = #results + 1 }
+                if #b.ranges > 1 then res.numbers = Raffle.NumbersText(b.ranges) end
+                results[#results + 1] = res
+                return res
+            end
         end
     end
 end
@@ -911,7 +1112,7 @@ function Raffle:Draw(r, now)
     end
     self:Dirty()
     for _, res in ipairs(draw.results) do
-        U.Print("%s draw %d: ticket #%d of %d, %s (tickets %d-%d)%s.", self:Tag(r), res.n, res.ticket, tally.total, res.who, res.from, res.to, self:ForPrize(r, res))
+        U.Print("%s draw %d: ticket #%d of %d, %s (tickets %s)%s.", self:Tag(r), res.n, res.ticket, tally.total, res.who, HeldText(res), self:ForPrize(r, res))
     end
     if #draw.results < r.winners then
         U.Print("Only %d %s could be drawn: there aren't enough buyers.", #draw.results, #draw.results == 1 and "winner" or "winners")
@@ -933,7 +1134,7 @@ function Raffle:Redraw(r, who)
         if res then
             res.replaces = who
             res.slot = Slot(voided)
-            U.Print("%s draw %d (replaces %s): ticket #%d of %d, %s (tickets %d-%d)%s.", self:Tag(r), res.n, who, res.ticket, draw.total, res.who, res.from, res.to, self:ForPrize(r, res))
+            U.Print("%s draw %d (replaces %s): ticket #%d of %d, %s (tickets %s)%s.", self:Tag(r), res.n, who, res.ticket, draw.total, res.who, HeldText(res), self:ForPrize(r, res))
         else
             U.Print("No tickets are left to draw a replacement from.")
         end
@@ -1068,7 +1269,7 @@ function Raffle:ResultParts(r)
         if res.void then
             entries[#entries + 1] = string.format("Draw %d: %s (could not take the prize).", res.n, res.who)
         else
-            entries[#entries + 1] = string.format("Draw %d: ticket #%d goes to %s (tickets %d-%d)%s%s.", res.n, res.ticket, res.who, res.from, res.to,
+            entries[#entries + 1] = string.format("Draw %d: ticket #%d goes to %s (tickets %s)%s%s.", res.n, res.ticket, res.who, HeldText(res),
                 self:ForPrize(r, res), res.replaces and (", replacing " .. res.replaces) or "")
         end
     end
@@ -1104,6 +1305,17 @@ function Raffle:DiscordAnnounce(r)
         lines[#lines + 1] = string.format("Sales end <t:%d:F> (<t:%d:R>).", finish, finish)
     end
     lines[#lines + 1] = self:Rules(r) .. " Good luck!"
+    -- 1.20.0: who has tickets so far, so buyers can see theirs were counted.
+    local tally = self:GetTally(r)
+    if tally.total > 0 then
+        lines[#lines + 1] = ""
+        lines[#lines + 1] = string.format("**Tickets so far: %d**", tally.total)
+        for _, b in ipairs(tally.list) do
+            if b.tickets > 0 then
+                lines[#lines + 1] = string.format("%s: %d (%s)", b.who, b.tickets, Raffle.NumbersText(b.ranges))
+            end
+        end
+    end
     return table.concat(lines, "\n")
 end
 
@@ -1117,8 +1329,8 @@ function Raffle:DiscordResults(r)
         if res.void then
             lines[#lines + 1] = string.format("~~Draw %d: %s~~ (could not take the prize)", res.n, res.who)
         else
-            lines[#lines + 1] = string.format("Draw %d: **%s**%s, ticket #%d (held tickets %d-%d)%s", res.n, res.who,
-                (#self:Prizes(r) > 1 and prize) and (" wins **" .. prize .. "**") or "", res.ticket, res.from, res.to,
+            lines[#lines + 1] = string.format("Draw %d: **%s**%s, ticket #%d (held tickets %s)%s", res.n, res.who,
+                (#self:Prizes(r) > 1 and prize) and (" wins **" .. prize .. "**") or "", res.ticket, HeldText(res),
                 res.replaces and (", replacing " .. res.replaces) or "")
         end
     end
@@ -1227,6 +1439,7 @@ end
 
 function Raffle:RowTooltip(r, b)
     local lines = { b.who }
+    if #b.ranges > 0 then lines[#lines + 1] = "Tickets " .. Raffle.NumbersText(b.ranges) end
     lines[#lines + 1] = string.format("Paid %s: %d bank %s, %d %s.", U.FormatGold(b.gold), b.deposits, b.deposits == 1 and "deposit" or "deposits",
         b.mails, b.mails == 1 and "mail" or "mails")
     if b.overCap > 0 then lines[#lines + 1] = string.format("%d tickets over the cap of %d.", b.overCap, r.maxTickets) end
@@ -1266,13 +1479,13 @@ function Raffle:MailWinner(r, res)
 end
 
 Raffle.columns = {
-    { title = "Buyer", width = 210, tip = "Who deposited or mailed gold during the sale, or got tickets by hand. In ticket-number order (first payment first)." },
+    { title = "Buyer", width = 190, tip = "Who deposited or mailed gold during the sale, or got tickets by hand. In order of their first payment." },
     { title = "Tickets", width = 80, tip = "Tickets in the draw: gold / ticket price (up to the cap), plus or minus changes made by hand." },
-    { title = "Numbers", width = 120, tip = "This buyer's ticket numbers. The draw picks a random number." },
+    { title = "Numbers", width = 160, tip = "This buyer's ticket numbers. The draw picks a random number. New raffles (1.20.0) number tickets in the order they were bought, so someone who buys again later gets later numbers; hover a row for all of them." },
     { title = "Gold", width = 120, tip = "Gold deposited or mailed during the sale." },
     { title = "Not used", width = 110, tip = "Gold that didn't buy a ticket: each payment's remainder below the ticket price (dropped, not carried over), and gold over the per-person limit." },
     { title = "Chance", width = 80, tip = "Share of all tickets." },
-    { title = "Last payment", width = 150 },
+    { title = "Last payment", width = 130 },
     { title = "Result", width = 150, tip = "Who won which prize." },
 }
 
@@ -1297,7 +1510,7 @@ function Raffle:TabRows()
             cells = {
                 b.who,
                 tostring(b.tickets) .. adjust,
-                b.from and (b.from == b.to and ("#" .. b.from) or string.format("#%d-%d", b.from, b.to)) or "",
+                Raffle.NumbersText(b.ranges),
                 b.gold > 0 and U.FormatGold(b.gold) or "",
                 b.refund > 0 and U.FormatGold(b.refund) or "",
                 tally.total > 0 and string.format("%.1f%%", b.tickets * 100 / tally.total) or "",
@@ -1390,11 +1603,11 @@ function Raffle:TabExportLines()
     end
     local r = self:Cur()
     local tally = self:GetTally(r)
-    local lines = { "Buyer\tTickets\tFirst ticket\tLast ticket\tGold\tNot used\tBank deposits\tMails\tHand changes\tLeft out\tResult" }
+    local lines = { "Buyer\tTickets\tTicket numbers\tGold\tNot used\tBank deposits\tMails\tHand changes\tLeft out\tResult" }
     for _, b in ipairs(tally.list) do
         local results = {}
         for _, res in ipairs(self:WinsOf(r, b.who)) do results[#results + 1] = string.format("draw %d ticket %d%s", res.n, res.ticket, res.void and " void" or "") end
-        lines[#lines + 1] = table.concat({ b.who, b.tickets, b.from or "", b.to or "", b.gold, b.refund, b.deposits, b.mails, b.adjust,
+        lines[#lines + 1] = table.concat({ b.who, b.tickets, Raffle.NumbersText(b.ranges), b.gold, b.refund, b.deposits, b.mails, b.adjust,
             b.excluded and "yes" or "", table.concat(results, "; ") }, "\t")
     end
     if r.draw then
@@ -1402,6 +1615,30 @@ function Raffle:TabExportLines()
         for _, part in ipairs(self:ResultParts(r)) do lines[#lines + 1] = part end
     end
     return lines
+end
+
+-- Members tab (1.19.0): give a member raffle tickets as a gift from you, for example a helper.
+-- Logged like any hand change ("gift from @you"), so it shows in the buyer's hover text.
+function Raffle:GiftRaffles()
+    if not self.sv.enabled then return {} end
+    local list = {}
+    for _, r in ipairs(self.sv.raffles) do
+        if not r.draw then list[#list + 1] = r end
+    end
+    return list
+end
+
+function Raffle:GiftMenu(control, who)
+    local list = self:GiftRaffles()
+    local why = "gift from " .. GetDisplayName()
+    ClearMenu()
+    for _, r in ipairs(list) do
+        local prefix = #list > 1 and (self:Name(r) .. ": ") or ""
+        for _, n in ipairs({ 1, 2, 5, 10 }) do
+            AddMenuItem(string.format("%sGive %d %s", prefix, n, n == 1 and "ticket" or "tickets"), function() self:AddTickets(r, who, n, why) end)
+        end
+    end
+    ShowMenu(control)
 end
 
 -- The "New / other raffles" button: switch raffles, the Unassigned list, new raffles.

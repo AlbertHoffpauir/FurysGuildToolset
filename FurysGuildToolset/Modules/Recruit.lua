@@ -49,6 +49,7 @@ Recruit.defaults = {
     playerMenu = false,       -- "Invite to (guild)" when you right-click a name in chat
     leads = false,            -- whispers with a keyword become leads
     keywords = "inv, invite, join, guild",
+    leadsAutoInvite = false,  -- a keyword whisper sends the guild invite right away, no click
     joinNotice = false,       -- chat line when someone joins
     nearlyFull = 10,          -- warn when this many slots or fewer are open (0 = never)
     traderWarning = true,     -- the join line also says when the guild has no trader
@@ -680,14 +681,23 @@ function Recruit:Invite(guildId, name)
     GT.Report:RefreshIfShown()
 end
 
+-- Whole words only: both sides become " word word word " and the keyword's words must appear
+-- in a row. (No %f frontier patterns: ESO's Lua doesn't match them, so the old version never
+-- found a keyword in game.)
+local function Words(text)
+    local words = {}
+    for word in text:gmatch("%w+") do words[#words + 1] = word end
+    return " " .. table.concat(words, " ") .. " "
+end
+
 local function MatchesKeyword(text, keyword)
     if keyword:find("%w") then
-        local escaped = keyword:gsub("(%W)", "%%%1")
-        return text:find("%f[%w]" .. escaped .. "%f[%W]") ~= nil
+        return Words(text):find(Words(keyword), 1, true) ~= nil
     end
     return zo_strtrim(text) == keyword   -- a keyword like "+" counts only on its own
 end
 
+local REINVITE_SECONDS = 10 * 60
 function Recruit:CheckLead(name, text)
     local lower = zo_strlower(text)
     local hit
@@ -697,6 +707,14 @@ function Recruit:CheckLead(name, text)
     if not hit then return end
     local guildId = self:GuildId()
     if U.IsMember(guildId, name) then return end
+    if self.sv.leadsAutoInvite and U.HasPermission(guildId, GUILD_PERMISSION_INVITE) then
+        -- One invite per person: a second whisper while the invite is still open does nothing.
+        local sent = self.sv.invited[guildId .. ":" .. name]
+        if sent and GetTimeStamp() - sent < REINVITE_SECONDS then return end
+        U.Print("%s whispered \"%s\".", name, text)
+        self:Invite(guildId, name)
+        return
+    end
     self.sv.leadList[name] = { at = GetTimeStamp(), text = text }
     U.Print("Lead: %s whispered \"%s\". %s", name, text, Link("Invite to " .. U.GuildName(guildId), "invite", guildId, name))
     GT.Report:RefreshIfShown()
@@ -1045,8 +1063,12 @@ function Recruit:BuildSettings(options)
           tooltip = "Right-click a player's name in chat for \"Invite to (guild)\", for each guild where your rank can invite.",
           getFunc = function() return sv.playerMenu end, setFunc = function(v) sv.playerMenu = v end, default = d.playerMenu },
         { type = "checkbox", name = "Whisper leads",
-          tooltip = "When someone whispers one of the keywords below, you get a chat line with an Invite link and a row on the Recruit tab. Nobody is invited until you click.",
+          tooltip = "When someone who isn't in the guild you recruit for whispers one of the keywords below, you get a chat line with an Invite link and a row on the Recruit tab. Nobody is invited until you click, unless you tick the option below.",
           getFunc = function() return sv.leads end, setFunc = function(v) sv.leads = v; refresh() end, default = d.leads },
+        { type = "checkbox", name = "Invite automatically",
+          tooltip = "A keyword whisper sends the guild invite right away, without a click, and a chat line says who was invited. Each person gets one invite; whispering again within 10 minutes doesn't send another.",
+          getFunc = function() return sv.leadsAutoInvite end, setFunc = function(v) sv.leadsAutoInvite = v end, default = d.leadsAutoInvite,
+          disabled = function() return not sv.leads end },
         { type = "editbox", name = "Lead keywords",
           tooltip = "Separated by commas. Whole words only, upper or lower case. A keyword like + counts only when it's the whole whisper.",
           getFunc = function() return sv.keywords end, setFunc = function(v) sv.keywords = v end, default = d.keywords },

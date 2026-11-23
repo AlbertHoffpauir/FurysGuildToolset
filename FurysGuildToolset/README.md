@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.17.0
+# Fury's Guild Management Toolset (ESO addon) v1.18.3
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -14,7 +14,7 @@
 
 **Every feature starts turned off.** Nothing runs, alerts, logs or mails until you turn it on, so you can switch on only what you want. Updating from an older version keeps your settings as they were.
 
-**You stay in control.** Nothing is done to a member without your click, unless you turn on auto-demote yourself. The addon never kicks, invites or posts in chat by itself: chat text waits in the chat box for you to press Enter, and mails open for you to press Send.
+**You stay in control.** Nothing is done to a member without your click, unless you turn on auto-demote yourself. The addon never kicks or posts in chat by itself, and only invites by itself if you turn that on: chat text waits in the chat box for you to press Enter, and mails open for you to press Send.
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
@@ -242,7 +242,7 @@ Advertise in zones, invite, and welcome new members. Every part is off until you
 ### Invites and leads
 
 - Right-click a name in chat for **Invite to (guild)**.
-- **Whisper leads:** when someone whispers a keyword (inv, invite, join, guild to start with), you get an [Invite] link and a row on the Recruit tab. Nobody is invited without your click.
+- **Whisper leads:** when someone whispers a keyword (inv, invite, join, guild to start with), you get an [Invite] link and a row on the Recruit tab. Nobody is invited without your click, unless you tick "Invite automatically" (off to start with): then the invite goes out right away, once per person.
 - **Join notices:** who joined, how many slots are left, and a warning when the guild is nearly full or has no trader.
 
 ### Welcomes
@@ -270,7 +270,8 @@ Sell raffle tickets for gold and draw the winners. Works without a guild too, fo
 - **Announce in guild** puts the announcement in the guild chat box; **Text for Discord** gives you text to paste into Discord.
 - Each deposit or mail buys its amount divided by the ticket price; the rest is dropped (with 1,000g tickets, 5,600g buys 5). Plain donations count too.
 - For mailed gold, open your mailbox: each gold mail is counted once and printed in chat. Open it once more after sales end.
-- Right-click a buyer to add or remove tickets, or leave them out of the draw. Every change is logged.
+- Ticket numbers never change once someone has them. New tickets always get the next numbers after everyone else's, so someone who buys again later holds numbers spread through the list. Tickets you remove by hand take that person's highest numbers out of the draw.
+- Right-click a buyer to add or remove tickets, or leave them out of the draw. To give tickets to someone who hasn't bought any (a helper, say), right-click them on the **Members** tab and pick **Give raffle tickets...**. Every change is logged.
 
 ### Draw the winners
 
@@ -328,7 +329,7 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 ## Questions
 
 **Will it kick, blacklist or invite people on its own?**  
-Kick, blacklist and Group Finder listings always need your click, and kicks and blacklists ask to confirm. It can do two things by itself, and only if you turn them on: demote (auto-demote), and invite someone who types your event invite code (Invite by code on the Events page).
+Kick, blacklist and Group Finder listings always need your click, and kicks and blacklists ask to confirm. It can do three things by itself, and only if you turn them on: demote (auto-demote), invite someone who types your event invite code (Invite by code on the Events page), and invite someone who whispers a recruiting keyword (Invite automatically under Recruiting).
 
 **I just installed it and already have a pile of alerts. Did it do anything?**  
 No. The first time, it looks back 30 days so you can review older withdrawals. Nothing is done to anyone for those.

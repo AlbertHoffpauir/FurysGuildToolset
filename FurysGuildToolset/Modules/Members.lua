@@ -534,6 +534,9 @@ function Members:MemberItems(m, inactive)
         for _, item in ipairs(GT.Report.ContactItems(m.name)) do Add(item) end
         Add({ label = "Whisper the contact text", fn = function() A.Warn(m.name, subject, text, "whisper") end })
         Add({ label = "Mail the contact text", fn = function() A.Warn(m.name, subject, text, "mail") end })
+        if #GT.Raffle:GiftRaffles() > 0 then
+            Add({ label = "Give raffle tickets...", opensMenu = true, fn = function(control) GT.Raffle:GiftMenu(control, m.name) end })
+        end
     end
     Add({ label = "Set rank...", opensMenu = true, fn = function(control) A.ChooseRank(control, m.guildId, m.name, done) end })
     Add({ label = "Kick (asks first)", fn = function()
