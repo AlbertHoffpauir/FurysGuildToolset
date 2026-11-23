@@ -57,6 +57,9 @@ Events.defaults = {
     mailSubject = "{event} is starting",
     mailText = "Hi {name},\n\nYou signed up for {event} ({time}) and we're forming up now. If you can still make it, log in and whisper {me} for an invite.\n\nThanks!",
     adText = "LFM {need} for {event}{cp}. Whisper {me} for an invite!",
+    -- 1.12.0: before the group forms, ads ask people to sign up for the slots nobody has taken.
+    signupAdText = "Sign up for {event}, {time}{cp}! Still open: {need}. Sign up in our Discord or whisper {me}.",
+    formUpMinutes = 15,       -- the group forms this many minutes before the start time
 }
 
 Events.columns = {
@@ -135,6 +138,27 @@ local function Fill(template, values)
         if value == nil then return "{" .. key .. "}" end
         return tostring(value)
     end))
+end
+
+-- The event's start time as a timestamp, from the Time line Discord shows in your own time
+-- zone: "Wednesday, November 25, 2026 20:00", "November 25, 2026 8:00 PM" or
+-- "25 November 2026 20:00". nil when it can't be read.
+local MONTHS = { jan = 1, feb = 2, mar = 3, apr = 4, may = 5, jun = 6, jul = 7, aug = 8, sep = 9, oct = 10, nov = 11, dec = 12 }
+function Events.StartTime(text)
+    if not text then return nil end
+    local lower = zo_strlower(text)
+    local monthName, day, year = lower:match("(%a+)%s+(%d%d?),?%s+(%d%d%d%d)")
+    local month = monthName and MONTHS[monthName:sub(1, 3)]
+    if not month then
+        day, monthName, year = lower:match("(%d%d?)%.?%s+(%a+)%s+(%d%d%d%d)")
+        month = monthName and MONTHS[monthName:sub(1, 3)]
+    end
+    local hour, minute = lower:match("(%d%d?):(%d%d)")
+    if not month or not hour then return nil end
+    hour = tonumber(hour)
+    local half = lower:match("%d:%d%d%s*([ap])%.?m")
+    if half == "p" and hour < 12 then hour = hour + 12 elseif half == "a" and hour == 12 then hour = 0 end
+    return os.time({ year = tonumber(year), month = month, day = tonumber(day), hour = hour, min = tonumber(minute), sec = 0 })
 end
 
 -- Parsing a sesh post ----------------------------------------------------------------
@@ -487,45 +511,65 @@ function Events:BuildState(ev)
     end
     table.sort(state.walkIns, function(a, b) return a.account < b.account end)
 
-    -- Open slots: the sign-up slots nobody has taken (1.11.1). A role's limit minus the people
-    -- signed up for it, minus anyone in your group who didn't sign up but plays that role. People
-    -- who signed up and aren't here yet keep their slot: you ping them, the ads don't count them.
-    -- A section with no role (Attendees) and a limit: its limit minus its sign-ups and every
-    -- walk-in.
+    -- Two counts of open slots (1.12.0):
+    -- openSignup: the sign-up slots nobody has taken. A role's limit minus the people signed up
+    --   for it, minus anyone in your group who didn't sign up but plays that role. Sign-ups who
+    --   aren't here yet keep their slot. For ads before the group forms ("sign up").
+    -- openNow: the slots nobody in your group fills now. A role's limit minus the people in your
+    --   group playing that role, so no-shows count as open. For ads once the group forms
+    --   ("replacements, join now").
+    -- A section with no role (Attendees) and a limit counts everyone.
     local walkInRole = {}
     for _, info in ipairs(state.walkIns) do walkInRole[info.groupRole] = (walkInRole[info.groupRole] or 0) + 1 end
+    local maxOf, signedOf = {}, {}
     local anyMax, anySigned = 0, 0
     for _, section in ipairs(ev.sections) do
         if section.max then
-            local role = ROLE_OF_KIND[section.kind]
-            if role then
-                state.open[section.kind] = (state.open[section.kind] or 0) + section.max - #section.people
+            if ROLE_OF_KIND[section.kind] then
+                maxOf[section.kind] = (maxOf[section.kind] or 0) + section.max
+                signedOf[section.kind] = (signedOf[section.kind] or 0) + #section.people
             elseif section.kind == "any" then
                 anyMax = anyMax + section.max
                 anySigned = anySigned + #section.people
             end
         end
     end
-    for kind, open in pairs(state.open) do state.open[kind] = math.max(0, open - (walkInRole[ROLE_OF_KIND[kind]] or 0)) end
-    if anyMax > 0 then state.open.any = math.max(0, anyMax - anySigned - #state.walkIns) end
+    state.openSignup, state.openNow = {}, {}
+    for kind, max in pairs(maxOf) do
+        local role = ROLE_OF_KIND[kind]
+        state.openSignup[kind] = math.max(0, max - signedOf[kind] - (walkInRole[role] or 0))
+        state.openNow[kind] = math.max(0, max - (roleCount[role] or 0))
+    end
+    if anyMax > 0 then
+        state.openSignup.any = math.max(0, anyMax - anySigned - #state.walkIns)
+        state.openNow.any = math.max(0, anyMax - groupCount)
+    end
+    -- Which one fits now: replacements from the time the group forms (start time minus the
+    -- "forms up" minutes in the settings), sign-ups before that or when the time can't be read.
+    state.startTs = Events.StartTime(ev.time)
+    state.formUpTs = state.startTs and (state.startTs - (self.sv.formUpMinutes or 15) * 60)
+    state.mode = (state.formUpTs and GetTimeStamp() >= state.formUpTs) and "now" or "signup"
+    state.open = state.mode == "now" and state.openNow or state.openSignup
     state.roleCount = roleCount
     return state
 end
 
--- "1 tank, 2 healers, 7 DPS", or "" when no section has a limit.
-function Events:NeedText(state)
+-- "1 tank, 2 healers, 7 DPS", or "" when no section has a limit. open: state.openSignup or
+-- state.openNow (default: the one that fits now).
+function Events:NeedText(state, open)
+    open = open or state.open
     local parts = {}
     for _, kind in ipairs({ "tank", "heal", "dps" }) do
-        local n = state.open[kind]
+        local n = open[kind]
         if n and n > 0 then parts[#parts + 1] = string.format("%d %s", n, NEED_WORDS[kind][n == 1 and 1 or 2]) end
     end
-    if state.open.any and state.open.any > 0 then parts[#parts + 1] = string.format("%d more", state.open.any) end
+    if open.any and open.any > 0 then parts[#parts + 1] = string.format("%d more", open.any) end
     return table.concat(parts, ", ")
 end
 
-function Events:Values(state, name)
+function Events:Values(state, name, open)
     local ev = state.ev
-    local need = self:NeedText(state)
+    local need = self:NeedText(state, open)
     return {
         event = ev.title, time = ev.time or "now", me = GetDisplayName(), name = name or "",
         need = need ~= "" and need or "more people",
@@ -555,6 +599,13 @@ function Events:TabTitle()
     return #state.missing > 0 and string.format("Events (%d)", #state.missing) or "Events"
 end
 
+-- "8:45 PM", or "Wed 8:45 PM" when it isn't today.
+local function Clock(ts)
+    local text = os.date("%I:%M %p", ts):gsub("^0", "")
+    if os.date("%Y%m%d", ts) ~= os.date("%Y%m%d", GetTimeStamp()) then text = os.date("%a ", ts) .. text end
+    return text
+end
+
 function Events:TabSummary()
     if not self.sv.enabled then return "" end
     local state = self:State()
@@ -571,9 +622,19 @@ function Events:TabSummary()
         end
     end
     local line = string.format("|cFFFFFF%s|r%s.  %s.", ev.title, ev.time and (", " .. ev.time) or "", table.concat(parts, "; "))
-    local need = self:NeedText(state)
-    if need ~= "" then line = line .. "  Open: " .. need .. "." end
     if (ev.minCP or 0) > 0 then line = line .. string.format("  CP %d+.", ev.minCP) end
+    local signup, now = self:NeedText(state, state.openSignup), self:NeedText(state, state.openNow)
+    if next(state.openNow) == nil then
+        -- No section has a limit (a class with Attendees only): no open slots to show.
+    elseif state.mode == "now" then
+        line = line .. "  |cFFFFFFNeed now:|r " .. (now ~= "" and now or "nobody") .. "."
+        if signup ~= "" then line = line .. "  Sign-up slots nobody took: " .. signup .. "." end
+    else
+        line = line .. "  |cFFFFFFOpen sign-up slots:|r " .. (signup ~= "" and signup or "none") .. "."
+        if state.formUpTs then
+            line = line .. string.format("  Ads ask for replacements from %s.", Clock(state.formUpTs))
+        end
+    end
     return line
 end
 
@@ -647,9 +708,11 @@ function Events:TabFooter()
     return {
         { label = "Paste sign-ups", tip = "Opens a box to paste a sesh event post into (Ctrl+V). Replaces the event shown now.", fn = function() self:AskPaste() end },
         { label = "Invite online", tip = "Sends a group invite to every sign-up who is online and not in your group (not Standby). One click, one invite each.", fn = function() self:InviteOnline() end },
-        { label = "Advertise in guilds", tip = "Puts an ad for the open slots in the chat box of each guild ticked in the Events settings, one guild after another. You press Enter for each.", fn = function() self:Advertise() end },
+        { label = "Advertise in guilds", tip = "Puts an ad in the chat box of each guild ticked in the Events settings, one guild after another. You press Enter for each. Pick the kind: sign-ups (before the group forms) or replacements (once it forms). The one that fits now is first.",
+          fn = function(control) self:AdMenu(control, function(mode) self:Advertise(mode) end) end },
         { label = "Group Finder", tip = "Shows a Group Finder listing for the open slots (title, description, CP and roles from the post) to check. Nothing is listed until you press Create listing.", fn = function() self:AskListing() end },
-        { label = "Copy for Discord", tip = "Shows a message with the missing names and open slots to copy into Discord.", fn = function() self:CopyForDiscord() end },
+        { label = "Copy for Discord", tip = "Shows a message to copy into Discord: the open sign-up slots (before the group forms), or the missing names and the slots to fill now (once it forms). The one that fits now is first.",
+          fn = function(control) self:AdMenu(control, function(mode) self:CopyForDiscord(mode) end) end },
     }
 end
 
@@ -765,9 +828,34 @@ function Events:InviteOnline()
     end
 end
 
+-- Asks which kind of ad: sign-ups for the slots nobody has taken (before the group forms) or
+-- replacements for what the group is missing now. The one that fits the time comes first.
+function Events:AdMenu(control, fn)
+    local state = self:State()
+    if not state then U.Print("Paste a sesh sign-up post first."); return end
+    local signup, now = self:NeedText(state, state.openSignup), self:NeedText(state, state.openNow)
+    local items
+    if next(state.openNow) == nil then
+        -- No section has a limit (a class with Attendees only): no counts to show.
+        items = { { mode = "signup", label = "Ask for sign-ups" }, { mode = "now", label = "Ask people to join now" } }
+    else
+        items = {
+            { mode = "signup", label = string.format("Ask for sign-ups (%s)", signup ~= "" and signup or "no open sign-up slots") },
+            { mode = "now", label = string.format("Ask for replacements, join now (%s)", now ~= "" and now or "group is full") },
+        }
+    end
+    if state.mode == "now" then items[1], items[2] = items[2], items[1] end
+    ClearMenu()
+    for _, item in ipairs(items) do
+        local mode = item.mode
+        AddMenuItem(item.label, function() fn(mode) end)
+    end
+    ShowMenu(control)
+end
+
 -- Guild ads: one guild at a time. The next guild's ad goes in the chat box after you send
 -- the one before it.
-function Events:Advertise()
+function Events:Advertise(mode)
     local state = self:State()
     if not state then U.Print("Paste a sesh sign-up post first."); return end
     if CHAT_SYSTEM:IsTextEntryOpen() then
@@ -775,7 +863,14 @@ function Events:Advertise()
         return
     end
     local posts = {}
-    local text = Fill(self.sv.adText, self:Values(state))
+    mode = mode or state.mode
+    local open = mode == "now" and state.openNow or state.openSignup
+    if next(open) ~= nil and self:NeedText(state, open) == "" then
+        U.Print(mode == "now" and "Your group has every slot filled. Nothing to advertise." or "Every sign-up slot is taken. Nothing to advertise.")
+        return
+    end
+    local template = mode == "now" and self.sv.adText or (self.sv.signupAdText or Events.defaults.signupAdText)
+    local text = Fill(template, self:Values(state, nil, open))
     if #text > MAX_CHAT then text = text:sub(1, MAX_CHAT) end
     for i = 1, GetNumGuilds() do
         local guildId = GetGuildId(i)
@@ -817,22 +912,34 @@ function Events:NextAd()
         queue.total - #queue.posts, queue.total, #queue.posts > 0 and "; the next guild's follows" or "")
 end
 
-function Events:CopyForDiscord()
+function Events:CopyForDiscord(mode)
     local state = self:State()
     if not state then U.Print("Paste a sesh sign-up post first."); return end
     local ev = state.ev
-    local lines = { string.format("**%s** is forming up now%s.", ev.title, ev.time and (" (" .. ev.time .. ")") or "") }
-    if #state.missing > 0 then
-        local names = {}
-        for _, info in ipairs(state.missing) do names[#names + 1] = string.format("%s (%s)", info.person.base, info.section.name) end
-        lines[#lines + 1] = "Still missing: " .. table.concat(names, ", ") .. ". Are you coming?"
+    mode = mode or state.mode
+    local cp = (ev.minCP or 0) > 0 and string.format(", CP %d+", ev.minCP) or ""
+    local lines
+    if mode == "signup" then
+        local need = self:NeedText(state, state.openSignup)
+        lines = { string.format("**%s**%s", ev.title, ev.time and (" (" .. ev.time .. ")") or "") }
+        if need ~= "" then
+            lines[#lines + 1] = string.format("Still open: **%s**%s. Sign up on the event post!", need, cp)
+        else
+            lines[#lines + 1] = "Every slot is taken. Sign up as Standby if you'd like to come."
+        end
     else
-        lines[#lines + 1] = "Everyone who signed up is here."
-    end
-    local need = self:NeedText(state)
-    if need ~= "" then
-        lines[#lines + 1] = string.format("Open slots: **%s**%s. Whisper %s in game for an invite.", need,
-            (ev.minCP or 0) > 0 and string.format(", CP %d+", ev.minCP) or "", GetDisplayName())
+        lines = { string.format("**%s** is forming up now%s.", ev.title, ev.time and (" (" .. ev.time .. ")") or "") }
+        if #state.missing > 0 then
+            local names = {}
+            for _, info in ipairs(state.missing) do names[#names + 1] = string.format("%s (%s)", info.person.base, info.section.name) end
+            lines[#lines + 1] = "Still missing: " .. table.concat(names, ", ") .. ". Are you coming?"
+        else
+            lines[#lines + 1] = "Everyone who signed up is here."
+        end
+        local need = self:NeedText(state, state.openNow)
+        if need ~= "" then
+            lines[#lines + 1] = string.format("Need now: **%s**%s. Whisper %s in game for an invite.", need, cp, GetDisplayName())
+        end
     end
     local Report = GT.Report
     Report.exportParts = { table.concat(lines, "\n") }
@@ -1039,14 +1146,19 @@ function Events:SettingsControls()
         { type = "description", text = "Copy a sesh event post in Discord and paste it into the Events tab (/gt events > Paste sign-ups). The tab shows each sign-up next to who is in your group, and lets you whisper, invite or mail the missing people, advertise the open slots in your guilds, and create a Group Finder listing. Nothing is sent without a click or Enter from you." },
         { type = "checkbox", name = "Turn on Events", tooltip = "Shows the Events tab and keeps it up to date while people join your group or log in.",
           getFunc = function() return sv.enabled end, setFunc = function(v) self:SetEnabled(v) end, default = false },
-        { type = "description", title = "Texts", text = "You can use {name} (their Discord name), {event} (the event title), {time}, {need} (open slots, like \"1 tank, 2 DPS\"), {cp} (\" (CP 160+)\" when the post has a CP requirement) and {me} (your @account)." },
+        { type = "description", title = "Texts", text = "You can use {name} (their Discord name), {event} (the event title), {time}, {need} (open slots, like \"1 tank, 2 DPS\": sign-up slots nobody took before the group forms, what the group is missing after), {cp} (\" (CP 160+)\" when the post has a CP requirement) and {me} (your @account)." },
         { type = "editbox", name = "Whisper", tooltip = "Goes in the chat box when you right-click a sign-up > Whisper. You press Enter.",
           getFunc = function() return sv.whisperText end, setFunc = function(v) sv.whisperText = v end, default = Events.defaults.whisperText },
         { type = "editbox", name = "Mail subject", tooltip = "For right-click > Mail. The mail opens filled in; you press Send.",
           getFunc = function() return sv.mailSubject end, setFunc = function(v) sv.mailSubject = v end, default = Events.defaults.mailSubject },
         { type = "editbox", name = "Mail text", isMultiline = true, tooltip = "For right-click > Mail.",
           getFunc = function() return sv.mailText end, setFunc = function(v) sv.mailText = v end, default = Events.defaults.mailText },
-        { type = "editbox", name = "Guild ad", tooltip = "Advertise in guilds puts this in each ticked guild's chat box, one after another. Up to 350 characters.",
+        { type = "slider", name = "Group forms (minutes before start)", min = 0, max = 60, step = 5,
+          tooltip = "Before this, ads ask people to sign up for the slots nobody has taken. From this time on, ads ask for replacements to join now, and no-shows count as open slots. Read from the Time in the sesh post.",
+          getFunc = function() return sv.formUpMinutes or 15 end, setFunc = function(v) sv.formUpMinutes = v; self.cache = nil end, default = Events.defaults.formUpMinutes },
+        { type = "editbox", name = "Guild ad for sign-ups", tooltip = "Before the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is the sign-up slots nobody has taken. Up to 350 characters.",
+          getFunc = function() return sv.signupAdText or Events.defaults.signupAdText end, setFunc = function(v) sv.signupAdText = v end, default = Events.defaults.signupAdText },
+        { type = "editbox", name = "Guild ad for replacements", tooltip = "Once the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is what your group is missing now, no-shows included. Up to 350 characters.",
           getFunc = function() return sv.adText end, setFunc = function(v) sv.adText = v end, default = Events.defaults.adText },
         { type = "header", name = "Guilds to advertise in" },
     }
