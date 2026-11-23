@@ -513,6 +513,8 @@ function Events:State()
 end
 
 function Events:BuildState(ev)
+    -- 1.16.4: read the CP again every time, so a post pasted with an older version gets it too.
+    ev.minCP = Events.FindCP(table.concat(ev.desc, "\n"))
     local index = self:BuildIndex()
     local group, groupCount = self:BuildGroup()
     local state = { ev = ev, entries = {}, walkIns = {}, missing = {}, open = {}, here = {}, groupCount = groupCount, index = index }
@@ -1461,8 +1463,9 @@ function Events:CreateListing(text)
         end
     end
     self.listingPending = true
+    self.listingCP = minCP
     RequestCreateGroupListing()
-    U.Print("Asking the game to create the Group Finder listing \"%s\"...", title)
+    U.Print("Asking the game to create the Group Finder listing \"%s\"%s...", title, minCP > 0 and string.format(" (CP %d+)", minCP) or " (no CP requirement in the post)")
 end
 
 function Events:OnListingResult(result)
@@ -1470,6 +1473,10 @@ function Events:OnListingResult(result)
     self.listingPending = false
     if result == GROUP_FINDER_ACTION_RESULT_SUCCESS then
         U.Print("Your Group Finder listing is up. Accept applicants in the game's Group Finder window.")
+        local created = GROUP_FINDER_GROUP_LISTING_USER_TYPE_CREATED_GROUP_LISTING
+        if (self.listingCP or 0) > 0 and not DoesGroupFinderUserTypeGroupListingRequireChampion(created) then
+            U.Print("The game dropped the CP requirement (CP %d) from the listing. Tick Champion Points Required in the Group Finder window and save.", self.listingCP)
+        end
     else
         U.Print("The Group Finder listing wasn't created: %s", GetString("SI_GROUPFINDERACTIONRESULT", result))
     end
