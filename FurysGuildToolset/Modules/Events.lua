@@ -1204,16 +1204,51 @@ function Events:ListingRoles(state)
     return desired, numRoles
 end
 
+-- The listing's description: the description from the sesh post (1.15.2, Albert). The Group
+-- Finder shows the roles filled and needed itself. Paragraphs are joined; a list of short lines
+-- becomes "a, b, c"; a line like "THERE ARE REQUIREMENTS" takes the list under it ("...: a, b").
+-- The first line is left out when it's the title again in capitals. Cut at a word to the limit.
 function Events:ListingDescription(state)
     local ev = state.ev
+    local paragraphs, current = {}, {}
+    for _, line in ipairs(ev.desc) do
+        line = Trim(Printable(line))
+        if line == "" then
+            if #current > 0 then paragraphs[#paragraphs + 1] = current; current = {} end
+        else
+            current[#current + 1] = line
+        end
+    end
+    if #current > 0 then paragraphs[#paragraphs + 1] = current end
+    local first = paragraphs[1]
+    if first and #first == 1 and first[1] == first[1]:upper() and first[1]:find("%a") then table.remove(paragraphs, 1) end
+
     local parts = {}
-    local need = self:NeedText(state)
-    if need ~= "" then parts[#parts + 1] = "Need " .. need .. "." end
-    if ev.time then parts[#parts + 1] = ev.time .. "." end
-    if (ev.minCP or 0) > 0 then parts[#parts + 1] = string.format("CP %d+.", ev.minCP) end
-    if #ev.requirements > 0 then parts[#parts + 1] = "Required: " .. table.concat(ev.requirements, ", ") .. "." end
-    parts[#parts + 1] = "Whisper " .. GetDisplayName() .. " with questions."
-    return table.concat(parts, " ")
+    local i = 1
+    while i <= #paragraphs do
+        local text = table.concat(paragraphs[i], ", ")
+        local nextOne = paragraphs[i + 1]
+        if #paragraphs[i] == 1 and nextOne and text:find(":$") then
+            text = text .. " " .. table.concat(nextOne, ", ")
+            i = i + 1
+        elseif #paragraphs[i] == 1 and nextOne and zo_strlower(text):find("requir") and not text:find("[%.!%?]$") then
+            text = text .. ": " .. table.concat(nextOne, ", ")
+            i = i + 1
+        end
+        if not text:find("[%.!%?]$") then text = text .. "." end
+        parts[#parts + 1] = text
+        i = i + 1
+    end
+    local description = table.concat(parts, " ")
+    local max = GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH
+    if #description > max then
+        -- Cut after the last sentence or list item that fits; at a word if that leaves too little.
+        local head = description:sub(1, max)
+        local cut = head:match("^(.*[%.!%?,])%s") or ((#description == max + 1 or description:sub(max + 1, max + 1) == " ") and head:match("^(.*[%.!%?,])$"))
+        if not cut or #cut < max / 2 then cut = description:sub(1, max + 1):match("^(.*)%s") or head end
+        description = Trim(cut):gsub("[,:;]$", "")
+    end
+    return description
 end
 
 -- A title the Group Finder takes (1.13.3): letters and spaces only (digits, emoji and symbols
