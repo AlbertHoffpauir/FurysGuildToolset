@@ -523,21 +523,21 @@ end
 
 local function StatusText(info, entry)
     if info.inGroup then
-        local text = "|c9FD49FIn group|r"
+        local text = "|c5EE6A0In group|r"
         if entry.role and info.groupRole ~= LFG_ROLE_INVALID and info.groupRole ~= entry.role then
-            text = string.format("|cFF9933In group as %s|r", ROLE_NAME[info.groupRole] or "?")
+            text = string.format("|cFFA45CIn group as %s|r", ROLE_NAME[info.groupRole] or "?")
         end
-        if not info.online then text = text .. " |cAAAAAA(disconnected)|r" end
+        if not info.online then text = text .. " |cB4B0D8(disconnected)|r" end
         return text
     end
-    if not info.account then return "|cAAAAAANo account matched. Right-click to set it.|r" end
-    if not info.status then return "|cAAAAAANot in your guilds or friends|r" end
+    if not info.account then return "|cB4B0D8No account matched. Right-click to set it.|r" end
+    if not info.status then return "|cB4B0D8Not in your guilds or friends|r" end
     if info.status == PLAYER_STATUS_OFFLINE then
-        return "|cAAAAAAOffline " .. U.FormatDuration(info.secs) .. "|r"
+        return "|cB4B0D8Offline " .. U.FormatDuration(info.secs) .. "|r"
     end
-    if info.status == PLAYER_STATUS_AWAY then return "|cFFFF66Online (away), not in group|r" end
-    if info.status == PLAYER_STATUS_DO_NOT_DISTURB then return "|cFFFF66Online (busy), not in group|r" end
-    return "|cFFFF66Online, not in group|r"
+    if info.status == PLAYER_STATUS_AWAY then return "|cFFC857Online (away), not in group|r" end
+    if info.status == PLAYER_STATUS_DO_NOT_DISTURB then return "|cFFC857Online (busy), not in group|r" end
+    return "|cFFC857Online, not in group|r"
 end
 
 -- Everything the tab and the buttons need: one entry per sign-up, the walk-ins, counts and
@@ -717,16 +717,16 @@ function Events:TabSummary()
                 section.max and ("/" .. section.max) or "", here)
         end
     end
-    local line = string.format("|cFFFFFF%s|r%s.  %s.", ev.title, ev.time and (", " .. ev.time) or "", table.concat(parts, "; "))
+    local line = string.format("|cECEAF8%s|r%s.  %s.", ev.title, ev.time and (", " .. ev.time) or "", table.concat(parts, "; "))
     if (ev.minCP or 0) > 0 then line = line .. string.format("  CP %d+.", ev.minCP) end
     local signup, now = self:NeedText(state, state.openSignup), self:NeedText(state, state.openNow)
     if next(state.openNow) == nil then
         -- No section has a limit (a class with Attendees only): no open slots to show.
     elseif state.mode == "now" then
-        line = line .. "  |cFFFFFFNeed now:|r " .. (now ~= "" and now or "nobody") .. "."
+        line = line .. "  |cECEAF8Need now:|r " .. (now ~= "" and now or "nobody") .. "."
         if signup ~= "" then line = line .. "  Sign-up slots nobody took: " .. signup .. "." end
     else
-        line = line .. "  |cFFFFFFOpen sign-up slots:|r " .. (signup ~= "" and signup or "none") .. "."
+        line = line .. "  |cECEAF8Open sign-up slots:|r " .. (signup ~= "" and signup or "none") .. "."
         if state.formUpTs then
             line = line .. string.format("  Ads ask for replacements from %s.", Clock(state.formUpTs))
         end
@@ -736,7 +736,7 @@ end
 
 local function CpText(info, minCP)
     if not info.cp then return "" end
-    if minCP and minCP > 0 and info.cp < minCP then return "|cFF6666" .. info.cp .. "|r" end
+    if minCP and minCP > 0 and info.cp < minCP then return "|cFF6B86" .. info.cp .. "|r" end
     return tostring(info.cp)
 end
 
@@ -748,7 +748,7 @@ function Events:TabRows()
     local minCP = state.ev.minCP
     for _, info in ipairs(state.entries) do
         local person = info.person
-        local accountText = info.account or "|cAAAAAA?|r"
+        local accountText = info.account or "|cB4B0D8?|r"
         local tip
         if info.how == "name" then
             tip = string.format("%s was matched to %s by name. Right-click > Set account if that's the wrong person.", person.raw, info.account)
@@ -766,7 +766,7 @@ function Events:TabRows()
     end
     for _, info in ipairs(state.walkIns) do
         local row = {
-            cells = { "|cAAAAAANot signed up|r", "", info.account, "|c9FD49FIn group|r", ROLE_NAME[info.groupRole] or "-", CpText(info, minCP) },
+            cells = { "|cB4B0D8Not signed up|r", "", info.account, "|c5EE6A0In group|r", ROLE_NAME[info.groupRole] or "-", CpText(info, minCP) },
             tooltip = "In your group but not in the sesh post, or not matched to a sign-up yet.",
         }
         rows[#rows + 1] = GT.Report.AddMenu(row, GT.Report.ContactItems(info.account))

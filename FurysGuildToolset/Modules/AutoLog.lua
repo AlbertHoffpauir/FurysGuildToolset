@@ -116,11 +116,11 @@ function AutoLog:ShowAlert(entry)
     local lines = {}
     for i = 1, math.min(n, ALERT_MAX_LINES) do
         local e = self.alertEntries[i]
-        lines[#lines + 1] = zo_strformat("|cAAAAAA<<1>>|r  |cFFCC66<<2>>|r: <<3>> to <<4>> in <<5>>. Took <<6>> (<<7>>).",
+        lines[#lines + 1] = zo_strformat("|cB4B0D8<<1>>|r  |cFFC857<<2>>|r: <<3>> to <<4>> in <<5>>. Took <<6>> (<<7>>).",
             Time(e.ts), e.who, e.fromRank or "?", e.toRank, e.guild, e.amount, e.rule)
     end
     if n > ALERT_MAX_LINES then
-        lines[#lines + 1] = string.format("|cAAAAAA...and %d more. Open log shows them all.|r", n - ALERT_MAX_LINES)
+        lines[#lines + 1] = string.format("|cB4B0D8...and %d more. Open log shows them all.|r", n - ALERT_MAX_LINES)
     end
     FuryGMTAutoAlertBody:SetText(table.concat(lines, "\n"))
     FuryGMTAutoAlert:SetHeight(20 + FuryGMTAutoAlertTitle:GetTextHeight() + 14 + FuryGMTAutoAlertBody:GetTextHeight() + 18 + 30 + 20)
@@ -163,7 +163,7 @@ function AutoLog:RecordDemotion(info)
             zo_strformat("<<1>> to <<2>> in <<3>>. Took <<4>>. /gt auto", entry.fromRank or "?", entry.toRank, entry.guild, entry.amount),
             SOUNDS.GENERAL_ALERT_ERROR)
     end
-    U.Print("|cFF9933AUTO-DEMOTED|r %s in %s: %s to %s.", entry.who, entry.guild, entry.fromRank or "?", entry.toRank)
+    U.Print("|cFFA45CAUTO-DEMOTED|r %s in %s: %s to %s.", entry.who, entry.guild, entry.fromRank or "?", entry.toRank)
     U.Print("  Why: took %s from the guild bank between %s and %s (rule: %s).",
         entry.amount, U.FormatDate(entry.firstTs), U.FormatDate(entry.lastTs), entry.rule)
     for i = 1, math.min(CHAT_WITHDRAWALS, #list) do
@@ -195,7 +195,7 @@ function AutoLog:CheckRank(entry, final)
         self:Notice(zo_strformat("Demotion of <<1>> not confirmed", entry.who),
             zo_strformat("The roster shows <<1>> (expected <<2>>). Check the guild roster.", now, entry.toRank),
             SOUNDS.GENERAL_ALERT_ERROR)
-        U.Print("|cFF6666Demotion not confirmed|r: %s in %s shows as %s, expected %s.", entry.who, entry.guild, now, entry.toRank)
+        U.Print("|cFF6B86Demotion not confirmed|r: %s in %s shows as %s, expected %s.", entry.who, entry.guild, now, entry.toRank)
     end
     GT.Report:RefreshIfShown()
 end
@@ -206,12 +206,12 @@ function AutoLog:MailResult(entry, ok, reason)
     if ok then
         entry.mail, entry.mailReason = "sent", nil
         self:Notice(zo_strformat("Demotion mail sent to <<1>>", entry.who), "Confirmed by the server.", nil)
-        U.Print("|c9FD49FMail sent|r: the demotion mail to %s was delivered to the server at %s.", entry.who, Time(entry.mailTs))
+        U.Print("|c5EE6A0Mail sent|r: the demotion mail to %s was delivered to the server at %s.", entry.who, Time(entry.mailTs))
     else
         entry.mail, entry.mailReason = "failed", reason or "unknown"
         self:Notice(zo_strformat("Demotion mail to <<1>> FAILED", entry.who),
             zo_strformat("<<1>>. Right-click it on /gt auto and pick Send the demotion mail.", entry.mailReason), SOUNDS.GENERAL_ALERT_ERROR)
-        U.Print("|cFF6666Mail failed|r: the demotion mail to %s was not sent (%s). Right-click it on /gt auto or /gt bank and pick Send the demotion mail.",
+        U.Print("|cFF6B86Mail failed|r: the demotion mail to %s was not sent (%s). Right-click it on /gt auto or /gt bank and pick Send the demotion mail.",
             entry.who, entry.mailReason)
     end
     GT.Report:RefreshIfShown()
@@ -247,24 +247,24 @@ end
 -- Report tab ------------------------------------------------------------------
 
 local KIND_LABEL = {
-    demote = "|cFF9933Auto-demoted|r",
-    skipped = "|cFFCC66Not demoted|r",
-    cap = "|cFFCC66Limit reached|r",
-    watchlist = "|c7FB2FFWatchlisted|r",
+    demote = "|cFFA45CAuto-demoted|r",
+    skipped = "|cFFC857Not demoted|r",
+    cap = "|cFFC857Limit reached|r",
+    watchlist = "|cA08CFFWatchlisted|r",
 }
 
 local function RankStateText(e)
-    if e.rankState == "confirmed" then return "|c9FD49Frank confirmed|r" end
-    if e.rankState == "unconfirmed" then return "|cFF6666rank NOT confirmed|r" end
-    return "|cAAAAAAwaiting server|r"
+    if e.rankState == "confirmed" then return "|c5EE6A0rank confirmed|r" end
+    if e.rankState == "unconfirmed" then return "|cFF6B86rank NOT confirmed|r" end
+    return "|cB4B0D8waiting server|r"
 end
 
 local function MailText(e)
-    if e.mail == "sent" then return "|c9FD49Fmail sent " .. Time(e.mailTs) .. "|r" end
-    if e.mail == "failed" then return "|cFF6666mail failed: " .. (e.mailReason or "?") .. "|r" end
-    if e.mail == "queued" then return "|cAAAAAAmail sending...|r" end
-    if e.mail == "manual" then return "|cAAAAAAmail opened by you " .. Time(e.mailTs) .. "|r" end
-    return "|cFFCC66auto mail off|r"
+    if e.mail == "sent" then return "|c5EE6A0mail sent " .. Time(e.mailTs) .. "|r" end
+    if e.mail == "failed" then return "|cFF6B86mail failed: " .. (e.mailReason or "?") .. "|r" end
+    if e.mail == "queued" then return "|cB4B0D8mail sending...|r" end
+    if e.mail == "manual" then return "|cB4B0D8mail opened by you " .. Time(e.mailTs) .. "|r" end
+    return "|cFFC857auto mail off|r"
 end
 
 local function PlainMail(e)
@@ -325,9 +325,9 @@ local function FindBankCase(e)
 end
 
 function AutoLog:GetRow(e)
-    local text = string.format("|cAAAAAA%s|r  %s", U.FormatDate(e.ts), self:Describe(e))
+    local text = string.format("|cB4B0D8%s|r  %s", U.FormatDate(e.ts), self:Describe(e))
     if e.kind == "demote" then text = text .. "  " .. RankStateText(e) .. ", " .. MailText(e) end
-    if e.new then text = "|cFFFFFF*|r " .. text end
+    if e.new then text = "|cECEAF8*|r " .. text end
     local actions = {}
     if e.kind == "demote" and e.mail ~= "sent" and e.mail ~= "queued" and U.IsMember(e.g, e.who) then
         local bank, case = FindBankCase(e)

@@ -12,20 +12,20 @@ BankWatch.rebuildsFromLog = true   -- Rescan rebuilds it from the History log (s
 
 local SEVERITY_NONE, SEVERITY_WARN, SEVERITY_DEMOTE, SEVERITY_KICK = 0, 1, 2, 3
 local SEVERITY_LABEL = {
-    [SEVERITY_NONE] = "|c9FD49FOK|r",
-    [SEVERITY_WARN] = "|cFFE14DWARN|r",
-    [SEVERITY_DEMOTE] = "|cFF9933DEMOTE|r",
-    [SEVERITY_KICK] = "|cFF4D4DKICK|r",
+    [SEVERITY_NONE] = "|c5EE6A0OK|r",
+    [SEVERITY_WARN] = "|cFFC857WARN|r",
+    [SEVERITY_DEMOTE] = "|cFFA45CDEMOTE|r",
+    [SEVERITY_KICK] = "|cFF6B86KICK|r",
 }
 local STATUS_LABEL = {
-    open = "|cFFFFFFnew|r",
-    warned = "|c9FD49Fwarned|r",
-    demoted = "|c9FD49Fdemoted|r",
-    kicked = "|c9FD49Fkicked|r",
-    rankset = "|c9FD49Frank set|r",
-    blacklisted = "|c9FD49Fblacklisted|r",
-    dismissed = "|c888888dismissed|r",
-    returned = "|c9FD49Funder limits after returns|r",
+    open = "|cECEAF8new|r",
+    warned = "|c5EE6A0warned|r",
+    demoted = "|c5EE6A0demoted|r",
+    kicked = "|c5EE6A0kicked|r",
+    rankset = "|c5EE6A0rank set|r",
+    blacklisted = "|c5EE6A0blacklisted|r",
+    dismissed = "|c8A86B0dismissed|r",
+    returned = "|c5EE6A0under limits after returns|r",
 }
 local KEEP_CLOSED_CASES_SECONDS = 30 * 86400
 
@@ -482,10 +482,10 @@ function BankWatch:GetCaseReturns(case)
             local taken, name = entry.qty or 1, entry.link and ItemName(entry.link) or "item"
             if entry.ret >= taken then
                 out.whole = out.whole + 1
-                out.lines[#out.lines + 1] = string.format("|c9FD49F%dx %s put back whole after %s|r", taken, name, U.FormatDuration(entry.retTs - entry.ts))
+                out.lines[#out.lines + 1] = string.format("|c5EE6A0%dx %s put back whole after %s|r", taken, name, U.FormatDuration(entry.retTs - entry.ts))
             else
                 out.partial = out.partial + 1
-                out.lines[#out.lines + 1] = string.format("|cFFCC66%d of %dx %s put back, %d used or kept|r", entry.ret, taken, name, taken - entry.ret)
+                out.lines[#out.lines + 1] = string.format("|cFFC857%d of %dx %s put back, %d used or kept|r", entry.ret, taken, name, taken - entry.ret)
             end
         end
     end
@@ -761,26 +761,26 @@ function BankWatch:GetCaseRow(case)
     local returns = self:GetCaseReturns(case)
     local taken
     if case.kind == "gold" then
-        taken = "took |cFFFFFF" .. U.FormatGold(case.total) .. "|r"
+        taken = "took |cECEAF8" .. U.FormatGold(case.total) .. "|r"
     elseif returns.stacks then
-        taken = zo_strformat("took |cFFFFFF<<1>> <<1[stack/stacks]>>|r (<<2>> <<2[item/items]>>)", returns.stacks, returns.items)
-        local back = string.format("put back: |c9FD49F%d whole|r, |cFFCC66%d partly|r", returns.whole, returns.partial)
+        taken = zo_strformat("took |cECEAF8<<1>> <<1[stack/stacks]>>|r (<<2>> <<2[item/items]>>)", returns.stacks, returns.items)
+        local back = string.format("put back: |c5EE6A0%d whole|r, |cFFC857%d partly|r", returns.whole, returns.partial)
         taken = taken .. "  " .. back
         if case.unit == "stacks" and case.total ~= returns.stacks then
-            taken = taken .. string.format("  |cAAAAAA(counted %d)|r", case.total)
+            taken = taken .. string.format("  |cB4B0D8(counted %d)|r", case.total)
         end
     else
-        taken = string.format("took |cFFFFFF%d items|r  put back: |c9FD49F%d whole|r, |cFFCC66%d partly|r", returns.items, returns.whole, returns.partial)
+        taken = string.format("took |cECEAF8%d items|r  put back: |c5EE6A0%d whole|r, |cFFC857%d partly|r", returns.items, returns.whole, returns.partial)
     end
-    local text = string.format("%s %s  |cAAAAAA%s|r  %s  |cAAAAAA%s|r", SEVERITY_LABEL[case.severity], case.name, case.guildName, taken, U.FormatAgo(case.lastTs))
-    if not stillMember then text = text .. " |cFF6666(left)|r" end
+    local text = string.format("%s %s  |cB4B0D8%s|r  %s  |cB4B0D8%s|r", SEVERITY_LABEL[case.severity], case.name, case.guildName, taken, U.FormatAgo(case.lastTs))
+    if not stillMember then text = text .. " |cFF6B86(left)|r" end
     if case.status == "rankset" and case.rankSetTo then
-        text = text .. "  |c9FD49Fset to " .. case.rankSetTo .. "|r"
+        text = text .. "  |c5EE6A0set to " .. case.rankSetTo .. "|r"
     elseif case.status == "demoted" and case.autoDemoted then
-        text = text .. "  |c9FD49Fauto-demoted to " .. (case.rankSetTo or "?") .. "|r"
-        if case.mailSending then text = text .. " |cAAAAAA(sending mail...)|r"
-        elseif case.mailPending then text = text .. " |cFFCC66(mail not sent)|r"
-        elseif case.mailSentAt then text = text .. " |cAAAAAA(mail sent)|r" end
+        text = text .. "  |c5EE6A0auto-demoted to " .. (case.rankSetTo or "?") .. "|r"
+        if case.mailSending then text = text .. " |cB4B0D8(sending mail...)|r"
+        elseif case.mailPending then text = text .. " |cFFC857(mail not sent)|r"
+        elseif case.mailSentAt then text = text .. " |cB4B0D8(mail sent)|r" end
     elseif case.status ~= "open" then
         text = text .. "  " .. (STATUS_LABEL[case.status] or case.status)
     end

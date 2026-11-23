@@ -13,7 +13,7 @@ function Settings:AddPage(id, title, controls, withDefaults)
     local panel = LAM:RegisterAddonPanel(name, {
         type = "panel",
         name = "Fury's Guild Management - " .. title,
-        displayName = "Fury's Guild Management Toolset: " .. title,
+        displayName = "|cA08CFFFury's Guild Management Toolset: " .. title .. "|r",
         author = "Furyous",
         version = GT.version,
         registerForRefresh = true,
@@ -124,7 +124,7 @@ function Settings:Build()
     local panelData = {
         type = "panel",
         name = "Fury's Guild Management",
-        displayName = "Fury's Guild Management Toolset",
+        displayName = "|cA08CFFFury's Guild Management Toolset|r",
         author = "Furyous",
         version = GT.version,
         slashCommand = "/gtsettings",

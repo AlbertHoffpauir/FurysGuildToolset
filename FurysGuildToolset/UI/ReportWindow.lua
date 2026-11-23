@@ -74,7 +74,7 @@ Report.MENU_HINT = "Right-click a row for options."
 
 function Report.AddMenu(row, items)
     if #items == 0 then return row end
-    row.tooltip = (row.tooltip and (row.tooltip .. "\n") or "") .. "|cAAAAAARight-click for options.|r"
+    row.tooltip = (row.tooltip and (row.tooltip .. "\n") or "") .. "|cB4B0D8Right-click for options.|r"
     row.OnRightClick = function(control)
         ClearMenu()
         for _, item in ipairs(items) do
@@ -137,6 +137,14 @@ function Report:Initialize()
     self.search = FuryGMTReportSearch
     self.searchBox = FuryGMTReportSearchBox
     FuryGMTReportVersion:SetText("v" .. GT.version)
+    -- Fury Night look for every window (colors and fonts are set here, not in the XML).
+    local T = GT.Theme
+    T.Window(FuryGMTReport, { bg = "BG" })
+    T.Window(FuryGMTExport, { bg = "BG" })
+    T.Window(FuryGMTEventsInput, { bg = "BG" })
+    T.Window(FuryGMTAutoAlert, { bg = "BG", plain = true, font = "$(ANTIQUE_FONT)|34|soft-shadow-thick" })
+    T.Window(FuryGMTRemoveDialog, { bg = "BG", plain = true })
+    T.Window(FuryGMTRecruitBar, { bg = "BG", title = "Text", plain = true, font = "ZoFontGameSmall" })
     FuryGMTExportTextBox:SetMaxInputChars(EXPORT_PART_CHARS + 2000)
     -- Without these the edit box drops line breaks and everything runs together.
     FuryGMTExportTextBox:SetMultiLine(true)
@@ -172,8 +180,8 @@ function Report:Initialize()
     self.headerLabels = {}
     for i = 1, MAX_COLUMNS do
         local label = WINDOW_MANAGER:CreateControl("FuryGMTReportHeaderCol" .. i, self.header, CT_LABEL)
-        label:SetFont("ZoFontGameBold")
-        label:SetColor(0.83, 0.69, 0.22, 1)
+        label:SetFont(GT.Theme.FONT_HEADER)
+        GT.Theme.Paint(label, GT.Theme.BLUE)
         label:SetVerticalAlignment(TEXT_ALIGN_CENTER)
         label:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
         label:SetMouseEnabled(true)
@@ -240,7 +248,14 @@ function Report.SavePosition()
     GT.sv.window = { x = control:GetLeft(), y = control:GetTop() }
 end
 
+-- Fury Night row fills: every other row striped, the row you right-clicked stays lit.
+function Report:PaintRow(control, data)
+    control:GetNamedChild("Stripe"):SetHidden(data.furyStripe ~= true)
+    control:GetNamedChild("Selected"):SetHidden(data ~= self.selectedData)
+end
+
 function Report:SetupRow(control, data)
+    self:PaintRow(control, data)
     local label = control:GetNamedChild("Text")
     label:SetText(data.text or "")
     -- The text gets whatever width the buttons leave (86 px per button); rows without
@@ -265,6 +280,7 @@ end
 
 -- Lays the column labels out left to right using the widths in data.columns.
 function Report:SetupColumnRow(control, data)
+    self:PaintRow(control, data)
     local x = 6
     for i = 1, MAX_COLUMNS do
         local label = control:GetNamedChild("Col" .. i)
@@ -349,6 +365,8 @@ function Report.OnRowMouseUp(control, button, upInside)
     local data = ZO_ScrollList_GetData(control)
     if data and data.OnRightClick then
         ClearTooltip(InformationTooltip)
+        Report.selectedData = data
+        ZO_ScrollList_RefreshVisible(Report.list)
         data.OnRightClick(control)
     end
 end
@@ -362,6 +380,7 @@ end
 function Report:SelectTab(id)
     self.currentTab = id
     GT.sv.lastTab = id
+    self.selectedData = nil
     self:Refresh()
 end
 
@@ -395,7 +414,8 @@ function Report:Refresh()
     if columns then self:LayoutHeader(tab, columns) end
     ZO_ScrollList_Clear(self.list)
     local dataList = ZO_ScrollList_GetDataList(self.list)
-    for _, row in ipairs(rows) do
+    for i, row in ipairs(rows) do
+        row.furyStripe = (i % 2 == 0)
         if columns then
             row.columns = columns
             dataList[#dataList + 1] = ZO_ScrollList_CreateDataEntry(COLUMN_ROW_TYPE, row)
@@ -414,7 +434,7 @@ function Report:Refresh()
     end
     local offText = tab.GetOffText and tab.GetOffText()
     if offText then
-        summary = "|cFF9933" .. offText .. "|r" .. (summary ~= "" and ("  " .. summary) or "")
+        summary = "|cFFA45C" .. offText .. "|r" .. (summary ~= "" and ("  " .. summary) or "")
     elseif #rows == 0 and not usesPanel then
         summary = (summary ~= "" and (summary .. "  ") or "") .. "Nothing to review."
     end

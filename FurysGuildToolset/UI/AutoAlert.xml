@@ -6,10 +6,11 @@
             <Dimensions x="760" y="260" />
             <Anchor point="CENTER" offsetY="-140" />
             <Controls>
-                <Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop">
+                <Backdrop name="$(parent)BG" centerColor="0F0E1F" edgeColor="4A3D99" alpha="1">
                     <AnchorFill />
+                    <Edge edgeSize="2" />
                 </Backdrop>
-                <Texture name="$(parent)Bar" color="CC3333">
+                <Texture name="$(parent)Bar" color="FF6B86">
                     <Dimensions y="5" />
                     <Anchor point="TOPLEFT" offsetX="6" offsetY="6" />
                     <Anchor point="TOPRIGHT" offsetX="-6" offsetY="6" />
@@ -20,11 +21,11 @@
                     <OnMouseEnter>FuryGMT.Report.ShowTip(self, "Close (Esc)")</OnMouseEnter>
                     <OnMouseExit>FuryGMT.Report.HideTip()</OnMouseExit>
                 </Button>
-                <Label name="$(parent)Title" font="ZoFontCallout2" color="FF9933" horizontalAlignment="CENTER">
+                <Label name="$(parent)Title" font="ZoFontCallout2" color="FFA45C" horizontalAlignment="CENTER">
                     <Dimensions x="680" />
                     <Anchor point="TOP" offsetY="20" />
                 </Label>
-                <Label name="$(parent)Body" font="ZoFontWinH4" color="FFFFFF">
+                <Label name="$(parent)Body" font="ZoFontWinH4" color="ECEAF8">
                     <Dimensions x="700" />
                     <Anchor point="TOP" relativeTo="$(parent)Title" relativePoint="BOTTOM" offsetY="14" />
                 </Label>

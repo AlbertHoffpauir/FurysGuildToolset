@@ -39,7 +39,7 @@ end
 local function LengthLabel(m)
     local len = #(m.text or "")
     if len > GC.MAX_CHAT then
-        return string.format("|cFF5555%d/%d characters, too long!|r", len, GC.MAX_CHAT)
+        return string.format("|cFF6B86%d/%d characters, too long!|r", len, GC.MAX_CHAT)
     end
     return string.format("%d/%d characters", len, GC.MAX_CHAT)
 end
@@ -228,7 +228,7 @@ local function SectionSubmenu(cat)
         type = "editbox",
         name = function()
             local len = #(quickAdd[cat] or "")
-            local t = string.format("|cD4AF37+ Add a message to %s|r (%d/%d)", cat, len, GC.MAX_CHAT)
+            local t = string.format("|cA08CFF+ Add a message to %s|r (%d/%d)", cat, len, GC.MAX_CHAT)
             return t
         end,
         tooltip = "Type the new message, click out of the box, then click Add. It uses the same channel as this section's first message; change channel or weight afterwards if needed.",
@@ -271,7 +271,7 @@ end
 local function AddSubmenu(cats)
     return {
         type = "submenu",
-        name = "|cD4AF37+ Add a new section|r",
+        name = "|cA08CFF+ Add a new section|r",
         controls = {
             {
                 type = "editbox",
@@ -303,7 +303,7 @@ local function AddSubmenu(cats)
                 name = function()
                     local len = #(addForm.text or "")
                     local s = string.format("First message (%d/%d characters)", len, GC.MAX_CHAT)
-                    if len > GC.MAX_CHAT then s = "|cFF5555" .. s .. "|r" end
+                    if len > GC.MAX_CHAT then s = "|cFF6B86" .. s .. "|r" end
                     return s
                 end,
                 isMultiline = true,
@@ -369,7 +369,7 @@ local function BuildOptions()
     local o = {}
     o[#o + 1] = {
         type = "description",
-        text = "Open the menu with |cD4AF37/crier|r or your keybind, click a message, then press Enter to send. Edits to a message save when you click out of the box and show in the menu right away. Adding, deleting or renaming reloads the UI.",
+        text = "Open the menu with |cA08CFF/crier|r or your keybind, click a message, then press Enter to send. Edits to a message save when you click out of the box and show in the menu right away. Adding, deleting or renaming reloads the UI.",
     }
 
     -- General
@@ -498,7 +498,7 @@ function GC.InitSettings()
         panel = LAM:RegisterAddonPanel("FuryGMTCrierPanel", {
             type = "panel",
             name = "Fury's Guild Management - Crier",
-            displayName = "|cD4AF37Fury's Guild Management Toolset: Guild Crier|r",
+            displayName = "|cA08CFFFury's Guild Management Toolset: Guild Crier|r",
             author = "Furyous",
             version = FuryGMT.version,
             registerForRefresh = true,

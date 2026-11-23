@@ -6,7 +6,7 @@ local GT = FuryGMT
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.16.12"
+GT.version = "1.17.0"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -277,7 +277,7 @@ function GT.RegisterSlashCommands()
             GT:FullReset()
         elseif arg == "guilds" then
             for _, guildId in ipairs(GT.Util.GetGuildIds()) do
-                GT.Util.Print("%s: alerts %s", GT.Util.GuildName(guildId), GT:IsAlertGuild(guildId) and "|c9FD49Fon|r" or "|cFF6666off|r")
+                GT.Util.Print("%s: alerts %s", GT.Util.GuildName(guildId), GT:IsAlertGuild(guildId) and "|c5EE6A0on|r" or "|cFF6B86off|r")
             end
             GT.Util.Print("Change this in /gtsettings under Guilds to get alerts from.")
         elseif arg == "settings" then

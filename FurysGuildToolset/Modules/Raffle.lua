@@ -1172,11 +1172,11 @@ end
 -- Report tab ----------------------------------------------------------------------
 
 local STATUS_TEXT = {
-    setup = "|cAAAAAANot started.|r Set it up with Raffle settings, then click Start sales now.",
-    scheduled = "|cFFCC66Sales start in %s|r (%s).",
-    selling = "|cFFD700Sales end in %s|r (%s).",
-    closed = "|cFF9933Sales ended %s.|r",
-    drawn = "|c9FD49FWinners drawn %s.|r",
+    setup = "|cB4B0D8Not started.|r Set it up with Raffle settings, then click Start sales now.",
+    scheduled = "|cFFC857Sales start in %s|r (%s).",
+    selling = "|cF2C94CSales end in %s|r (%s).",
+    closed = "|cFFA45CSales ended %s.|r",
+    drawn = "|c5EE6A0Winners drawn %s.|r",
 }
 
 function Raffle:TabSummary()
@@ -1190,17 +1190,17 @@ function Raffle:TabSummary()
     elseif status == "selling" then head = string.format(STATUS_TEXT.selling, Clock(self:EndTime(r) - now), NiceDate(self:EndTime(r)))
     elseif status == "closed" then head = string.format(STATUS_TEXT.closed, NiceDate(self:EndTime(r)))
     else head = string.format(STATUS_TEXT.drawn, NiceDate(r.draw.ts)) end
-    if self:Multi() then head = string.format("|cFFFFFF%s|r (%d raffles): %s", self:Name(r), #self.sv.raffles, head) end
+    if self:Multi() then head = string.format("|cECEAF8%s|r (%d raffles): %s", self:Name(r), #self.sv.raffles, head) end
     local open = self:OpenUnclear()
-    local extra = open > 0 and string.format("  |cFF9933%d unassigned %s: New / other raffles > Unassigned payments.|r", open, open == 1 and "payment" or "payments") or ""
+    local extra = open > 0 and string.format("  |cFFA45C%d unassigned %s: New / other raffles > Unassigned payments.|r", open, open == 1 and "payment" or "payments") or ""
     if not self:HasSource(r) then return head .. extra end
     local tally = self:GetTally(r)
-    local loading = self:IsCaughtUp(r) and "" or "  |cFFCC66Bank history still loading.|r"
+    local loading = self:IsCaughtUp(r) and "" or "  |cFFC857Bank history still loading.|r"
     local where = {}
     if r.useBank and r.guildId ~= 0 then where[#where + 1] = U.GuildName(r.guildId) .. " bank" end
     if r.useMail then where[#where + 1] = "mail" .. (Keyword(r) ~= "" and string.format(" (\"%s\")", r.mailSubject) or "") end
     local warnings = ""
-    for _, text in ipairs(self:Warnings(r)) do warnings = warnings .. "  |cFF9933" .. text .. "|r" end
+    for _, text in ipairs(self:Warnings(r)) do warnings = warnings .. "  |cFFA45C" .. text .. "|r" end
     return string.format("%s  %s: %s, %s a ticket, %d %s%s. %d tickets, %s.%s", head, table.concat(where, " + "), self:PrizeText(r),
         U.FormatGold(r.price), r.winners, r.winners == 1 and "winner" or "winners", (r.oneWin and r.winners > 1) and " (one each)" or "",
         tally.total, U.FormatGold(tally.gold), loading) .. self:PrizeWarning(r) .. warnings .. extra
@@ -1210,18 +1210,18 @@ end
 function Raffle:PrizeWarning(r)
     local count = #self:Prizes(r)
     if count < 2 or count == r.winners then return "" end
-    return string.format("  |cFF9933%d prizes listed for %d winners.|r", count, r.winners)
+    return string.format("  |cFFA45C%d prizes listed for %d winners.|r", count, r.winners)
 end
 
 function Raffle:ResultText(r, b)
     local parts = {}
     for _, res in ipairs(self:WinsOf(r, b.who)) do
         local prize = #self:Prizes(r) > 1 and self:PrizeFor(r, Slot(res))
-        parts[#parts + 1] = res.void and string.format("|c888888draw %d void|r", res.n)
-            or (prize and string.format("|cFFD700WON %s|r", prize) or string.format("|cFFD700WON draw %d|r", res.n))
+        parts[#parts + 1] = res.void and string.format("|c8A86B0draw %d void|r", res.n)
+            or (prize and string.format("|cF2C94CWON %s|r", prize) or string.format("|cF2C94CWON draw %d|r", res.n))
     end
     if #parts > 0 then return table.concat(parts, ", ") end
-    if b.excluded then return "|cFF6666left out|r" end
+    if b.excluded then return "|cFF6B86left out|r" end
     return ""
 end
 
@@ -1292,7 +1292,7 @@ function Raffle:TabRows()
     local tally = self:GetTally(r)
     local rows = {}
     for _, b in ipairs(tally.list) do
-        local adjust = b.adjust ~= 0 and string.format(" |cAAAAAA(%+d)|r", b.adjust) or ""
+        local adjust = b.adjust ~= 0 and string.format(" |cB4B0D8(%+d)|r", b.adjust) or ""
         local row = {
             cells = {
                 b.who,
@@ -1315,9 +1315,9 @@ end
 
 function Raffle:UnassignedSummary()
     local open = self:OpenUnclear()
-    local head = "|cFFFFFFUnassigned payments|r: gold that more than one raffle could take, and it's unclear which."
-    if open == 0 then return head .. "  |c9FD49FNothing left to decide.|r" end
-    return string.format("%s  |cFF9933%d to decide.|r Right-click one to count it for a raffle or ignore it.", head, open)
+    local head = "|cECEAF8Unassigned payments|r: gold that more than one raffle could take, and it's unclear which."
+    if open == 0 then return head .. "  |c5EE6A0Nothing left to decide.|r" end
+    return string.format("%s  |cFFA45C%d to decide.|r Right-click one to count it for a raffle or ignore it.", head, open)
 end
 
 local function PaymentWhere(d)
@@ -1326,11 +1326,11 @@ local function PaymentWhere(d)
 end
 
 function Raffle:UnassignedState(u)
-    if u.how == "ignored" then return "|c888888ignored by you|r" end
+    if u.how == "ignored" then return "|c8A86B0ignored by you|r" end
     if u.how == "hand" then
-        return u.r and string.format("|c9FD49Fcounted for %s by you|r", self:Name(u.r)) or "|c888888counted for a raffle you put away|r"
+        return u.r and string.format("|c5EE6A0counted for %s by you|r", self:Name(u.r)) or "|c8A86B0counted for a raffle you put away|r"
     end
-    return "|cFF9933" .. u.why .. "|r"
+    return "|cFFA45C" .. u.why .. "|r"
 end
 
 function Raffle:UnassignedMenu(u)

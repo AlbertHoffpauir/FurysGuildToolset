@@ -144,23 +144,23 @@ end
 
 function Recruit:UpdateBar()
     -- No nested colors: each piece gets its own |c...|r.
-    local function Gray(t) return "|cC5C29E" .. t .. "|r" end
+    local function Gray(t) return "|cB4B0D8" .. t .. "|r" end
     local guildId = self:GuildId()
-    local parts = { "|cD4AF37" .. ((guildId and guildId ~= 0) and U.GuildName(guildId) or "No guild") .. "|r" }
-    if self.touring then parts[#parts + 1] = "|c9FD49FTour on|r" end
+    local parts = { "|cA08CFF" .. ((guildId and guildId ~= 0) and U.GuildName(guildId) or "No guild") .. "|r" }
+    if self.touring then parts[#parts + 1] = "|c5EE6A0Tour on|r" end
     if self.sv.enabled then
         local done, total = self:ZoneProgress()
         parts[#parts + 1] = Gray("Zones ") .. string.format("%d/%d", done, total)
     end
     if guildId and guildId ~= 0 then
         local apps = GetGuildFinderNumGuildApplications(guildId)
-        parts[#parts + 1] = Gray("Applications ") .. (apps > 0 and ("|cFFCC66" .. apps .. "|r") or "0")
+        parts[#parts + 1] = Gray("Applications ") .. (apps > 0 and ("|cFFC857" .. apps .. "|r") or "0")
     end
     if self.sv.leads then
         local n = U.Count(self.sv.leadList)
-        parts[#parts + 1] = Gray("Whispers ") .. "|c9FD49Flistening|r" .. (n > 0 and Gray(string.format(" (%d %s)", n, n == 1 and "lead" or "leads")) or "")
+        parts[#parts + 1] = Gray("Whispers ") .. "|c5EE6A0listening|r" .. (n > 0 and Gray(string.format(" (%d %s)", n, n == 1 and "lead" or "leads")) or "")
     else
-        parts[#parts + 1] = Gray("Whispers ") .. "|c999999off|r"
+        parts[#parts + 1] = Gray("Whispers ") .. "|c8A86B0off|r"
     end
     self.barText:SetText(table.concat(parts, "    "))
     FuryGMTRecruitBar:SetWidth(self.barText:GetTextWidth() + 24)
@@ -252,7 +252,7 @@ end
 
 local function Link(label, action, ...)
     local data = table.concat({ LINK_TYPE, action, ... }, ":")
-    return string.format("|c66CCFF|H1:%s|h[%s]|h|r", data, label)
+    return string.format("|c5CC2FF|H1:%s|h[%s]|h|r", data, label)
 end
 
 -- Guild slots ----------------------------------------------------------------
@@ -746,10 +746,10 @@ function Recruit:JoinNotice(guildId, name)
     local open, numMembers = self:OpenSlots(guildId)
     local line = string.format("%s joined %s. %d/%d members, %d open.", name, U.GuildName(guildId), numMembers, GUILD_MAX_MEMBERS, open)
     if self.sv.nearlyFull > 0 and open <= self.sv.nearlyFull then
-        line = line .. (open <= 0 and " |cFF6666The guild is full.|r" or " |cFF6666Nearly full.|r")
+        line = line .. (open <= 0 and " |cFF6B86The guild is full.|r" or " |cFF6B86Nearly full.|r")
     end
     if self.sv.traderWarning and not self:HasTrader(guildId) then
-        line = line .. " |cFFCC66No trader hired this week.|r"
+        line = line .. " |cFFC857No trader hired this week.|r"
     end
     U.Print(line)
 end
@@ -868,7 +868,7 @@ function Recruit:TabSummary()
     local parts = { string.format("Recruiting for %s: %d/%d members, %d open", U.GuildName(guildId), numMembers, GUILD_MAX_MEMBERS, open) }
     parts[#parts + 1] = string.format("%d pending %s", GetGuildFinderNumGuildApplications(guildId),
         GetGuildFinderNumGuildApplications(guildId) == 1 and "application" or "applications")
-    if not self:HasTrader(guildId) then parts[#parts + 1] = "|cFFCC66no trader this week|r" end
+    if not self:HasTrader(guildId) then parts[#parts + 1] = "|cFFC857no trader this week|r" end
     local line = table.concat(parts, ", ") .. "."
     if self.sv.enabled then
         local ready, total = 0, 0
@@ -878,7 +878,7 @@ function Recruit:TabSummary()
                 if self:CooldownLeft(zone.id) == 0 then ready = ready + 1 end
             end
         end
-        line = line .. string.format("  Zones ready: %d of %d.%s", ready, total, self.touring and "  |c9FD49FTour on.|r" or "")
+        line = line .. string.format("  Zones ready: %d of %d.%s", ready, total, self.touring and "  |c5EE6A0Tour on.|r" or "")
     end
     return line
 end
@@ -891,7 +891,7 @@ function Recruit:TabRows()
     table.sort(leads, function(a, b) return a.lead.at > b.lead.at end)
     for _, entry in ipairs(leads) do
         local name = entry.name
-        local row = { text = string.format("|c66CCFFLead|r  %s  whispered \"%s\"  %s", name, entry.lead.text, U.FormatAgo(entry.lead.at)),
+        local row = { text = string.format("|c5CC2FFLead|r  %s  whispered \"%s\"  %s", name, entry.lead.text, U.FormatAgo(entry.lead.at)),
             tooltip = "Someone whispered one of your keywords." }
         local items = {
             { label = "Invite to " .. U.GuildName(guildId), fn = function() self:Invite(guildId, name) end },
@@ -901,7 +901,7 @@ function Recruit:TabRows()
         rows[#rows + 1] = GT.Report.AddMenu(row, items)
     end
     for key, job in pairs(self.sv.mailWaiting) do
-        local row = { text = string.format("|cD4AF37Welcome mail|r  %s joined %s %s", job.name, U.GuildName(job.guildId), U.FormatAgo(job.at)),
+        local row = { text = string.format("|cA08CFFWelcome mail|r  %s joined %s %s", job.name, U.GuildName(job.guildId), U.FormatAgo(job.at)),
             tooltip = "They joined while offline. Write them a welcome mail." }
         rows[#rows + 1] = GT.Report.AddMenu(row, {
             { label = "Write welcome mail", fn = function() self:OpenWelcomeMail(job.guildId, job.name) end },
@@ -914,13 +914,13 @@ function Recruit:TabRows()
             local zoneId = zone.id
             local status
             if self.sv.skipZones[zoneId] then
-                status = "|c888888skipped|r"
+                status = "|c8A86B0skipped|r"
             elseif self:CooldownLeft(zoneId) > 0 then
                 status = string.format("posted %s, ready in %s", U.FormatAgo(self.sv.posted[zoneId]), U.FormatDuration(self:CooldownLeft(zoneId)))
             else
-                status = "|c9FD49Fready|r" .. (self.sv.posted[zoneId] and (" (posted " .. U.FormatAgo(self.sv.posted[zoneId]) .. ")") or "")
+                status = "|c5EE6A0ready|r" .. (self.sv.posted[zoneId] and (" (posted " .. U.FormatAgo(self.sv.posted[zoneId]) .. ")") or "")
             end
-            local row = { text = string.format("Zone  %s%s  %s", zone.name, zoneId == here and " |c66CCFF(you are here)|r" or "", status) }
+            local row = { text = string.format("Zone  %s%s  %s", zone.name, zoneId == here and " |c5CC2FF(you are here)|r" or "", status) }
             local items = {}
             if zoneId == here then
                 items[#items + 1] = { label = "Put the ad in chat", fn = function() self:PasteAd() end }

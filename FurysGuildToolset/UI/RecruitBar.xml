@@ -9,10 +9,11 @@
             <OnMouseEnter>FuryGMT.Report.ShowTip(self, FuryGMT.Recruit:BarTip())</OnMouseEnter>
             <OnMouseExit>FuryGMT.Report.HideTip()</OnMouseExit>
             <Controls>
-                <Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop">
+                <Backdrop name="$(parent)BG" centerColor="0F0E1F" edgeColor="4A3D99" alpha="1">
                     <AnchorFill />
+                    <Edge edgeSize="2" />
                 </Backdrop>
-                <Label name="$(parent)Text" font="ZoFontGameSmall" color="FFFFFF" verticalAlignment="CENTER">
+                <Label name="$(parent)Text" font="ZoFontGameSmall" color="ECEAF8" verticalAlignment="CENTER">
                     <Anchor point="LEFT" offsetX="12" />
                 </Label>
             </Controls>

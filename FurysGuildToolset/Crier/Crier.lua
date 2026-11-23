@@ -15,14 +15,14 @@ ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_CRIER_POST", "Guild Crier: post next 
 ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_REPORT", "Open/close the report window")
 
 local MAX_CHAT = 350
-local PREFIX = "|cD4AF37[Fury's Guild Crier]|r "
+local PREFIX = "|cA08CFF[Fury's Guild Crier]|r "
 
--- Dark and gold theme
-local GOLD      = { 0.83, 0.69, 0.22, 1 }
-local GOLD_HI   = { 1.00, 0.85, 0.35, 1 }
-local TEXT      = { 0.88, 0.88, 0.85, 1 }
-local DIM       = { 0.60, 0.60, 0.58, 1 }
-local BG        = { 0.06, 0.06, 0.07, 0.94 }
+-- Fury Night colors (UI/Theme.lua): violet section heads, blue on hover
+local GOLD      = { 0.627, 0.549, 1.000, 1 }   -- violet A08CFF
+local GOLD_HI   = { 0.361, 0.761, 1.000, 1 }   -- blue 5CC2FF
+local TEXT      = { 0.925, 0.918, 0.973, 1 }   -- ECEAF8
+local DIM       = { 0.706, 0.690, 0.847, 1 }   -- B4B0D8
+local BG        = { 0.059, 0.055, 0.122, 1 }   -- 0F0E1F
 
 local WIN_W, WIN_H = 540, 600
 
@@ -252,7 +252,7 @@ function GC.DockHome()
     if not content or not win then return end
     content:SetParent(win)
     content:ClearAnchors()
-    content:SetAnchor(TOPLEFT, win, TOPLEFT, 14, 42)
+    content:SetAnchor(TOPLEFT, win, TOPLEFT, 14, 58)
     content:SetAnchor(BOTTOMRIGHT, win, BOTTOMRIGHT, -10, -12)
     content:SetHidden(false)
     GC.docked = false
@@ -299,15 +299,16 @@ local function BuildWindow()
     local bg = WINDOW_MANAGER:CreateControl("FuryGMTCrierWindowBG", win, CT_BACKDROP)
     bg:SetAnchorFill(win)
     bg:SetCenterColor(BG[1], BG[2], BG[3], BG[4])
-    bg:SetEdgeColor(GOLD[1], GOLD[2], GOLD[3], GOLD[4])
+    bg:SetEdgeColor(0.290, 0.239, 0.600, 1)   -- 4A3D99
     bg:SetEdgeTexture("", 2, 2, 2)
 
-    local title = MakeLabel("FuryGMTCrierTitle", win, "ZoFontWinH3", GOLD, "Fury's Guild Crier")
+    local title = MakeLabel("FuryGMTCrierWindowTitle", win, "ZoFontWinH3", TEXT, "Fury's Guild Crier")
     title:SetAnchor(TOPLEFT, win, TOPLEFT, 14, 10)
 
     local close = MakeLabel("FuryGMTCrierClose", win, "ZoFontWinH3", DIM, "X")
     close:SetAnchor(TOPRIGHT, win, TOPRIGHT, -14, 10)
     MakeClickable(close, DIM, GOLD_HI, function() SCENE_MANAGER:HideTopLevel(win) end, "Close (Esc)")
+    FuryGMT.Theme.Window(win, { bg = "BG" })
 
     -- Everything below the title lives in one container, so the same menu can also
     -- be shown inside the Crier tab of the /gt window (see GC.DockInto).
@@ -409,7 +410,7 @@ function GC.RefreshRows()
             end
             local closed = GC.sv.collapsed[cat]
             head.cat = cat
-            head:SetText((closed and ICON_CLOSED or ICON_OPEN) .. cat .. string.format(" |c999999(%d)|r", #groups[cat]))
+            head:SetText((closed and ICON_CLOSED or ICON_OPEN) .. cat .. string.format(" |c8A86B0(%d)|r", #groups[cat]))
             Place(head, gi == 1 and 0 or 12)
 
             local hasWhisper = false
@@ -433,7 +434,7 @@ function GC.RefreshRows()
                     GC.rowPool[nr] = row
                 end
                 local c = (m.chan or ""):lower()
-                local tag = (c == "zone" and "|c8FB3D9[Zone]|r ") or ""
+                local tag = (c == "zone" and "|c5CC2FF[Zone]|r ") or ""
                 row.msg = m
                 row:SetText("- " .. tag .. m.text)
                 Place(row, 6)
@@ -474,7 +475,7 @@ local function ShowList()
         local w = Weight(m)
         local share = (total > 0 and w > 0) and string.format("rotation %d%%", math.floor(w / total * 100 + 0.5)) or "menu only"
         local len = #(m.text or "")
-        local flag = len > MAX_CHAT and (" |cFF5555[" .. len .. " chars - TOO LONG]|r") or ""
+        local flag = len > MAX_CHAT and (" |cFF6B86[" .. len .. " chars - TOO LONG]|r") or ""
         local preview = (m.text or ""):sub(1, 50)
         if len > 50 then preview = preview .. "..." end
         d(string.format("  %d. [%s] %s%s  %s", i, m.cat or "Messages", share, flag, preview))
@@ -583,7 +584,7 @@ function module:TabRows()
             if (m.chan or "") ~= "" then tag = tag .. ", " .. m.chan end
             if Weight(m) > 0 then tag = tag .. ", rotation x" .. Weight(m) end
             rows[#rows + 1] = {
-                text = "|cD4AF37[" .. tag .. "]|r " .. m.text,
+                text = "|cA08CFF[" .. tag .. "]|r " .. m.text,
                 tooltip = m.text,
                 actions = { { label = "Post", tip = "Loads this message into chat. Press Enter to send it.",
                     fn = function() SendToChat(msg) end } },
@@ -603,7 +604,7 @@ function module:TabExportLines()
 end
 
 function module:TabSummary()
-    if not GC.active then return "|cFFCC66" .. PAUSED_TEXT .. "|r" end
+    if not GC.active then return "|cFFC857" .. PAUSED_TEXT .. "|r" end
     local reminder = (GC.sv.timerMinutes or 0) > 0 and ("reminder every " .. GC.sv.timerMinutes .. " min") or "reminder off"
     return "Same as the Crier menu (" .. reminder .. ")."
 end

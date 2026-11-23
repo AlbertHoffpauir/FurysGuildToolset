@@ -238,8 +238,8 @@ function HopperWatch:GetRecordRow(record)
     end
     local text = zo_strformat("<<1>> <<2>> <<3>> after <<4>>, <<5>>", record.name,
         record.kicked and "was kicked from" or "left", record.guildName, stay, U.FormatAgo(record.leaveTs))
-    if record.status == "blacklisted" then text = text .. "  |c9FD49Fblacklisted|r" end
-    if record.status == "dismissed" then text = text .. "  |c888888dismissed|r" end
+    if record.status == "blacklisted" then text = text .. "  |c5EE6A0blacklisted|r" end
+    if record.status == "dismissed" then text = text .. "  |c8A86B0dismissed|r" end
 
     local actions = {}
     if record.status ~= "blacklisted" and inGuild then
@@ -322,7 +322,7 @@ function HopperWatch:WatchlistTabRows()
         actions[#actions + 1] = { label = "Remove from watchlist", tip = "Takes them off your watchlist.", fn = function() self:RemoveWatch(entry.name) end }
         for _, item in ipairs(GT.Report.ContactItems(entry.name)) do actions[#actions + 1] = item end
         rows[#rows + 1] = GT.Report.AddMenu({
-            text = zo_strformat("<<1>>  |cAAAAAA<<2>>|r", entry.name, entry.reason or ""),
+            text = zo_strformat("<<1>>  |cB4B0D8<<2>>|r", entry.name, entry.reason or ""),
             tooltip = "Added " .. U.FormatDate(entry.ts),
         }, actions)
     end
