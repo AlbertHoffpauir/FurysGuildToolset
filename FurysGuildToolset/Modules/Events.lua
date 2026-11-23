@@ -958,6 +958,34 @@ function Events:OnCodeMessage(channelType, text, fromDisplayName)
     U.Print("Invited %s (typed the invite code%s).", link, cp and string.format(", CP %d", cp) or "")
 end
 
+-- The ad without the invite code, for when Invite by code is off (1.13.2). The words from the
+-- one before {code} up to "or" go: "Type {code} into guild chat or whisper {me}." becomes
+-- "Whisper {me}.", "Need {need}, type {code} or whisper {me}!" becomes "Need {need}, whisper
+-- {me}!". With no "or" after it, the sentence (or its part after the last comma) goes.
+local function WithoutCode(template)
+    if not template:find("{code}", 1, true) then return template end
+    local out = {}
+    for sentence, stop in template:gmatch("([^%.!%?]+)([%.!%?]*)") do
+        local at = sentence:find("{code}", 1, true)
+        if not at then
+            out[#out + 1] = sentence .. stop
+        else
+            local before = sentence:sub(1, at - 1)
+            local wordStart = before:match("()%S+%s*$") or at
+            local _, orEnd = sentence:find("%sor%s+", at)
+            if orEnd then
+                local head, tail = sentence:sub(1, wordStart - 1), sentence:sub(orEnd + 1)
+                if not head:find("%S") then tail = zo_strupper(tail:sub(1, 1)) .. tail:sub(2) end
+                out[#out + 1] = head .. tail .. stop
+            else
+                local comma = before:match(".*(),")
+                if comma then out[#out + 1] = sentence:sub(1, comma - 1) .. stop end
+            end
+        end
+    end
+    return table.concat(out)
+end
+
 -- Asks which kind of ad: sign-ups for the slots nobody has taken (before the group forms) or
 -- replacements for what the group is missing now. The one that fits the time comes first.
 function Events:AdMenu(control, fn)
@@ -1000,11 +1028,9 @@ function Events:Advertise(mode)
         return
     end
     local template = mode == "now" and self.sv.adText or (self.sv.signupAdText or Events.defaults.signupAdText)
+    if not self.sv.autoInvite then template = WithoutCode(template) end
     local text = Fill(template, self:Values(state, nil, open))
     if #text > MAX_CHAT then text = text:sub(1, MAX_CHAT) end
-    if template:find("{code}", 1, true) and not self.sv.autoInvite then
-        U.Print("The ad mentions your invite code, but inviting by code is off. Turn it on under Events settings (Invite code), or people who type it won't get an invite.")
-    end
     for i = 1, GetNumGuilds() do
         local guildId = GetGuildId(i)
         if self.sv.adGuilds[guildId] then posts[#posts + 1] = { channel = GUILD_CHANNELS[i], guildId = guildId, text = text } end
@@ -1297,7 +1323,7 @@ function Events:SettingsControls()
         { type = "editbox", name = "Invite code", tooltip = "The whole message has to be this (upper or lower case). {code} in the ads.",
           getFunc = function() return sv.inviteCode or Events.defaults.inviteCode end, setFunc = function(v) sv.inviteCode = zo_strtrim(v) end, default = Events.defaults.inviteCode,
           disabled = function() return not sv.autoInvite end },
-        { type = "editbox", name = "Guild ad for replacements", tooltip = "Once the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is what your group is missing now, no-shows included. Up to 350 characters.",
+        { type = "editbox", name = "Guild ad for replacements", tooltip = "Once the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is what your group is missing now, no-shows included. While Invite by code is off, the part with {code} is left out ("Type {code} into guild chat or whisper {me}." becomes "Whisper {me}."). Up to 350 characters.",
           getFunc = function() return sv.adText end, setFunc = function(v) sv.adText = v end, default = Events.defaults.adText },
         { type = "header", name = "Guilds to advertise in" },
     }
