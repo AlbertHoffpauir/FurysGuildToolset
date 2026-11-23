@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.18.3
+# Fury's Guild Management Toolset (ESO addon) v1.20.1
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -10,15 +10,19 @@
 - Thanks to Dack for code review feedback on how guild history should be read.
 - The Guild Crier started as my own separate addon, "Fury's Guild Crier", and is now part of this toolset.
 
-**An officer toolkit for ESO guild leaders and officers.** It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
+*Bank, roster, trader, recruiting, raffles and events. One window, your rules.*
 
-**Every feature starts turned off.** Nothing runs, alerts, logs or mails until you turn it on, so you can switch on only what you want. Updating from an older version keeps your settings as they were.
+**Built for the leaders and officers who keep a guild running.** It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
 
-**You stay in control.** Nothing is done to a member without your click, unless you turn on auto-demote yourself. The addon never kicks or posts in chat by itself, and only invites by itself if you turn that on: chat text waits in the chat box for you to press Enter, and mails open for you to press Send.
+**Get your data out of the game.** ESO keeps your guild's records locked inside the game. Here, every tab has an **Export / copy** button: the member list, inactive members, bank alerts, hoppers, the watchlist, the bank and roster history, trader weeks and member sales all come out as comma-separated text you paste straight into Excel, Google Sheets or Discord.
+
+- **Everything starts turned off.** Nothing runs, alerts, logs or mails until you turn it on, so you switch on only what you want. Updating keeps your settings as they were.
+- **You stay in control.** Nothing is done to a member without your click, unless you turn on auto-demote or automatic invites yourself. It never kicks or posts in chat on its own: chat text waits in the chat box for your Enter, and mails open for your Send.
+- **Easy on the server.** Guild history comes only through **LibHistoire**, the way the ESO addon community asks. No extra history requests, no polling.
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.17.0.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.17.0.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.20.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.20.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -38,7 +42,7 @@
 - **Right-click any row** for what you can do with it: whisper, mail, set rank, kick, dismiss and more. The line at the top of each tab reminds you.
 - To copy someone's @name, right-click their row > **Copy @name**. The name shows up selected in a small window; press Ctrl+C.
 - **Hover** over any button, tab, column header or row for a short tip or the full details.
-- Click a column header to sort, and again to reverse.
+- Click a column header to sort, and again to reverse. Tabs with a search box have a small X to clear it.
 - Every tab has an **Export / copy** button: the tab as comma-separated text to paste into Excel, Google Sheets or Discord.
 - The gear at the top right opens the settings.
 
@@ -148,7 +152,8 @@ Optional: mail people why they were removed.
 - **Kick** on the Inactive tab mails them why (days offline and their limit) and that they're welcome back if they return to the game.
 - **Kick and blacklist** or **Blacklist** on any tab opens a confirm window with a reason box, filled in for you. The reason becomes their blacklist note and goes in the mail.
 - The **Send mail** button in the confirm window skips the mail for one person. Hover it to read the mail. The mail goes out after you click Confirm, with normal postage.
-- In the mail texts, `<<1>>` is their @name and `<<2>>` the guild; then `<<3>>` is the days offline and `<<4>>` their limit (kick), or `<<3>>` is the reason (blacklist).
+- In the **kick mail** text: `<<1>>` is their @name, `<<2>>` the guild, `<<3>>` the days offline and `<<4>>` their limit.
+- In the **blacklist mail** text: `<<1>>` is their @name, `<<2>>` the guild and `<<3>>` the reason.
 
 ## Bank hoppers and watchlist
 
@@ -242,7 +247,7 @@ Advertise in zones, invite, and welcome new members. Every part is off until you
 ### Invites and leads
 
 - Right-click a name in chat for **Invite to (guild)**.
-- **Whisper leads:** when someone whispers a keyword (inv, invite, join, guild to start with), you get an [Invite] link and a row on the Recruit tab. Nobody is invited without your click, unless you tick "Invite automatically" (off to start with): then the invite goes out right away, once per person.
+- **Whisper leads:** when someone whispers a keyword (inv, invite, join, guild to start with), you get an [Invite] link and a row on the Recruit tab. Nobody is invited without your click, unless you tick **Invite automatically** (off to start with): then the invite goes out right away, with a chat line saying who was invited. One invite per person; whispering again within 10 minutes doesn't send another.
 - **Join notices:** who joined, how many slots are left, and a warning when the guild is nearly full or has no trader.
 
 ### Welcomes
@@ -267,7 +272,7 @@ Sell raffle tickets for gold and draw the winners. Works without a guild too, fo
 ### Run it
 
 - On the **Raffle** tab (`/gt raffle`), click **Start sales now** (or let your start time arrive). The tab counts down to the end.
-- **Announce in guild** puts the announcement in the guild chat box; **Text for Discord** gives you text to paste into Discord.
+- **Announce in guild** puts the announcement in the guild chat box; **Text for Discord** gives you text to paste into Discord, with the tickets sold so far and one line per holder with their ticket numbers.
 - Each deposit or mail buys its amount divided by the ticket price; the rest is dropped (with 1,000g tickets, 5,600g buys 5). Plain donations count too.
 - For mailed gold, open your mailbox: each gold mail is counted once and printed in chat. Open it once more after sales end.
 - Ticket numbers never change once someone has them. New tickets always get the next numbers after everyone else's, so someone who buys again later holds numbers spread through the list. Tickets you remove by hand take that person's highest numbers out of the draw.
