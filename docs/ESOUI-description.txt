@@ -1,0 +1,364 @@
+[QUOTE][B]AI disclosure:[/B] This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
+
+[COLOR="#A08CFF"][B]Credits[/B][/COLOR]
+[LIST]
+[*][COLOR="#B4B0D8"]Guild history is read through [B]LibHistoire[/B] by sirinsidiator (Artistic License 2.0).[/COLOR]
+[*][COLOR="#B4B0D8"]Settings pages use [B]LibAddonMenu-2.0[/B] by Seerah and sirinsidiator.[/COLOR]
+[*][COLOR="#B4B0D8"]Game API details from the ESOUI wiki and ZeniMax's ESO UI source code.[/COLOR]
+[*][COLOR="#B4B0D8"]Thanks to Dack for code review feedback on how guild history should be read.[/COLOR]
+[*][COLOR="#B4B0D8"]The Guild Crier started as my own separate addon, "Fury's Guild Crier", and is now part of this toolset.[/COLOR]
+[/LIST][/QUOTE]
+
+[CENTER][SIZE="6"][FONT="Georgia"][COLOR="#A08CFF"][B]Fury's Guild Management Toolset[/B][/COLOR][/FONT][/SIZE]
+[SIZE="3"][COLOR="#5CC2FF"][I]Bank, roster, trader, recruiting, raffles and events. One window, your rules.[/I][/COLOR][/SIZE][/CENTER]
+[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL][/SIZE][/CENTER]
+
+[B]Built for the leaders and officers who keep a guild running.[/B] It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
+[QUOTE][SIZE="3"][COLOR="#5CC2FF"][B]Get your data out of the game[/B][/COLOR][/SIZE]
+ESO keeps your guild's records locked inside the game. Here, every tab has an [B]Export / copy[/B] button: the member list, inactive members, bank alerts, hoppers, the watchlist, the bank and roster history, trader weeks and member sales all come out as comma-separated text you paste straight into Excel, Google Sheets or Discord.[/QUOTE]
+[LIST]
+[*][COLOR="#A08CFF"][B]Everything starts turned off.[/B][/COLOR]  Nothing runs, alerts, logs or mails until you turn it on, so you switch on only what you want. Updating keeps your settings as they were.
+[*][COLOR="#A08CFF"][B]You stay in control.[/B][/COLOR]  Nothing is done to a member without your click, unless you turn on auto-demote or automatic invites yourself. It never kicks or posts in chat on its own: chat text waits in the chat box for your Enter, and mails open for your Send.
+[*][COLOR="#A08CFF"][B]Easy on the server.[/B][/COLOR]  Guild history comes only through [B]LibHistoire[/B], the way the ESO addon community asks. No extra history requests, no polling.
+[/LIST]
+[B]Requires:[/B] [B]LibHistoire[/B] (AddOn version 1112 or newer) and [B]LibAddonMenu-2.0[/B] (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]At a glance[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Every part has its own tab in the report window and its own section below.[/I][/COLOR]
+[QUOTE][LIST]
+[*][COLOR="#A08CFF"][B]Bank alerts:[/B][/COLOR]  Catch members who take more than your rules allow. Warn, demote or remove them from one menu.
+[*][COLOR="#A08CFF"][B]Members:[/B][/COLOR]  Your whole roster with time at rank, plus everyone who has been gone too long for their rank.
+[*][COLOR="#A08CFF"][B]Hoppers:[/B][/COLOR]  Spot people who join, empty the bank and leave, and keep a watchlist across all your guilds.
+[*][COLOR="#A08CFF"][B]History:[/B][/COLOR]  A searchable bank and roster log, with what was taken and what came back.
+[*][COLOR="#A08CFF"][B]Trader:[/B][/COLOR]  Weekly trader results, what each trader really cost, and what each member sold.
+[*][COLOR="#A08CFF"][B]Crier:[/B][/COLOR]  A clickable menu of ready-made guild, zone and whisper messages.
+[*][COLOR="#A08CFF"][B]Recruiting:[/B][/COLOR]  Zone ads, a zone tour, invites from whispers (by click, or automatic if you turn it on), and welcomes for new members.
+[*][COLOR="#A08CFF"][B]Raffle:[/B][/COLOR]  Tickets bought with bank deposits or mailed gold (or given as gifts), numbers that never move, a random draw, and the winners ready to post.
+[*][COLOR="#A08CFF"][B]Events:[/B][/COLOR]  Read sesh sign-ups, see who showed up, and fill the empty slots.
+[/LIST][/QUOTE]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Getting started[/B][/COLOR][/FONT][/SIZE]
+[LIST=1]
+[*]Install [B]LibHistoire[/B] and [B]LibAddonMenu-2.0[/B] (see Requires above). The addon won't load without them.
+[*]Log in and type [FONT="Courier New"][B]/gtsettings[/B][/FONT]. Under [B]Guilds to get alerts from[/B], tick the guilds you look after, then reload when asked. (Only needed for the bank, member, hopper and bank space features.)
+[*]On the same page, turn on the features you want. Each one has its own section below with what to turn on and where.
+[*]Click [B]Open Guild rules settings[/B] and set the rules for each ticked guild: bank limits, who to ignore, inactivity limits and so on. [B]Copy rules from[/B] gives a guild the same rules as another in one click.
+[*]Type [FONT="Courier New"][B]/gt[/B][/FONT] (or set a keybind) to open the report window. Each feature has its own tab.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Finding your way around[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#A08CFF"][B]The report window[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/gt[/B][/FONT] opens it; [FONT="Courier New"][B]/gt bank[/B][/FONT], [FONT="Courier New"][B]/gt members[/B][/FONT], [FONT="Courier New"][B]/gt raffle[/B][/FONT] and so on open a tab directly (see Commands).
+[*][B]Right-click any row[/B] for what you can do with it: whisper, mail, set rank, kick, dismiss and more. The line at the top of each tab reminds you.
+[*]To copy someone's @name, right-click their row > [B]Copy @name[/B]. The name shows up selected in a small window; press Ctrl+C.
+[*][B]Hover[/B] over any button, tab, column header or row for a short tip or the full details.
+[*]Click a column header to sort, and again to reverse. Tabs with a search box have a small X to clear it.
+[*]Every tab has an [B]Export / copy[/B] button: the tab as comma-separated text to paste into Excel, Google Sheets or Discord.
+[*]The gear at the top right opens the settings.
+[/LIST]
+[COLOR="#A08CFF"][B]The settings pages[/B][/COLOR]
+[LIST]
+[*]Esc > Settings > Add-Ons, or [FONT="Courier New"][B]/gtsettings[/B][/FONT]. There are six pages, all starting with "Fury's Guild Management":
+[*][B]Fury's Guild Management[/B] (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
+[*][B]- Guild rules:[/B] a [B]Rules for (guild)[/B] section for each ticked guild.
+[*][B]- Recruiting[/B], [B]- Raffle[/B], [B]- Events[/B] and [B]- Crier:[/B] everything for those features.
+[/LIST]
+[COLOR="#A08CFF"][B]Commands[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/gt[/B][/FONT]: open or close the report window.
+[*][FONT="Courier New"][B]/gt bank[/B][/FONT], [FONT="Courier New"][B]hoppers[/B][/FONT], [FONT="Courier New"][B]watchlist[/B][/FONT], [FONT="Courier New"][B]history[/B][/FONT], [FONT="Courier New"][B]space[/B][/FONT], [FONT="Courier New"][B]members[/B][/FONT], [FONT="Courier New"][B]inactive[/B][/FONT], [FONT="Courier New"][B]trader[/B][/FONT], [FONT="Courier New"][B]sales[/B][/FONT], [FONT="Courier New"][B]auto[/B][/FONT], [FONT="Courier New"][B]recruit[/B][/FONT], [FONT="Courier New"][B]raffle[/B][/FONT], [FONT="Courier New"][B]events[/B][/FONT], [FONT="Courier New"][B]crier[/B][/FONT]: open that tab.
+[*][FONT="Courier New"][B]/gtsettings[/B][/FONT] (or [FONT="Courier New"][B]/gt settings[/B][/FONT]): open the settings.
+[*][FONT="Courier New"][B]/gt tour[/B][/FONT]: start or stop the recruiting zone tour.
+[*][FONT="Courier New"][B]/gt raffle add @name 3 (reason)[/B][/FONT] and [FONT="Courier New"][B]/gt raffle remove @name 3[/B][/FONT]: change someone's raffle tickets by hand.
+[*][FONT="Courier New"][B]/crier[/B][/FONT]: the Guild Crier menu. [FONT="Courier New"][B]/crier next[/B][/FONT] posts the next message, [FONT="Courier New"][B]/crier reset[/B][/FONT] restarts the rotation.
+[*][FONT="Courier New"][B]/gt status[/B][/FONT]: how much history has loaded per guild, and the biggest withdrawers. [FONT="Courier New"][B]/gt guilds[/B][/FONT]: which guilds have alerts on.
+[*][FONT="Courier New"][B]/gt reset[/B][/FONT]: rebuild the alerts from the logged history with your current settings (what you already did is kept). [FONT="Courier New"][B]/gt reset full[/B][/FONT]: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept).
+[/LIST]
+[COLOR="#A08CFF"][B]Keybinds[/B][/COLOR]
+[LIST]
+[*]Controls > Keybindings > Fury's Guild Management: open or close the report window, open or close the Crier menu, post the next Crier message, put the zone ad in chat, start or stop the zone tour, and travel to the next ready zone.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Bank alerts[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Catch members who take more from the guild bank than your rules allow.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]Tick your guilds under [B]Guilds to get alerts from[/B], then turn on [B]Guild bank alerts > Enable bank alerts[/B] (main settings page).
+[*]On the [B]Guild rules[/B] page, set each guild's limits: warn, demote and kick at X stacks per day (0 = never). Demote starts at 50; warn and kick start off.
+[*]Add your bankers and restocking officers under [B]Ignore rank names[/B] or [B]Ignore @names[/B]. The top 2 ranks are ignored from the start.
+[*]Optional: [B]Watch gold withdrawals too[/B] (warn 50,000, demote 200,000, kick 500,000 gold per day), counting items instead of stacks, or a rolling window of hours instead of midnight to midnight.
+[/LIST]
+[COLOR="#A08CFF"][B]Use it[/B][/COLOR]
+[LIST]
+[*]You get a chat and on-screen alert as it happens while you're online, and a summary at login.
+[*]The [B]Bank alerts[/B] tab ([FONT="Courier New"][B]/gt bank[/B][/FONT]) lists everyone over a limit: how many stacks and items they took, and how many came back. Hover for the full item list.
+[*]Right-click an alert for [B]Whisper[/B], [B]Mail[/B], [B]Warn[/B] (by whisper or mail), [B]Demote[/B], [B]Set rank[/B], [B]Add to guild note[/B], [B]Kick[/B], [B]Kick and blacklist[/B] and [B]Dismiss[/B]. Anything that changes the guild asks first.
+[*]Warn and Demote open a filled-in message: the date, what they took, and your bank rules (from the Crier's "Guild Bank 101" message unless you write your own). Every text can be changed in the guild's rules.
+[/LIST]
+[COLOR="#A08CFF"][B]Good to know[/B][/COLOR]
+[LIST]
+[*]A stack put back whole within 72 hours (adjustable) doesn't count. A partly used stack still counts.
+[*]Deposits never count, so stocking the bank never triggers anything.
+[*]The first time, the addon looks back 30 days. Old withdrawals show up as alerts to review; nothing is done to anyone for them.
+[*]After changing limits, click [B]Rescan with current settings[/B] (main page) or type [FONT="Courier New"][B]/gt reset[/B][/FONT].
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Auto-demote and the Auto tab[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Optional: let the addon demote someone the moment they reach a guild's demote limit.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]On the [B]Guild rules[/B] page, in that guild's rules, turn on [B]Auto-demote at the demote threshold[/B]. Each guild is separate.
+[*]Optional, in the same place: [B]Send the demotion mail automatically[/B] and [B]Note the reason in their guild note[/B].
+[*]Optional, on the main page under [B]Automatic actions[/B]: [B]Alert window for auto-demotes[/B] (a big window that stays until you close it). [B]Test the alert window[/B] shows you what it looks like.
+[/LIST]
+[COLOR="#A08CFF"][B]Use it[/B][/COLOR]
+[LIST]
+[*]Each auto-demote is explained in chat: old and new rank, the rule they hit, and each withdrawal.
+[*]The [B]Auto[/B] tab ([FONT="Courier New"][B]/gt auto[/B][/FONT]) keeps everything the addon did by itself, with the reason: auto-demotes, demotion mails and hoppers added to the watchlist. It shows whether the server confirmed the new rank and the mail. If a mail failed, right-click to send it.
+[/LIST]
+[COLOR="#A08CFF"][B]Good to know[/B][/COLOR]
+[LIST]
+[*]Only withdrawals after you turn it on count. It never touches anyone at or above your rank or on your ignore lists.
+[*]At most 5 per session over all guilds (change it under [B]Guild bank alerts[/B]).
+[*]Kick and blacklist always need your click. The addon never kicks anyone by itself.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Members and Inactive[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]See your whole roster, and who has been offline too long.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Members tab[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/gt members[/B][/FONT]: every member's rank, time at rank, last promotion, last online and guild note. Filter by guild or rank, hide offline members, search and sort.
+[*]Right-click a member to whisper or mail them, [B]Set rank[/B], [B]Kick[/B] or [B]Kick and blacklist[/B]. Each change asks first.
+[/LIST]
+[COLOR="#A08CFF"][B]Turn on inactivity alerts[/B][/COLOR]
+[LIST]
+[*]On the [B]Guild rules[/B] page, in each guild's rules, turn on [B]Inactivity alerts[/B].
+[*]Set the limits: officers 30, members 21, recruits 14 days offline to start with. For each rank, pick which limit applies, or no check.
+[*]Optional, on the main page under [B]Members and inactivity[/B]: [B]Alert at login[/B] tells you how many are over the limit.
+[/LIST]
+[COLOR="#A08CFF"][B]Inactive tab[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/gt inactive[/B][/FONT]: members over the limit for their rank, and how many guild slots each guild has open (out of 500).
+[*]Right-click for a [B]"we miss you" mail[/B], a blank mail, [B]Set rank[/B], [B]Kick[/B], [B]Kick and blacklist[/B] or [B]Dismiss[/B]. A dismissed member comes back if they go over the limit again after logging in.
+[*]Tip: pick Rank: Recruit and sort by Offline to go through recruits from most to least inactive.
+[/LIST]
+[COLOR="#A08CFF"][B]Good to know[/B][/COLOR]
+[LIST]
+[*]The game doesn't store when someone got their rank, so rank dates come from roster history. Older changes show as "since before (date)".
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Kick and blacklist mails[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Optional: mail people why they were removed.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]On the [B]Guild rules[/B] page, in each guild's rules under [B]Mail when you kick or blacklist[/B], turn on [B]Mail members kicked for inactivity[/B] and/or [B]Mail members you blacklist[/B], and edit the texts if you like.
+[/LIST]
+[COLOR="#A08CFF"][B]Use it[/B][/COLOR]
+[LIST]
+[*][B]Kick[/B] on the Inactive tab mails them why (days offline and their limit) and that they're welcome back if they return to the game.
+[*][B]Kick and blacklist[/B] or [B]Blacklist[/B] on any tab opens a confirm window with a reason box, filled in for you. The reason becomes their blacklist note and goes in the mail.
+[*]The [B]Send mail[/B] button in the confirm window skips the mail for one person. Hover it to read the mail. The mail goes out after you click Confirm, with normal postage.
+[*]In the [B]kick mail[/B] text: [FONT="Courier New"][B]<<1>>[/B][/FONT] is their @name, [FONT="Courier New"][B]<<2>>[/B][/FONT] the guild, [FONT="Courier New"][B]<<3>>[/B][/FONT] the days offline and [FONT="Courier New"][B]<<4>>[/B][/FONT] their limit.
+[*]In the [B]blacklist mail[/B] text: [FONT="Courier New"][B]<<1>>[/B][/FONT] is their @name, [FONT="Courier New"][B]<<2>>[/B][/FONT] the guild and [FONT="Courier New"][B]<<3>>[/B][/FONT] the reason.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Bank hoppers and watchlist[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Spot people who join, empty the bank and leave.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]Turn on [B]Bank hoppers and watchlist > Enable hopper report[/B] (main settings page).
+[*]On the [B]Guild rules[/B] page, set how soon a leave counts (48 hours to start with), and optionally [B]Add hoppers to the watchlist automatically[/B] and [B]Alert when a watchlisted person joins[/B].
+[/LIST]
+[COLOR="#A08CFF"][B]Use it[/B][/COLOR]
+[LIST]
+[*]The [B]Bank hoppers[/B] tab ([FONT="Courier New"][B]/gt hoppers[/B][/FONT]) lists people who joined and left within your time limit. Right-click to blacklist, watch, whisper, mail or dismiss them.
+[*]The [B]Watchlist[/B] ([FONT="Courier New"][B]/gt watchlist[/B][/FONT]) is shared by all your guilds and alerts you when a known hopper joins any of them.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]History[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]A searchable log of your guild banks and rosters.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]Turn on [B]History log and export > Keep a history log[/B] (main settings page). Events are kept 90 days to start with (up to 20,000).
+[/LIST]
+[COLOR="#A08CFF"][B]Use it[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/gt history[/B][/FONT]: bank items, bank gold and roster events (joins, leaves, kicks, promotions, demotions, blacklist changes) for all your guilds.
+[*]Filter by type, time and guild, search by name or item, or see totals per member.
+[*][B]Show: Bank items[/B] marks every withdrawal as returned whole, returned partly or not returned, so you can see who took what and what came back.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Bank space[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Know when a guild bank is getting full.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]Turn on [B]Guild bank space > Alert when a guild bank is nearly full[/B] (main settings page). Each guild's alert level (90% to start with) is on the [B]Guild rules[/B] page.
+[/LIST]
+[COLOR="#A08CFF"][B]Use it[/B][/COLOR]
+[LIST]
+[*]Open each guild bank once. The game only shows how full a bank is while it's open, so the count updates every time you open it.
+[*]The [B]Bank space[/B] tab ([FONT="Courier New"][B]/gt space[/B][/FONT]) shows each bank and how long ago it was counted.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Trader and Member sales[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Weekly trader results, and what each member sold.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]Turn on [B]Trader week totals > Keep weekly trader and bank totals[/B] (main settings page). 12 weeks are kept to start with (up to 52).
+[/LIST]
+[COLOR="#A08CFF"][B]Trader tab[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/gt trader[/B][/FONT]: for each guild and trader week (from the Tuesday trader change): your trader, sales and tax, what the trader really cost (every bid marked won or refunded), revenue against cost in green or red, and gold in and out.
+[*][B]View: traders[/B] compares every trader you held. The top line shows your current trader, the bank gold and when traders change next.
+[/LIST]
+[COLOR="#A08CFF"][B]Member sales tab[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/gt sales[/B][/FONT]: what each member sold in the guild store and the tax it earned, for one week or all stored weeks.
+[*]Right-click to whisper, mail (sellers get a filled-in congratulations note) or shout them out in guild chat. [B]Post top ten[/B] puts the top sellers in the guild chat box.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Guild Crier[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]A clickable menu of ready-made guild, zone and whisper messages.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Use it[/B][/COLOR]
+[LIST]
+[*][FONT="Courier New"][B]/crier[/B][/FONT] (or the Crier tab, or a keybind) opens the menu. Click a message to put it in the chat box, then press Enter.
+[*][FONT="Courier New"][B]/crier next[/B][/FONT] (or a keybind) posts the next message in the rotation. The rotation is weighted and remembers its place between sessions.
+[/LIST]
+[COLOR="#A08CFF"][B]Set it up[/B][/COLOR]
+[LIST]
+[*]On the [B]Crier[/B] settings page, replace the sample messages and the 19 tips for newer players with your own, add sections, and set each section's channel and rotation weight.
+[*]Optional: a [B]Rotation reminder[/B] every X minutes. It keeps its timing across logouts and reloads.
+[*]Updates never replace your messages. [B]Import new tips[/B] adds tips from a newer version.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Recruiting[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Advertise in zones, invite, and welcome new members. Every part is off until you turn it on.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Set it up[/B][/COLOR]
+[LIST]
+[*]Open the [B]Recruiting[/B] settings page (or the button under Recruiting in [FONT="Courier New"][B]/gtsettings[/B][/FONT]).
+[*]Pick the guild you recruit for, write a zone ad for each guild ([FONT="Courier New"][B]{guild}[/B][/FONT] becomes the guild's name), and turn on the parts you want.
+[/LIST]
+[COLOR="#A08CFF"][B]Zone ads and the zone tour[/B][/COLOR]
+[LIST]
+[*][B]Put ad in chat[/B] (a button on the Recruit tab, or a keybind) puts your ad in zone chat; press Enter. That zone then goes on cooldown (15 minutes to start with, up to 4 hours), and posting there too soon asks first.
+[*][B]Start tour:[/B] each time you press Enter on your ad, you travel to the next ready zone, through a guildmate, a friend or a house you own there, and the ad is waiting when you arrive. Nothing moves until you post. If a jump fails, it tries the next person, then the next zone.
+[*]The [B]Recruit[/B] tab ([FONT="Courier New"][B]/gt recruit[/B][/FONT]) lists every zone as ready or on cooldown. Right-click one to travel there, clear its cooldown or leave it out of the tour.
+[/LIST]
+[COLOR="#A08CFF"][B]Invites and leads[/B][/COLOR]
+[LIST]
+[*]Right-click a name in chat for [B]Invite to (guild)[/B].
+[*][B]Whisper leads:[/B] when someone whispers a keyword (inv, invite, join, guild to start with), you get an [Invite] link and a row on the Recruit tab. Nobody is invited without your click, unless you tick [B]Invite automatically[/B] (off to start with): then the invite goes out right away, with a chat line saying who was invited. One invite per person; whispering again within 10 minutes doesn't send another.
+[*][B]Join notices:[/B] who joined, how many slots are left, and a warning when the guild is nearly full or has no trader.
+[/LIST]
+[COLOR="#A08CFF"][B]Welcomes[/B][/COLOR]
+[LIST]
+[*]Pick a guild under [B]Welcome settings for[/B], tick [B]Welcome new members in this guild[/B], and write its welcome message and mail. Each guild has its own.
+[*]Someone who joins while you're online gets the welcome in the guild chat box; press Enter. Someone who joined while offline gets a welcome mail that opens for you to send (or goes out by itself, if you turn on [B]Send the welcome mail automatically[/B]).
+[/LIST]
+[COLOR="#A08CFF"][B]Status bar[/B][/COLOR]
+[LIST]
+[*]Optional: a small bar you can drag anywhere, with zones posted (for example 5/23), pending applications and whether whisper leads are listening. Show it during the zone tour or always.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Raffle[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]Sell raffle tickets for gold and draw the winners. Works without a guild too, for housing, fashion or other groups.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Set it up[/B][/COLOR]
+[LIST]
+[*]Open the [B]Raffle[/B] settings page (or the button under Raffle in [FONT="Courier New"][B]/gtsettings[/B][/FONT]) and turn on [B]Turn on the raffle[/B]; reload when asked.
+[*]Pick the raffle guild (or "(no guild)" for mail only), and whether [B]guild bank deposits[/B], [B]mailed gold[/B] or both buy tickets.
+[*]List the prizes, one per line: the first goes to the winner of draw 1, and so on. Set the ticket price, winners, one win per person, an optional limit per person, the start time and how many hours sales run.
+[/LIST]
+[COLOR="#A08CFF"][B]Run it[/B][/COLOR]
+[LIST]
+[*]On the [B]Raffle[/B] tab ([FONT="Courier New"][B]/gt raffle[/B][/FONT]), click [B]Start sales now[/B] (or let your start time arrive). The tab counts down to the end.
+[*][B]Announce in guild[/B] puts the announcement in the guild chat box; [B]Text for Discord[/B] gives you text to paste into Discord, with the tickets sold so far and one line per holder with their ticket numbers.
+[*]Each deposit or mail buys its amount divided by the ticket price; the rest is dropped (with 1,000g tickets, 5,600g buys 5). Plain donations count too.
+[*]For mailed gold, open your mailbox: each gold mail is counted once and printed in chat. Open it once more after sales end.
+[*]Ticket numbers never change once someone has them. New tickets always get the next numbers after everyone else's, so someone who buys again later holds numbers spread through the list. Tickets you remove by hand take that person's highest numbers out of the draw.
+[*]Right-click a buyer to add or remove tickets, or leave them out of the draw. To give tickets to someone who hasn't bought any (a helper, say), right-click them on the [B]Members[/B] tab and pick [B]Give raffle tickets...[/B]. Every change is logged.
+[/LIST]
+[COLOR="#A08CFF"][B]Draw the winners[/B][/COLOR]
+[LIST]
+[*]When sales end, click [B]Draw winners[/B] (or [B]End and draw now[/B] while sales run). Each draw picks a random ticket.
+[*][B]Winners to guild chat[/B] and [B]Winners for Discord[/B] post the results. Right-click a winner to mail them their prize, or to draw a replacement if they can't take it.
+[*][B]New / other raffles > New raffle[/B] puts the finished raffle away and opens the settings for the next one.
+[/LIST]
+[COLOR="#A08CFF"][B]Several raffles at once[/B][/COLOR]
+[LIST]
+[*][B]New / other raffles > Add another raffle to sell at the same time[/B] gives you another raffle with its own prizes, price, times, draw and posts. The same button switches between raffles.
+[*]Raffles in different guilds never share bank deposits. Two raffles taking deposits into the same guild bank need different prices: a deposit counts for the raffle whose price it's an exact multiple of, so use odd prices like 1,001g and 1,003g (a new raffle gets one automatically).
+[*]Two raffles taking mail at the same time each need a [B]mail subject keyword[/B]; a mail counts for the raffle whose keyword is in its subject.
+[*]Anything unclear goes to [B]Unassigned payments[/B] (in the New / other raffles menu). Right-click to count it for a raffle or ignore it. A raffle won't draw while something unassigned might belong to it.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Events[/B][/COLOR][/FONT][/SIZE]
+[COLOR="#B4B0D8"][I]See who signed up for a guild event in Discord (sesh bot) and who actually showed up, then fill the empty slots. Works for trials with Tank, Healer and DPS limits, and for classes or any event with no limit.[/I][/COLOR]
+[COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
+[LIST]
+[*]Open the [B]Events[/B] settings page (or the button under Events in [FONT="Courier New"][B]/gtsettings[/B][/FONT]) and tick [B]Turn on Events[/B].
+[*]Under [B]Guilds to advertise in[/B], tick the guilds that should get your ads for open slots.
+[*][B]Group forms (minutes before start)[/B] is when your group starts forming (15 minutes before the start time by default). Before then, ads ask people to sign up. From then on, they ask for replacements.
+[*]Tick [B]Invite by code[/B] and set your [B]Invite code[/B] ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots).
+[*]Change the whisper, mail and guild ad texts if you like (one ad for sign-ups, one for replacements). {name}, {event}, {time} (how long until it starts, like "3d 4h 30m from now", right in every time zone), {date}, {need}, {cp}, {code} and {me} are filled in for you.
+[/LIST]
+[COLOR="#A08CFF"][B]Read the sign-ups[/B][/COLOR]
+[LIST]
+[*]In Discord, select the sesh event post from its title down to the last name under the last role, and press Ctrl+C.
+[*]On the [B]Events[/B] tab ([FONT="Courier New"][B]/gt events[/B][/FONT]), click [B]Paste sign-ups[/B], click in the box, press Ctrl+V, then [B]Read sign-ups[/B].
+[*]The addon reads the title, time, CP requirement ("160 CP"), required addons, and every sign-up section with its limit: "Tank (1 / 2)", "DPS (1 / 8)", "Standby (0)" or "Attendees (4)". Any number of tanks or DPS works, and so does a section with no limit.
+[*]When the event is over, click [B]Clear[/B] to empty the tab. The accounts you matched to Discord names are kept for the next event.
+[/LIST]
+[COLOR="#A08CFF"][B]Who's here, who's missing[/B][/COLOR]
+[LIST]
+[*]Each sign-up shows as [B]In group[/B], [B]In group as (another role)[/B], [B]Online, not in group[/B] or [B]Offline[/B] (with how long), plus their group role and CP. CP under the requirement shows in red.
+[*]People in your group who didn't sign up show as [B]Not signed up[/B].
+[*]Discord names are matched to @accounts by name (fancy letters and spaces are ignored). If a match is wrong or missing, right-click the row > [B]Set account[/B]. The addon remembers it for every event.
+[*]The line at the top shows each section's sign-ups and how many are here, and the open slots:
+[*]Before the group forms: [B]Open sign-up slots[/B] (for example "1 tank, 6 DPS"), the slots nobody has signed up for. Everyone who signed up keeps their slot.
+[*]Once the group forms (start time minus the minutes in the settings): [B]Need now[/B] (for example "1 tank, 1 healer, 7 DPS"), what your group is missing, so people who signed up and didn't show count as open too.
+[/LIST]
+[COLOR="#A08CFF"][B]Ping the missing people[/B][/COLOR]
+[LIST]
+[*]Right-click a sign-up to [B]Whisper[/B] them (the text waits in the chat box), [B]Invite[/B] them to the group, or [B]Mail[/B] them (the mail opens for you to send).
+[*][B]Invite online[/B] sends a group invite to every sign-up who is online and not in your group (not Standby).
+[*][B]Copy for Discord[/B] gives you a message to paste into Discord. Before the group forms it lists the open sign-up slots. Once it forms it lists the missing names and what the group needs now. A menu lets you pick either; the one that fits the time is first.
+[/LIST]
+[COLOR="#A08CFF"][B]Fill the empty slots[/B][/COLOR]
+[LIST]
+[*]With [B]Invite by code[/B] on, anyone who types your invite code in the chat of a guild you advertise in, or whispers it to you, gets a group invite once the group forms (until 2 hours after the start time). The replacement ad tells people the code; while Invite by code is off, the ad leaves the code out. Nobody is invited when the group is full, when you aren't the group leader, or when their CP (as their guild shows it) is under the post's requirement; you get a chat line instead.
+[*][B]Advertise in guilds[/B] puts an ad in the chat box of each ticked guild, one after another. Press Enter for each. Pick the kind from the menu: [B]Ask for sign-ups[/B] (before the event, for the slots nobody signed up for) or [B]Ask for replacements, join now[/B] (once the group forms, for no-shows and empty slots). The one that fits the time is first.
+[*][B]Group Finder[/B] shows a listing to check: the first line is its title (the event's name; numbers and symbols are taken out, since the Group Finder takes letters and spaces only, and at most 5 words: day names go first, then words from the end), the rest its description (the description from the sesh post, cut to fit; the Group Finder shows the roles it still needs by itself). It picks the trial from the post ("Sunspire", "vSS") and lists it as Veteran unless the post says normal (or "nSS") and switches your difficulty to match, as the game's own Group Finder does, the playstyle (Educational when the post says trainer or training, Speed Run for a zerg or loot run, Standard otherwise), Voice Chat Required with VOICE REQUIRED in the description (and in the title when the game takes it) when the post says learn, sets the CP minimum, and sets the group's roles to the sign-up limits (2 tanks, 2 healers, 8 DPS for a trial when the post doesn't say). The Group Finder shows who's there and who's still needed by itself. Edit it, then press [B]Create listing[/B]. You accept applicants in the game's Group Finder window.
+[/LIST]
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Questions[/B][/COLOR][/FONT][/SIZE]
+[B]Will it kick, blacklist or invite people on its own?[/B]
+Kick, blacklist and Group Finder listings always need your click, and kicks and blacklists ask to confirm. It can do three things by itself, and only if you turn them on: demote (auto-demote), invite someone who types your event invite code (Invite by code on the Events page), and invite someone who whispers a recruiting keyword (Invite automatically under Recruiting).
+
+[B]I just installed it and already have a pile of alerts. Did it do anything?[/B]
+No. The first time, it looks back 30 days so you can review older withdrawals. Nothing is done to anyone for those.
+
+[B]Why does Warn put the text in my chat box instead of sending it?[/B]
+Addons can't send chat messages. Press Enter to send it. Mails open filled in and you press Send.
+
+[B]My bankers keep getting flagged.[/B]
+Add their rank name or @name to the ignore lists in that guild's rules (Guild rules page), then type [FONT="Courier New"][B]/gt reset[/B][/FONT].
+
+[B]I don't see a Rules for section for my guild.[/B]
+Tick the guild under Guilds to get alerts from (main settings page) and reload. The Rules for sections are on the Guild rules page.
+
+[B]Why is the Bank space tab empty?[/B]
+The game only shows how full a guild bank is while it's open. Open each guild bank once.
+
+[B]Do I need to be online for it to work?[/B]
+Addons only run while you're logged in. Anything that happened while you were away is picked up at your next login.
+
+[B]Can my rank use the menus?[/B]
+The menus do what the game lets your rank do. If your rank can't demote, kick or invite in that guild, the game won't allow it.
+
+
+[SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Bugs, ideas and source[/B][/COLOR][/FONT][/SIZE]
+Bug reports and ideas are welcome in the comments.
+Source code: [URL="https://github.com/AlbertHoffpauir/FurysGuildToolset"]GitHub[/URL]
+
+[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL][/SIZE][/CENTER]
