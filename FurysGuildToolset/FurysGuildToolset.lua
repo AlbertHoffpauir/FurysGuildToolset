@@ -6,7 +6,7 @@ local GT = FuryGMT
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.13.0"
+GT.version = "1.13.1"
 GT.savedVarsVersion = 1
 
 GT.modules = {}

@@ -590,11 +590,26 @@ function Events:NeedText(state, open)
     return table.concat(parts, ", ")
 end
 
+-- "3d 4h 30m from now", "starting now" or "started 10m ago": the same for everyone, whatever
+-- their time zone (1.13.1). Counted when the text is made.
+local function Relative(ts)
+    local diff = ts - GetTimeStamp()
+    local secs = math.abs(diff)
+    if secs < 60 then return "starting now" end
+    local days, hours, minutes = math.floor(secs / 86400), math.floor(secs % 86400 / 3600), math.floor(secs % 3600 / 60)
+    local parts = {}
+    if days > 0 then parts[#parts + 1] = days .. "d" end
+    if hours > 0 then parts[#parts + 1] = hours .. "h" end
+    if minutes > 0 then parts[#parts + 1] = minutes .. "m" end
+    local text = table.concat(parts, " ")
+    return diff > 0 and (text .. " from now") or ("started " .. text .. " ago")
+end
+
 function Events:Values(state, name, open)
     local ev = state.ev
     local need = self:NeedText(state, open)
     return {
-        event = ev.title, time = ev.time or "now", me = GetDisplayName(), name = name or "",
+        event = ev.title, time = state.startTs and Relative(state.startTs) or ev.time or "now", date = ev.time or "", me = GetDisplayName(), name = name or "",
         need = need ~= "" and need or "more people",
         cp = (ev.minCP or 0) > 0 and string.format(" (CP %d+)", ev.minCP) or "",
         code = self.sv.inviteCode or Events.defaults.inviteCode,
@@ -1264,7 +1279,7 @@ function Events:SettingsControls()
         { type = "description", text = "Copy a sesh event post in Discord and paste it into the Events tab (/gt events > Paste sign-ups). The tab shows each sign-up next to who is in your group, and lets you whisper, invite or mail the missing people, advertise the open slots in your guilds, and create a Group Finder listing. Nothing is sent without a click or Enter from you." },
         { type = "checkbox", name = "Turn on Events", tooltip = "Shows the Events tab and keeps it up to date while people join your group or log in.",
           getFunc = function() return sv.enabled end, setFunc = function(v) self:SetEnabled(v) end, default = false },
-        { type = "description", title = "Texts", text = "You can use {name} (their Discord name), {event} (the event title), {time}, {need} (open slots, like \"1 tank, 2 DPS\": sign-up slots nobody took before the group forms, what the group is missing after), {cp} (\" (CP 160+)\" when the post has a CP requirement), {code} (your invite code) and {me} (your @account)." },
+        { type = "description", title = "Texts", text = "You can use {name} (their Discord name), {event} (the event title), {time} (how long until it starts, like \"3d 4h 30m from now\", so it's right in every time zone), {date} (the time as the post shows it), {need} (open slots, like \"1 tank, 2 DPS\": sign-up slots nobody took before the group forms, what the group is missing after), {cp} (\" (CP 160+)\" when the post has a CP requirement), {code} (your invite code) and {me} (your @account)." },
         { type = "editbox", name = "Whisper", tooltip = "Goes in the chat box when you right-click a sign-up > Whisper. You press Enter.",
           getFunc = function() return sv.whisperText end, setFunc = function(v) sv.whisperText = v end, default = Events.defaults.whisperText },
         { type = "editbox", name = "Mail subject", tooltip = "For right-click > Mail. The mail opens filled in; you press Send.",
