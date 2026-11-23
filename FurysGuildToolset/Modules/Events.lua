@@ -157,6 +157,18 @@ local function Fill(template, values)
     end))
 end
 
+-- The CP requirement in a text: "600 CP", "600cp", "CP 600", "CP: 1800+". 0 when none.
+function Events.FindCP(text)
+    local plain = " " .. tostring(text or ""):gsub("[\128-\255]+", " ") .. " "
+    for number, after in plain:gmatch("(%d+)%s*[Cc][Pp](.)") do
+        if not after:find("%a") then return tonumber(number) end
+    end
+    for before, number in plain:gmatch("(.)[Cc][Pp]%s*:?%s*(%d+)") do
+        if not before:find("%a") then return tonumber(number) end
+    end
+    return 0
+end
+
 -- The event's start time as a timestamp, from the Time line Discord shows in your own time
 -- zone: "Wednesday, November 25, 2026 20:00", "November 25, 2026 8:00 PM" or
 -- "25 November 2026 20:00". nil when it can't be read.
@@ -283,8 +295,9 @@ function Events.Parse(text)
 
     -- CP: "160 CP", "CP 160", "CP: 1800+".
     local whole = table.concat(ev.desc, "\n")
-    local cp = whole:match("(%d+)%s*[Cc][Pp]%f[%A]") or whole:match("%f[%a][Cc][Pp]%s*:?%s*(%d+)")
-    ev.minCP = cp and tonumber(cp) or 0
+    -- 1.16.3: no %f patterns (the game read "600 CP" as no CP), and odd spaces or symbols
+    -- (Discord's non-breaking spaces, emoji) count as spaces.
+    ev.minCP = Events.FindCP(whole)
 
     -- Requirements: the short lines under a line that says "required" or "requirements".
     local inList = false
@@ -1133,7 +1146,7 @@ end
 function Events:PickTrial(ev)
     local text = zo_strlower(ev.title .. "\n" .. table.concat(ev.desc, "\n"))
     local flat = Norm(text)
-    local veteran = (text:find("veteran") or text:find("%f[%a]vet%f[%A]")) and true or false
+    local veteran = (text:find("veteran") or (" " .. text:gsub("%A", " ") .. " "):find(" vet ", 1, true)) and true or false
     local aliases = {}
     for word in text:gmatch("%a+") do
         local prefix, rest = word:sub(1, 1), word:sub(2)
@@ -1365,18 +1378,23 @@ function Events:CreateListing(text)
     description = Trim(description):sub(1, GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH)
     -- Tidy the title instead of refusing it: digits and symbols out, cut to the limit. If the
     -- game still won't take it, fall back to the event's name, tidied the same way.
+    -- Order (1.16.3): the event's name with VOICE REQUIRED, the event's name, then the trial's
+    -- name. The first title the game refuses is kept so chat can say why.
     local typed = title
     local voice = NeedsVoice(ev)
-    local candidates = { title, CleanTitle(title), CleanTitle(ev.title) }
+    local names = { title, CleanTitle(title), CleanTitle(ev.title) }
     local pickedTrial = self:PickTrial(ev)
-    if pickedTrial then candidates[#candidates + 1] = CleanTitle(pickedTrial) end
+    local refused
     title = nil
-    for _, candidate in ipairs(candidates) do
-        local try = voice and WithVoiceTitle(candidate) or candidate
-        if not title and TitleOK(try) then title = try end
+    local function Try(candidate)
+        if title or candidate == "" then return end
+        if TitleOK(candidate) then title = candidate elseif not refused then refused = candidate end
     end
-    for _, candidate in ipairs(candidates) do
-        if not title and TitleOK(candidate) then title = candidate end
+    if voice then for _, name in ipairs(names) do Try(WithVoiceTitle(name)) end end
+    for _, name in ipairs(names) do Try(name) end
+    if pickedTrial then
+        if voice then Try(WithVoiceTitle(CleanTitle(pickedTrial))) end
+        Try(CleanTitle(pickedTrial))
     end
     if voice and not description:find(VOICE, 1, true) then
         description = VOICE .. ". " .. CutAtWord(description, GROUP_FINDER_GROUP_LISTING_DESCRIPTION_MAX_LENGTH - #VOICE - 2)
@@ -1385,7 +1403,16 @@ function Events:CreateListing(text)
         U.Print("The Group Finder won't take \"%s\" as a title: %s", typed, ZO_GroupFinder_GetGroupTitleViolationString(typed))
         return
     end
-    if title ~= typed then U.Print("Title changed to \"%s\" (the Group Finder takes letters and spaces only, up to %d characters).", title, GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH) end
+    if title ~= typed then
+        local why = string.format("the Group Finder takes letters and spaces only, up to %d characters", GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH)
+        if refused and #refused <= GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH then
+            why = string.format("the game refused \"%s\": %s", refused, ZO_GroupFinder_GetGroupTitleViolationString(refused))
+        end
+        U.Print("Title changed to \"%s\" (%s).", title, why)
+    elseif voice and not title:find(VOICE, 1, true) and refused then
+        U.Print("%s didn't fit in the title (the game refused \"%s\": %s). It's at the start of the description, and Voice Chat Required is ticked.",
+            VOICE, refused, #refused > GROUP_FINDER_GROUP_LISTING_TITLE_MAX_LENGTH and "too long" or ZO_GroupFinder_GetGroupTitleViolationString(refused))
+    end
     local trial = self:PickTrial(ev)
     if not trial then
         SetGroupFinderUserTypeGroupListingCategory(DRAFT, GROUP_FINDER_CATEGORY_CUSTOM)
