@@ -1178,9 +1178,10 @@ function Events:PickTrial(ev)
         local name = zo_strlower(GetGroupFinderUserTypeGroupListingPrimaryOptionByIndex(DRAFT, i) or "")
         if (veteran and name:find("veteran")) or (not veteran and name:find("normal")) then difficulty = i end
     end
-    -- 1.16.7: no UpdateGroupFinderUserTypeGroupListingOptions after the difficulty or the trial
-    -- (the game's window doesn't call it there; it can put the difficulty back to the default).
+    -- The trial list needs an options update after the difficulty (1.16.7 without it found no
+    -- trial). The difficulty is set again after the trial in case the update changed it (1.16.8).
     SetGroupFinderUserTypeGroupListingPrimaryOption(DRAFT, difficulty)
+    UpdateGroupFinderUserTypeGroupListingOptions(DRAFT)
     self.listingDifficulty = difficulty
 
     local options = {}
@@ -1199,6 +1200,11 @@ function Events:PickTrial(ev)
     end
     if not pick then return nil end
     SetGroupFinderUserTypeGroupListingSecondaryOption(DRAFT, pick)
+    local _, difficultySet = GetGroupFinderUserTypeGroupListingPrimaryOptionByIndex(DRAFT, difficulty)
+    if not difficultySet then
+        SetGroupFinderUserTypeGroupListingPrimaryOption(DRAFT, difficulty)
+        SetGroupFinderUserTypeGroupListingSecondaryOption(DRAFT, pick)
+    end
     local primary = GetGroupFinderUserTypeGroupListingPrimaryOptionByIndex(DRAFT, difficulty)
     return string.format("%s (%s)", options[pick].name, primary ~= "" and primary or (veteran and "Veteran" or "Normal"))
 end
@@ -1414,15 +1420,20 @@ function Events:SwitchDifficultyThen(veteran, fn)
     SetVeteranDifficulty(veteran)
 end
 
+-- "Veteran" or "Normal": the group's difficulty, or yours when you are solo.
+function Events.YourDifficulty()
+    local veteran
+    if IsUnitGrouped("player") then veteran = IsGroupUsingVeteranDifficulty() else veteran = IsUnitUsingVeteranDifficulty("player") end
+    return veteran and "Veteran" or "Normal"
+end
+
 function Events:CreateListing(text, switched)
     local state = self:State()
     if not state then return end
     local ev = state.ev
     if not switched and self:PickTrial(ev) then
         local veteran = Events.WantsVeteran(ev)
-        local current
-        if IsUnitGrouped("player") then current = IsGroupUsingVeteranDifficulty() else current = IsUnitUsingVeteranDifficulty("player") end
-        if current ~= veteran then
+        if (Events.YourDifficulty() == "Veteran") ~= veteran then
             self:SwitchDifficultyThen(veteran, function() self:CreateListing(text, true) end)
             return
         end
@@ -1520,11 +1531,13 @@ function Events:CreateListing(text, switched)
     RequestCreateGroupListing()
     local details = { minCP > 0 and string.format("CP %d+", minCP) or "no CP requirement in the post" }
     if trial then
-        local name, isSet = GetGroupFinderUserTypeGroupListingPrimaryOptionByIndex(DRAFT, self.listingDifficulty)
-        table.insert(details, 1, isSet and trial or string.format("%s, but the game has another difficulty set", trial))
-        self.listingDifficultyName = name
+        local primaryText, secondaryText = GetGroupFinderUserTypeGroupListingOptionsSelectionText(DRAFT)
+        table.insert(details, 1, string.format("post: %s; listing: %s %s; your difficulty: %s", trial, primaryText, secondaryText, Events.YourDifficulty()))
+        self.listingDifficultyName = (GetGroupFinderUserTypeGroupListingPrimaryOptionByIndex(DRAFT, self.listingDifficulty))
+    else
+        table.insert(details, 1, "no trial found in the post, so a Custom listing")
     end
-    U.Print("Asking the game to create the Group Finder listing \"%s\" (%s)...", title, table.concat(details, ", "))
+    U.Print("Asking the game to create the Group Finder listing \"%s\" (%s)...", title, table.concat(details, "; "))
 end
 
 function Events:OnListingResult(result)
@@ -1539,8 +1552,8 @@ function Events:OnListingResult(result)
         if self.listingTrial then
             local _, isSet = GetGroupFinderUserTypeGroupListingPrimaryOptionByIndex(created, self.listingDifficulty)
             if not isSet then
-                U.Print("The game listed it at another difficulty than %s. Your difficulty is %s.", self.listingDifficultyName or "the post's",
-                    (IsUnitGrouped("player") and IsGroupUsingVeteranDifficulty() or (not IsUnitGrouped("player") and IsUnitUsingVeteranDifficulty("player"))) and "Veteran" or "Normal")
+                local primaryText, secondaryText = GetGroupFinderUserTypeGroupListingOptionsSelectionText(created)
+                U.Print("The game listed it as %s %s, not %s. Your difficulty is %s.", primaryText, secondaryText, self.listingDifficultyName or "the post's", Events.YourDifficulty())
             end
         end
     else
