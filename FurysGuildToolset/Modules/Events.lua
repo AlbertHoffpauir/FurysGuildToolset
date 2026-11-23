@@ -487,21 +487,27 @@ function Events:BuildState(ev)
     end
     table.sort(state.walkIns, function(a, b) return a.account < b.account end)
 
-    -- Open slots: a role's limit minus the people in your group playing that role. A section
-    -- with no role (Attendees) and a limit: its limit minus everyone in the group.
-    local anyMax = 0
+    -- Open slots: the sign-up slots nobody has taken (1.11.1). A role's limit minus the people
+    -- signed up for it, minus anyone in your group who didn't sign up but plays that role. People
+    -- who signed up and aren't here yet keep their slot: you ping them, the ads don't count them.
+    -- A section with no role (Attendees) and a limit: its limit minus its sign-ups and every
+    -- walk-in.
+    local walkInRole = {}
+    for _, info in ipairs(state.walkIns) do walkInRole[info.groupRole] = (walkInRole[info.groupRole] or 0) + 1 end
+    local anyMax, anySigned = 0, 0
     for _, section in ipairs(ev.sections) do
         if section.max then
             local role = ROLE_OF_KIND[section.kind]
             if role then
-                state.open[section.kind] = (state.open[section.kind] or 0) + section.max
+                state.open[section.kind] = (state.open[section.kind] or 0) + section.max - #section.people
             elseif section.kind == "any" then
                 anyMax = anyMax + section.max
+                anySigned = anySigned + #section.people
             end
         end
     end
-    for kind, max in pairs(state.open) do state.open[kind] = math.max(0, max - (roleCount[ROLE_OF_KIND[kind]] or 0)) end
-    if anyMax > 0 then state.open.any = math.max(0, anyMax - groupCount) end
+    for kind, open in pairs(state.open) do state.open[kind] = math.max(0, open - (walkInRole[ROLE_OF_KIND[kind]] or 0)) end
+    if anyMax > 0 then state.open.any = math.max(0, anyMax - anySigned - #state.walkIns) end
     state.roleCount = roleCount
     return state
 end
@@ -890,21 +896,19 @@ function Events:PickTrial(ev)
     return string.format("%s (%s)", options[pick].name, primary ~= "" and primary or (veteran and "Veteran" or "Normal"))
 end
 
--- Desired players per role for the listing: the post's limit for that role, never fewer than
--- the group already has, and never more than the listing's size.
-function Events:ListingRoles(ev)
+-- Players per role for the listing: who plays that role in your group now, plus the open
+-- slots (sign-up slots nobody has taken). Sign-ups who aren't here yet keep their slot, so the
+-- listing doesn't fill it. Never more than the listing's size.
+function Events:ListingRoles(state)
     local numRoles = GetGroupFinderUserTypeGroupListingNumRoles(DRAFT)
-    local desired, total, any = {}, 0, false
-    for _, section in ipairs(ev.sections) do
-        local role = ROLE_OF_KIND[section.kind]
-        if role and section.max then
-            desired[role] = (desired[role] or 0) + section.max
-            any = true
-        end
+    local any = false
+    for _, section in ipairs(state.ev.sections) do
+        if ROLE_OF_KIND[section.kind] and section.max then any = true end
     end
     if not any then return nil, numRoles end
-    for _, role in ipairs({ LFG_ROLE_TANK, LFG_ROLE_HEAL, LFG_ROLE_DPS }) do
-        desired[role] = math.max(desired[role] or 0, GetGroupFinderUserTypeGroupListingAttainedRoleCount(DRAFT, role))
+    local desired, total = {}, 0
+    for kind, role in pairs(ROLE_OF_KIND) do
+        desired[role] = GetGroupFinderUserTypeGroupListingAttainedRoleCount(DRAFT, role) + (state.open[kind] or 0)
         total = total + desired[role]
     end
     for _, role in ipairs({ LFG_ROLE_DPS, LFG_ROLE_HEAL, LFG_ROLE_TANK }) do
@@ -992,7 +996,7 @@ function Events:CreateListing(text)
     local minCP = ev.minCP or 0
     SetGroupFinderUserTypeGroupListingRequiresChampion(DRAFT, minCP > 0)
     if minCP > 0 then SetGroupFinderUserTypeGroupListingChampionPoints(DRAFT, minCP) end
-    local desired, numRoles = self:ListingRoles(ev)
+    local desired, numRoles = self:ListingRoles(state)
     SetGroupFinderUserTypeGroupListingEnforceRoles(DRAFT, desired ~= nil)
     if desired then
         local total = 0
