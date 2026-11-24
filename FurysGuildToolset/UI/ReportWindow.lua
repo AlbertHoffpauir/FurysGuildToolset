@@ -8,6 +8,8 @@
 --       GetRows = function() return { { text=, tooltip=, actions={ {label=, fn=}, ... } } } end,
 --       footer = { { label = "Dismiss all", tip = "Hover text", fn = function() end }, ... },  -- optional
 --       searchable = true,                             -- optional: shows the search box, tab.searchText holds it
+--       topBar = control or function,                  -- optional (1.23.0): controls in the title row, shown only on this tab
+--       UpdateTopBar = function() end,                 -- optional: refreshes them (may hide them)
 --       GetExportLines = function() return { "header", "row", ... } end,  -- optional: adds an Export button
 --   })
 -- Rows can have up to six action buttons ({ label =, tip =, fn = }). Every button
@@ -32,6 +34,8 @@ local COLUMN_GAP = 8
 local ROW_HEIGHT = 32
 local MAX_FOOTER_BUTTONS = 7   -- 1.15.0: 7 for the Events tab (its buttons are narrower)
 local EXPORT_PART_CHARS = 20000
+-- The copy window's hint for CSV exports; Copy for Discord sets its own (Report.exportHint).
+local EXPORT_HINT = "CSV, one line per row. Select all, Ctrl+C, then in Excel: Data > Text to Columns > Comma."
 
 Report.tabs = {}
 Report.tabButtons = {}
@@ -113,6 +117,7 @@ function Report:ShowCopy(text)
     self.exportParts = { text }
     self.exportIndex = 1
     self.exportTitle = "Copy"
+    self.exportHint = nil
     GT.Util.ShowOnTop(FuryGMTExport)
     self:ShowExportPart(0)
     FuryGMTExportTextBox:TakeFocus()
@@ -456,6 +461,11 @@ function Report:Refresh()
     if tab.searchable and self.searchBox:GetText() ~= (tab.searchText or "") then
         self.searchBox:SetText(tab.searchText or "")
     end
+    for _, other in ipairs(self.tabs) do
+        local bar = Resolve(other.topBar)
+        if bar then bar:SetHidden(other ~= tab) end
+    end
+    if tab.UpdateTopBar then tab.UpdateTopBar() end
 
     local footer = {}
     for _, action in ipairs(Resolve(tab.footer) or {}) do footer[#footer + 1] = action end
@@ -581,6 +591,7 @@ function Report:ShowExport(tabLines)
     self.exportParts = parts
     self.exportIndex = 1
     self.exportTitle = nil
+    self.exportHint = nil
     GT.Util.ShowOnTop(FuryGMTExport)
     self:ShowExportPart(0)
 end
@@ -590,6 +601,7 @@ function Report:ShowExportPart(delta)
     self.exportIndex = zo_clamp((self.exportIndex or 1) + delta, 1, #parts)
     FuryGMTExportTextBox:SetText(parts[self.exportIndex])
     FuryGMTExportTitle:SetText(self.exportTitle or "Export")
+    FuryGMTExportHint:SetText(self.exportHint or EXPORT_HINT)
     FuryGMTExportPart:SetText(string.format("Part %d of %d", self.exportIndex, #parts))
     FuryGMTExportPrev:SetHidden(#parts <= 1)
     FuryGMTExportNext:SetHidden(#parts <= 1)

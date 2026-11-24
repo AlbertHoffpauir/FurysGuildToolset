@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.20.1
+# Fury's Guild Management Toolset (ESO addon) v1.24.1
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -22,7 +22,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.20.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.20.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.24.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.24.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -300,7 +300,7 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 - Open the **Events** settings page (or the button under Events in `/gtsettings`) and tick **Turn on Events**.
 - Under **Guilds to advertise in**, tick the guilds that should get your ads for open slots.
 - **Group forms (minutes before start)** is when your group starts forming (15 minutes before the start time by default). Before then, ads ask people to sign up. From then on, they ask for replacements.
-- Tick **Invite by code** and set your **Invite code** ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots).
+- Turn **Invite by code** on and set your **Invite code** ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots). The Events tab has its own **Invite by code: ON/OFF** button and **Code** box at the top of the window, so you can switch it and change the code without opening the settings. With no event pasted, the **IA (2)**, **Group (4)** and **Trial (12)** buttons next to them turn it on until your group has that many (you included), solo or already grouped; it turns off by itself at that size, or when you leave or disband the group. Invite by code always starts off when you log in or reload, and the ON button also turns itself off when your group fills up or breaks up.
 - Change the whisper, mail and guild ad texts if you like (one ad for sign-ups, one for replacements). {name}, {event}, {time} (how long until it starts, like "3d 4h 30m from now", right in every time zone), {date}, {need}, {cp}, {code} and {me} are filled in for you.
 
 ### Read the sign-ups
@@ -314,7 +314,7 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 
 - Each sign-up shows as **In group**, **In group as (another role)**, **Online, not in group** or **Offline** (with how long), plus their group role and CP. CP under the requirement shows in red.
 - People in your group who didn't sign up show as **Not signed up**.
-- Discord names are matched to @accounts by name (fancy letters and spaces are ignored). If a match is wrong or missing, right-click the row > **Set account**. The addon remembers it for every event.
+- Discord names are matched to @accounts by name (fancy letters and spaces are ignored). If a match is wrong or missing, right-click the row > **Set account**. **Set account (type it)** drops down names from your guilds, friends, group and recent contacts as you type (it starts with names that look like the Discord name); click one, or pick it with the arrow keys and Tab. A name you type is checked when you save and saved with the game's spelling; if it isn't found, the addon says so and suggests close names, and **Save anyway** keeps it as typed. The addon remembers it for every event.
 - The line at the top shows each section's sign-ups and how many are here, and the open slots:
 - Before the group forms: **Open sign-up slots** (for example "1 tank, 6 DPS"), the slots nobody has signed up for. Everyone who signed up keeps their slot.
 - Once the group forms (start time minus the minutes in the settings): **Need now** (for example "1 tank, 1 healer, 7 DPS"), what your group is missing, so people who signed up and didn't show count as open too.
@@ -323,11 +323,11 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 
 - Right-click a sign-up to **Whisper** them (the text waits in the chat box), **Invite** them to the group, or **Mail** them (the mail opens for you to send).
 - **Invite online** sends a group invite to every sign-up who is online and not in your group (not Standby).
-- **Copy for Discord** gives you a message to paste into Discord. Before the group forms it lists the open sign-up slots. Once it forms it lists the missing names and what the group needs now. A menu lets you pick either; the one that fits the time is first.
+- **Copy for Discord** gives you a ready-made Discord post with headings, emoji and the start time shown in each reader's own time zone. Before the group forms it shows the open slots per role and who signed up. Once it forms it shows who is still missing and what the group needs now. A menu lets you pick either; the one that fits the time is first. Events with no limit (Attendees only) always say there's room for more.
 
 ### Fill the empty slots
 
-- With **Invite by code** on, anyone who types your invite code in the chat of a guild you advertise in, or whispers it to you, gets a group invite once the group forms (until 2 hours after the start time). The replacement ad tells people the code; while Invite by code is off, the ad leaves the code out. Nobody is invited when the group is full, when you aren't the group leader, or when their CP (as their guild shows it) is under the post's requirement; you get a chat line instead.
+- With **Invite by code** on, anyone who types your invite code (upper or lower case) in the chat of a guild you advertise in, or whispers it to you, gets a group invite. With no event pasted, that works any time, up to a full group. With an event pasted, it starts once the group forms (until 2 hours after the start time) and stops at the event's group size. The replacement ad tells people the code; while Invite by code is off, the ad leaves the code out. Nobody is invited when the group is full, when you aren't the group leader, when the event hasn't formed yet, or when their CP (as their guild shows it) is under the post's requirement; you get a chat line saying why instead.
 - **Advertise in guilds** puts an ad in the chat box of each ticked guild, one after another. Press Enter for each. Pick the kind from the menu: **Ask for sign-ups** (before the event, for the slots nobody signed up for) or **Ask for replacements, join now** (once the group forms, for no-shows and empty slots). The one that fits the time is first.
 - **Group Finder** shows a listing to check: the first line is its title (the event's name; numbers and symbols are taken out, since the Group Finder takes letters and spaces only, and at most 5 words: day names go first, then words from the end), the rest its description (the description from the sesh post, cut to fit; the Group Finder shows the roles it still needs by itself). It picks the trial from the post ("Sunspire", "vSS") and lists it as Veteran unless the post says normal (or "nSS") and switches your difficulty to match, as the game's own Group Finder does, the playstyle (Educational when the post says trainer or training, Speed Run for a zerg or loot run, Standard otherwise), Voice Chat Required with VOICE REQUIRED in the description (and in the title when the game takes it) when the post says learn, sets the CP minimum, and sets the group's roles to the sign-up limits (2 tanks, 2 healers, 8 DPS for a trial when the post doesn't say). The Group Finder shows who's there and who's still needed by itself. Edit it, then press **Create listing**. You accept applicants in the game's Group Finder window.
 

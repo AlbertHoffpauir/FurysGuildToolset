@@ -30,6 +30,16 @@
                         <EditBox name="$(parent)Box" inherits="ZO_DefaultEditMultiLineForBackdrop" />
                     </Controls>
                 </Backdrop>
+                <!-- One-line box for Set account (1.22.0): suggestions drop down under it as you type. -->
+                <Backdrop name="$(parent)Line" inherits="ZO_SingleLineEditBackdrop_Keyboard" hidden="true">
+                    <Anchor point="TOPLEFT" relativeTo="$(parent)Hint" relativePoint="BOTTOMLEFT" offsetY="10" />
+                    <Anchor point="RIGHT" offsetX="-16" />
+                    <Controls>
+                        <EditBox name="$(parent)Box" inherits="ZO_DefaultEditForBackdrop" defaultText="@account">
+                            <OnEnter>FuryGMT.Events:SubmitInput()</OnEnter>
+                        </EditBox>
+                    </Controls>
+                </Backdrop>
                 <Button name="$(parent)Cancel" inherits="ZO_DefaultButton" text="Cancel">
                     <Dimensions x="140" y="28" />
                     <Anchor point="BOTTOMRIGHT" offsetX="-16" offsetY="-14" />
