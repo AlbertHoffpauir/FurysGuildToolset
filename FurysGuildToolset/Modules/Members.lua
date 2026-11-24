@@ -9,7 +9,7 @@
 --     already logged. For anyone whose last rank change is older than that, the tab shows
 --     "before <date>", the oldest roster event we have for that guild.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 local A = GT.Actions
 
@@ -75,9 +75,9 @@ function Members:Initialize(sv)
     -- Redraw when it does, so kicked members drop off Members and Inactive right away
     -- and the counts and open slots stay right. Joins and leaves by anyone else count too.
     local function RosterChanged() GT.Report:RefreshIfShown() end
-    EVENT_MANAGER:RegisterForEvent("FuryGMTMembers", EVENT_GUILD_MEMBER_REMOVED, RosterChanged)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTMembers", EVENT_GUILD_MEMBER_ADDED, RosterChanged)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTMembers", EVENT_GUILD_MEMBER_RANK_CHANGED, RosterChanged)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Members", EVENT_GUILD_MEMBER_REMOVED, RosterChanged)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Members", EVENT_GUILD_MEMBER_ADDED, RosterChanged)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Members", EVENT_GUILD_MEMBER_RANK_CHANGED, RosterChanged)
 end
 
 function Members:GetHistoryCategories()

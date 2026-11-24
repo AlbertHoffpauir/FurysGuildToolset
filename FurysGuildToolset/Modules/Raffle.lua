@@ -31,7 +31,7 @@
 -- skipped. Results are put in the guild chat box for you to press Enter; nothing is sent
 -- automatically.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 
 local Raffle = GT:RegisterModule("raffle", {})
@@ -42,7 +42,7 @@ Raffle.historyReader = "raffle"   -- own LibHistoire reader and saved position (
 local KEEP_DAYS = 45
 local DRAW_DELAY_S = 60           -- wait this long after the sale ends for late history events
 local MAX_CHAT = 350
-local UPDATE_NAME = "FuryGMTRaffle"
+local UPDATE_NAME = "FurysGuildToolset_Raffle"
 local COLLIDE_TICKETS = 100       -- warn when two prices share a multiple at or below this many tickets
 
 -- Which prize a draw result is for: its own slot, or the draw number for results from before 1.7.0.
@@ -1283,7 +1283,7 @@ function Raffle:ShowCopy(text, what)
     local Report = GT.Report
     Report.exportParts = { text }
     Report.exportIndex = 1
-    U.ShowOnTop(FuryGMTExport)
+    U.ShowOnTop(FurysGuildToolset_Export)
     Report:ShowExportPart(0)
     U.Print("%s is in the copy window. Click Select all, press Ctrl+C, and paste it into Discord.", what)
 end
@@ -1359,7 +1359,7 @@ function Raffle:Post(r, parts)
     local Report = GT.Report
     Report.exportParts = { table.concat(parts, "\n") }
     Report.exportIndex = 1
-    U.ShowOnTop(FuryGMTExport)
+    U.ShowOnTop(FurysGuildToolset_Export)
     Report:ShowExportPart(0)
     U.Print("No raffle guild is set, so the text is in the copy window. Click Copy, then paste it where your group chats.")
 end

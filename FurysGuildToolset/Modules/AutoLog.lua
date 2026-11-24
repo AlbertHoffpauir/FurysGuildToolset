@@ -6,7 +6,7 @@
 -- rank (EVENT_GUILD_MEMBER_RANK_CHANGED, or the roster shows it), and a mail only when the
 -- server answers EVENT_MAIL_SEND_SUCCESS (see Actions.SendMailNow).
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 
 local AutoLog = GT:RegisterModule("auto", {})
@@ -39,12 +39,12 @@ function AutoLog:Initialize(sv)
     self:RegisterTab()
     self.alertEntries = {}
     -- Registering with the scene manager makes Esc close the alert and shows the mouse cursor.
-    SCENE_MANAGER:RegisterTopLevel(FuryGMTAutoAlert, false)
-    FuryGMTAutoAlert:SetHandler("OnHide", function()
+    SCENE_MANAGER:RegisterTopLevel(FurysGuildToolset_AutoAlert, false)
+    FurysGuildToolset_AutoAlert:SetHandler("OnHide", function()
         ClearTooltip(InformationTooltip)
         self.alertEntries = {}
     end)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTAutoRank", EVENT_GUILD_MEMBER_RANK_CHANGED, function(_, guildId, displayName)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_AutoRank", EVENT_GUILD_MEMBER_RANK_CHANGED, function(_, guildId, displayName)
         local entry = self.pendingRank[tostring(guildId) .. ":" .. tostring(displayName)]
         if entry then self:CheckRank(entry) end
     end)
@@ -111,7 +111,7 @@ end
 function AutoLog:ShowAlert(entry)
     table.insert(self.alertEntries, 1, entry)
     local n = #self.alertEntries
-    FuryGMTAutoAlertTitle:SetText(n == 1 and zo_strformat("Auto-demoted <<1>>", entry.who)
+    FurysGuildToolset_AutoAlertTitle:SetText(n == 1 and zo_strformat("Auto-demoted <<1>>", entry.who)
         or string.format("%d members auto-demoted", n))
     local lines = {}
     for i = 1, math.min(n, ALERT_MAX_LINES) do
@@ -122,14 +122,14 @@ function AutoLog:ShowAlert(entry)
     if n > ALERT_MAX_LINES then
         lines[#lines + 1] = string.format("|cB4B0D8...and %d more. Open log shows them all.|r", n - ALERT_MAX_LINES)
     end
-    FuryGMTAutoAlertBody:SetText(table.concat(lines, "\n"))
-    FuryGMTAutoAlert:SetHeight(20 + FuryGMTAutoAlertTitle:GetTextHeight() + 14 + FuryGMTAutoAlertBody:GetTextHeight() + 18 + 30 + 20)
+    FurysGuildToolset_AutoAlertBody:SetText(table.concat(lines, "\n"))
+    FurysGuildToolset_AutoAlert:SetHeight(20 + FurysGuildToolset_AutoAlertTitle:GetTextHeight() + 14 + FurysGuildToolset_AutoAlertBody:GetTextHeight() + 18 + 30 + 20)
     PlaySound(SOUNDS.GENERAL_ALERT_ERROR)
-    U.ShowOnTop(FuryGMTAutoAlert)
+    U.ShowOnTop(FurysGuildToolset_AutoAlert)
 end
 
 function AutoLog:HideAlert()
-    SCENE_MANAGER:HideTopLevel(FuryGMTAutoAlert)
+    SCENE_MANAGER:HideTopLevel(FurysGuildToolset_AutoAlert)
 end
 
 function AutoLog:OpenLogFromAlert()

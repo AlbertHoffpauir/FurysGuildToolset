@@ -4,7 +4,8 @@
 -- Adding, deleting or renaming sections changes the layout of this panel,
 -- which LibAddonMenu can only rebuild with a UI reload, so those reload.
 
-local GC = FuryGMT.Crier
+local GT = FurysGuildToolset
+local GC = GT.Crier
 
 local CHANNEL_NAMES  = { "Guild", "Zone", "Whisper" }
 local CHANNEL_VALUES = { "guild", "zone", "whisper" }
@@ -45,7 +46,7 @@ local function LengthLabel(m)
 end
 
 -- ---------- rotation reminder ----------
-local TIMER_NAME = "FuryGMTCrierTimer"
+local TIMER_NAME = "FurysGuildToolset_CrierTimer"
 
 local function ChatBusy()
     return CHAT_SYSTEM:IsTextEntryOpen()
@@ -69,10 +70,7 @@ local function TryReminder()
         GC.Say("Reminder: next rotation message loaded into chat. Press Enter to send.")
         GC.Post()
     else
-        local sound = SOUNDS and (SOUNDS.NEW_NOTIFICATION or SOUNDS.DEFAULT_CLICK)
-        if ZO_Alert then
-            ZO_Alert(UI_ALERT_CATEGORY_ALERT, sound, "Fury's Guild Crier: time for a guild message!")
-        end
+        ZO_Alert(UI_ALERT_CATEGORY_ALERT, SOUNDS.NEW_NOTIFICATION, "Fury's Guild Crier: time for a guild message!")
         GC.Say("Time for a guild message! Use your rotation key or /crier next.")
     end
 end
@@ -495,15 +493,15 @@ function GC.InitSettings()
     -- the player is in the world.
     local function Register()
         EVENT_MANAGER:UnregisterForEvent(GC.name .. "Settings", EVENT_PLAYER_ACTIVATED)
-        panel = LAM:RegisterAddonPanel("FuryGMTCrierPanel", {
+        panel = LAM:RegisterAddonPanel("FurysGuildToolset_CrierPanel", {
             type = "panel",
             name = "Fury's Guild Management - Crier",
             displayName = "|cA08CFFFury's Guild Management Toolset: Guild Crier|r",
             author = "Furyous",
-            version = FuryGMT.version,
+            version = GT.version,
             registerForRefresh = true,
         })
-        LAM:RegisterOptionControls("FuryGMTCrierPanel", BuildOptions())
+        LAM:RegisterOptionControls("FurysGuildToolset_CrierPanel", BuildOptions())
     end
     Register()  -- the toolset calls InitSettings once you're in the world, so guild names are ready
 end

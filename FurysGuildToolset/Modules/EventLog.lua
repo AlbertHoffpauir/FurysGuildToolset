@@ -5,7 +5,7 @@
 -- It sees everything LibHistoire has for each guild from the first-run look-back onward,
 -- and keeps it for "keepDays" even after the game's own history window has moved on.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 
 local EventLog = GT:RegisterModule("log", {})

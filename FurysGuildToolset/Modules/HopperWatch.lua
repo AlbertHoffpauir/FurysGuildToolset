@@ -2,7 +2,7 @@
 -- looking for an open bank), lets you blacklist them, and keeps an account-wide watchlist
 -- that warns you when a known hopper joins any of your other guilds.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 local A = GT.Actions
 
@@ -46,11 +46,11 @@ end
 -- The watchlist join alert only listens while the hopper report is turned on.
 function HopperWatch:UpdateEventRegistration()
     if self.sv.enabled then
-        EVENT_MANAGER:RegisterForEvent("FuryGMTHopper", EVENT_GUILD_MEMBER_ADDED, function(_, guildId, displayName)
+        EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Hopper", EVENT_GUILD_MEMBER_ADDED, function(_, guildId, displayName)
             self:OnMemberAdded(guildId, displayName)
         end)
     else
-        EVENT_MANAGER:UnregisterForEvent("FuryGMTHopper", EVENT_GUILD_MEMBER_ADDED)
+        EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_Hopper", EVENT_GUILD_MEMBER_ADDED)
     end
 end
 
@@ -163,7 +163,7 @@ function HopperWatch:OnHistoryCaughtUp()
     end
     if fresh > 0 then
         U.Alert(zo_strformat("<<1>> <<1[person/people]>> joined and left again quickly since your last login. /gt hoppers", fresh))
-        if self.sv.openWindowOnLogin and FuryGMTReport:IsHidden() then GT.Report:Show("hoppers") end
+        if self.sv.openWindowOnLogin and FurysGuildToolset_Report:IsHidden() then GT.Report:Show("hoppers") end
     end
     for _, seen in ipairs(self.returnedWhileAway) do
         if U.IsMember(seen.guildId, seen.name) and GT:IsAlertGuild(seen.guildId) then

@@ -2,7 +2,7 @@
 -- The same file ships in each addon; only the first two lines differ, so it hangs off that
 -- addon's own table and adds no globals of its own.
 
-local A = FuryGMT
+local A = FurysGuildToolset
 local GLYPH = "EsoUI/Art/MainMenu/menuBar_guilds_up.dds"
 
 local T = {}

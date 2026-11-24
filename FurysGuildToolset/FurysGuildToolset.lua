@@ -1,12 +1,12 @@
 -- Fury's Guild Management Toolset: core namespace, module registry, saved variables and lifecycle.
 -- Each feature lives in Modules/<Name>.lua and registers itself with GT:RegisterModule.
 
-FuryGMT = FuryGMT or {}
-local GT = FuryGMT
+FurysGuildToolset = {}
+local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.24.1"
+GT.version = "1.24.2"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -21,7 +21,7 @@ GT.moduleOrder = {}
 --   module:OnHistoryCaughtUp(category)   every guild has delivered its backlog for this category
 --   module:BuildSettings(options)   append LibAddonMenu controls to the options table
 function GT:RegisterModule(id, module)
-    assert(not self.modules[id], "FuryGMT module registered twice: " .. tostring(id))
+    assert(not self.modules[id], "FurysGuildToolset module registered twice: " .. tostring(id))
     module.id = id
     self.modules[id] = module
     table.insert(self.moduleOrder, id)

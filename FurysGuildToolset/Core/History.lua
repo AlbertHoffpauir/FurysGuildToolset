@@ -6,7 +6,7 @@
 -- background. We only remember the last eventId we processed per guild/category, so each
 -- login resumes exactly where the previous session stopped.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local History = {}
 GT.History = History
 

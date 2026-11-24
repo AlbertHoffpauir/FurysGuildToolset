@@ -11,7 +11,7 @@
 -- the whole look-back period without replaying old events to the alert modules. Only the
 -- weekly totals are saved, not the single events.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 
 local TraderWeek = GT:RegisterModule("trader", {})
@@ -39,7 +39,7 @@ function TraderWeek:Initialize(sv)
     self.sv = sv
     self:Prune()
     self:RegisterTab()
-    EVENT_MANAGER:RegisterForEvent("FuryGMTTraderWeek", EVENT_GUILD_BANK_ITEMS_READY, function() self:CountBankGold() end)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_TraderWeek", EVENT_GUILD_BANK_ITEMS_READY, function() self:CountBankGold() end)
 end
 
 function TraderWeek:OnPlayerActivated()
@@ -589,7 +589,7 @@ end
 -- before it.
 
 local MAX_CHAT = 350
-local CHAT_EVENT_NAME = "FuryGMTTraderWeekChat"
+local CHAT_EVENT_NAME = "FurysGuildToolset_TraderWeekChat"
 
 local function GuildChannel(guildId)
     for i = 1, GetNumGuilds() do

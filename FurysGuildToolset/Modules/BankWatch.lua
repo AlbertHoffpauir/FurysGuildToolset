@@ -3,7 +3,7 @@
 -- Deposits never count, so officers stocking the bank never trigger anything. A stack the
 -- same member puts back whole (same item, same count) stops counting; a partly used one still counts.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 local A = GT.Actions
 
@@ -668,7 +668,7 @@ function BankWatch:GetBankRules(guildId)
     local rulesText = self:G(guildId).rulesText
     if rulesText and zo_strtrim(rulesText) ~= "" then return zo_strtrim(rulesText) end
     local crier = GT.Crier
-    local msgs = (crier.sv and crier.sv.messages) or FuryGMT.CrierMessages
+    local msgs = (crier.sv and crier.sv.messages) or GT.CrierMessages
     for _, m in ipairs(msgs) do
         if m.text:find("Bank 101", 1, true) then return m.text end
     end

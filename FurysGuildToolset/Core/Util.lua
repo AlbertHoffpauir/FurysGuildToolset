@@ -1,4 +1,4 @@
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = {}
 GT.Util = U
 

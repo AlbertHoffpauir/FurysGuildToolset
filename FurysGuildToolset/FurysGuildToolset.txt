@@ -1,8 +1,8 @@
 ## Title: |cA08CFFFury's Guild Management Toolset|r
 ## Description: Officer toolkit: guild bank theft and bank-space alerts, bank-hopper report, watchlist, a log of every automatic action, member status and inactivity alerts, weekly trader sales, tax, bids, history log with export, recruiting, raffles, sesh event sign-ups and the Guild Crier menu.
 ## Author: Furyous
-## Version: 1.24.1
-## AddOnVersion: 124
+## Version: 1.24.2
+## AddOnVersion: 125
 ## APIVersion: 101051 101052
 ## SavedVariables: FuryGMT_SV
 ## DependsOn: LibAddonMenu-2.0>=43 LibHistoire>=1112

@@ -3,9 +3,10 @@
 -- rotation key. ESO does not allow addons to send chat on their own, so
 -- clicking a message loads it into the chat box and you press Enter.
 
-FuryGMT.Crier = {}
-local GC = FuryGMT.Crier
-GC.name = "FuryGMTCrier"
+local GT = FurysGuildToolset
+GT.Crier = {}
+local GC = GT.Crier
+GC.name = "FurysGuildToolset_Crier"
 GC.displayName = "Fury's GMT: Guild Crier"
 GC.version = "1.5"
 GC.newest = {}   -- guildId -> @name of the newest member seen this session
@@ -50,7 +51,7 @@ local ICON_CLOSED = "|t20:20:EsoUI/Art/Buttons/tree_closed_up.dds|t "
 local function Say(msg) d(PREFIX .. msg) end
 local function Messages()
     if GC.sv and GC.sv.messages then return GC.sv.messages end
-    return FuryGMT.CrierMessages
+    return GT.CrierMessages
 end
 GC.Messages = Messages
 GC.Say = Say
@@ -59,7 +60,7 @@ GC.MAX_CHAT = MAX_CHAT
 -- Copy of the default list in Messages.lua (so edits never touch the defaults)
 function GC.CopyDefaults()
     local out = {}
-    for i, m in ipairs(FuryGMT.CrierMessages) do
+    for i, m in ipairs(GT.CrierMessages) do
         out[i] = { cat = m.cat, chan = m.chan, weight = m.weight, text = m.text }
     end
     return out
@@ -216,11 +217,11 @@ local function MakeClickable(label, normal, hover, onClick, tip)
     label:SetMouseEnabled(true)
     label:SetHandler("OnMouseEnter", function(self)
         Color(self, hover)
-        FuryGMT.Report.ShowTip(self, tip)
+        GT.Report.ShowTip(self, tip)
     end)
     label:SetHandler("OnMouseExit", function(self)
         Color(self, normal)
-        FuryGMT.Report.HideTip()
+        GT.Report.HideTip()
     end)
     label:SetHandler("OnMouseUp", function(self, button, upInside)
         if upInside and button == MOUSE_BUTTON_INDEX_LEFT then onClick(self) end
@@ -248,7 +249,7 @@ end
 
 -- Puts the menu contents back in the Crier's own window.
 function GC.DockHome()
-    local content, win = GC.content, GC.window or FuryGMTCrierWindow
+    local content, win = GC.content, GC.window or FurysGuildToolset_CrierWindow
     if not content or not win then return end
     content:SetParent(win)
     content:ClearAnchors()
@@ -281,7 +282,7 @@ function GC.Undock()
 end
 
 local function BuildWindow()
-    local win = WINDOW_MANAGER:CreateTopLevelWindow("FuryGMTCrierWindow")
+    local win = WINDOW_MANAGER:CreateTopLevelWindow("FurysGuildToolset_CrierWindow")
     win:SetDimensions(WIN_W, WIN_H)
     win:SetMovable(true)
     win:SetMouseEnabled(true)
@@ -296,40 +297,40 @@ local function BuildWindow()
         GC.sv.winX, GC.sv.winY = self:GetLeft(), self:GetTop()
     end)
 
-    local bg = WINDOW_MANAGER:CreateControl("FuryGMTCrierWindowBG", win, CT_BACKDROP)
+    local bg = WINDOW_MANAGER:CreateControl("FurysGuildToolset_CrierWindowBG", win, CT_BACKDROP)
     bg:SetAnchorFill(win)
     bg:SetCenterColor(BG[1], BG[2], BG[3], BG[4])
     bg:SetEdgeColor(0.290, 0.239, 0.600, 1)   -- 4A3D99
     bg:SetEdgeTexture("", 2, 2, 2)
 
-    local title = MakeLabel("FuryGMTCrierWindowTitle", win, "ZoFontWinH3", TEXT, "Fury's Guild Crier")
+    local title = MakeLabel("FurysGuildToolset_CrierWindowTitle", win, "ZoFontWinH3", TEXT, "Fury's Guild Crier")
     title:SetAnchor(TOPLEFT, win, TOPLEFT, 14, 10)
 
-    local close = MakeLabel("FuryGMTCrierClose", win, "ZoFontWinH3", DIM, "X")
+    local close = MakeLabel("FurysGuildToolset_CrierClose", win, "ZoFontWinH3", DIM, "X")
     close:SetAnchor(TOPRIGHT, win, TOPRIGHT, -14, 10)
     MakeClickable(close, DIM, GOLD_HI, function() SCENE_MANAGER:HideTopLevel(win) end, "Close (Esc)")
-    FuryGMT.Theme.Window(win, { bg = "BG" })
+    GT.Theme.Window(win, { bg = "BG" })
 
     -- Everything below the title lives in one container, so the same menu can also
     -- be shown inside the Crier tab of the /gt window (see GC.DockInto).
-    local content = WINDOW_MANAGER:CreateControl("FuryGMTCrierContent", win, CT_CONTROL)
+    local content = WINDOW_MANAGER:CreateControl("FurysGuildToolset_CrierContent", win, CT_CONTROL)
     GC.content = content
     GC.DockHome()
 
     -- Guild picker
-    local glabel = MakeLabel("FuryGMTCrierGuildLabel", content, "ZoFontGame", DIM, "Post guild messages to:")
+    local glabel = MakeLabel("FurysGuildToolset_CrierGuildLabel", content, "ZoFontGame", DIM, "Post guild messages to:")
     glabel:SetAnchor(TOPLEFT, content, TOPLEFT, 0, 0)
-    local cbCtrl = WINDOW_MANAGER:CreateControlFromVirtual("FuryGMTCrierGuildCombo", content, "ZO_ComboBox")
+    local cbCtrl = WINDOW_MANAGER:CreateControlFromVirtual("FurysGuildToolset_CrierGuildCombo", content, "ZO_ComboBox")
     cbCtrl:SetDimensions(260, 28)
     cbCtrl:SetAnchor(LEFT, glabel, RIGHT, 10, 0)
     GC.guildCombo = ZO_ComboBox_ObjectFromContainer(cbCtrl)
     GC.guildCombo:SetSortsItems(false)
 
-    local hint = MakeLabel("FuryGMTCrierHint", content, "ZoFontGameSmall", DIM,
+    local hint = MakeLabel("FurysGuildToolset_CrierHint", content, "ZoFontGameSmall", DIM,
         "Click a section to open or close it. Click a message to load it into chat, then press Enter.")
     hint:SetAnchor(TOPLEFT, glabel, BOTTOMLEFT, 0, 14)
 
-    local scroll = WINDOW_MANAGER:CreateControlFromVirtual("FuryGMTCrierScroll", content, "ZO_ScrollContainer")
+    local scroll = WINDOW_MANAGER:CreateControlFromVirtual("FurysGuildToolset_CrierScroll", content, "ZO_ScrollContainer")
     scroll:SetAnchor(TOPLEFT, hint, BOTTOMLEFT, 0, 10)
     scroll:SetAnchor(BOTTOMRIGHT, content, BOTTOMRIGHT, 0, 0)
 
@@ -338,17 +339,17 @@ local function BuildWindow()
 
     -- "Whisper to" box: lives inside the list, right under the section
     -- that holds the whisper messages, so the pairing is obvious.
-    local wrow = WINDOW_MANAGER:CreateControl("FuryGMTCrierWhisperRow", GC.scrollChild, CT_CONTROL)
+    local wrow = WINDOW_MANAGER:CreateControl("FurysGuildToolset_CrierWhisperRow", GC.scrollChild, CT_CONTROL)
     wrow:SetHeight(30)
-    local wlabel = MakeLabel("FuryGMTCrierWhisperLabel", wrow, "ZoFontGame", DIM, "Whisper to:")
+    local wlabel = MakeLabel("FurysGuildToolset_CrierWhisperLabel", wrow, "ZoFontGame", DIM, "Whisper to:")
     wlabel:SetAnchor(LEFT, wrow, LEFT, 12, 0)
-    local wbd = WINDOW_MANAGER:CreateControlFromVirtual("FuryGMTCrierWhisperBG", wrow, "ZO_EditBackdrop")
+    local wbd = WINDOW_MANAGER:CreateControlFromVirtual("FurysGuildToolset_CrierWhisperBG", wrow, "ZO_EditBackdrop")
     wbd:SetDimensions(220, 26)
     wbd:SetAnchor(LEFT, wlabel, RIGHT, 8, 0)
-    GC.whisperBox = WINDOW_MANAGER:CreateControlFromVirtual("FuryGMTCrierWhisperBox", wbd, "ZO_DefaultEditForBackdrop")
+    GC.whisperBox = WINDOW_MANAGER:CreateControlFromVirtual("FurysGuildToolset_CrierWhisperBox", wbd, "ZO_DefaultEditForBackdrop")
     GC.whisperBox:SetMaxInputChars(40)
     GC.whisperBox:SetHandler("OnEnter", function(self) self:LoseFocus() end)
-    local wclear = MakeLabel("FuryGMTCrierWhisperClear", wrow, "ZoFontGame", DIM, "clear")
+    local wclear = MakeLabel("FurysGuildToolset_CrierWhisperClear", wrow, "ZoFontGame", DIM, "clear")
     wclear:SetAnchor(LEFT, wbd, RIGHT, 8, 0)
     MakeClickable(wclear, DIM, GOLD_HI, function() GC.whisperBox:SetText("") end, "Clears the whisper name.")
     wrow:SetHidden(true)
@@ -401,7 +402,7 @@ function GC.RefreshRows()
             nh = nh + 1
             local head = GC.headPool[nh]
             if not head then
-                head = MakeLabel("FuryGMTCrierHead" .. nh, child, "ZoFontWinH4", GOLD)
+                head = MakeLabel("FurysGuildToolset_CrierHead" .. nh, child, "ZoFontWinH4", GOLD)
                 MakeClickable(head, GOLD, GOLD_HI, function(self)
                     GC.sv.collapsed[self.cat] = not GC.sv.collapsed[self.cat]
                     GC.RefreshRows()
@@ -426,7 +427,7 @@ function GC.RefreshRows()
                 nr = nr + 1
                 local row = GC.rowPool[nr]
                 if not row then
-                    row = MakeLabel("FuryGMTCrierRow" .. nr, child, "ZoFontGame", TEXT)
+                    row = MakeLabel("FurysGuildToolset_CrierRow" .. nr, child, "ZoFontGame", TEXT)
                     MakeClickable(row, TEXT, GOLD_HI, function(self)
                         SendToChat(self.msg)
                         if GC.sv.closeOnClick then SCENE_MANAGER:HideTopLevel(GC.window) end
@@ -454,7 +455,7 @@ function GC.ToggleMenu()
     if not GC.window then BuildWindow() end
     if GC.window:IsHidden() then
         if GC.docked then
-            FuryGMT.Report:Hide()
+            GT.Report:Hide()
             GC.DockHome()
         end
         GC.RefreshHeader()
@@ -528,7 +529,6 @@ end
 -- and settings are copied over. While the standalone addon is enabled, this
 -- copy stays inactive so you never get two menus or two reminders.
 
-local GT = FuryGMT
 local module = GT:RegisterModule("crier", {})
 module.defaults = defaults
 

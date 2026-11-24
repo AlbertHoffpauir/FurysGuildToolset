@@ -13,7 +13,7 @@
 --   "Send automatically" (sent through GT.Actions.SendMailNow, like the demotion mail).
 -- Every part starts off on a new install.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 local A = GT.Actions
 
@@ -80,10 +80,10 @@ function Recruit:Initialize(sv)
     self.badTargets = {}   -- people (and houses) a jump failed on this session
     self:Prune()
     self:RegisterTab()
-    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruit", EVENT_CHAT_MESSAGE_CHANNEL, function(_, channel, _, text, _, fromDisplayName)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Recruit", EVENT_CHAT_MESSAGE_CHANNEL, function(_, channel, _, text, _, fromDisplayName)
         self:OnChat(channel, text, fromDisplayName)
     end)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruit", EVENT_GUILD_MEMBER_ADDED, function(_, guildId, displayName)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Recruit", EVENT_GUILD_MEMBER_ADDED, function(_, guildId, displayName)
         self:OnMemberAdded(guildId, displayName)
     end)
     LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_MOUSE_UP_EVENT, self.OnLink, self)
@@ -103,7 +103,7 @@ end
 local BAR_UPDATE_MS = 2000
 
 function Recruit:SetUpBar()
-    local bar = FuryGMTRecruitBar
+    local bar = FurysGuildToolset_RecruitBar
     self.barText = bar:GetNamedChild("Text")
     if self.sv.barX and self.sv.barY then
         bar:ClearAnchors()
@@ -125,9 +125,9 @@ function Recruit:RefreshBar()
     self.barFragment:Refresh()
     if self:BarWanted() then
         self:UpdateBar()
-        EVENT_MANAGER:RegisterForUpdate("FuryGMTRecruitBar", BAR_UPDATE_MS, function() self:UpdateBar() end)
+        EVENT_MANAGER:RegisterForUpdate("FurysGuildToolset_RecruitBar", BAR_UPDATE_MS, function() self:UpdateBar() end)
     else
-        EVENT_MANAGER:UnregisterForUpdate("FuryGMTRecruitBar")
+        EVENT_MANAGER:UnregisterForUpdate("FurysGuildToolset_RecruitBar")
     end
 end
 
@@ -164,7 +164,7 @@ function Recruit:UpdateBar()
         parts[#parts + 1] = Gray("Whispers ") .. "|c8A86B0off|r"
     end
     self.barText:SetText(table.concat(parts, "    "))
-    FuryGMTRecruitBar:SetWidth(self.barText:GetTextWidth() + 24)
+    FurysGuildToolset_RecruitBar:SetWidth(self.barText:GetTextWidth() + 24)
 end
 
 function Recruit:BarTip()
@@ -172,13 +172,13 @@ function Recruit:BarTip()
 end
 
 function Recruit:SaveBarPosition()
-    self.sv.barX, self.sv.barY = FuryGMTRecruitBar:GetLeft(), FuryGMTRecruitBar:GetTop()
+    self.sv.barX, self.sv.barY = FurysGuildToolset_RecruitBar:GetLeft(), FurysGuildToolset_RecruitBar:GetTop()
 end
 
 function Recruit:ResetBarPosition()
     self.sv.barX, self.sv.barY = nil, nil
-    FuryGMTRecruitBar:ClearAnchors()
-    FuryGMTRecruitBar:SetAnchor(TOP, GuiRoot, TOP, 0, 70)
+    FurysGuildToolset_RecruitBar:ClearAnchors()
+    FurysGuildToolset_RecruitBar:SetAnchor(TOP, GuiRoot, TOP, 0, 70)
 end
 
 function Recruit:OnPlayerActivated()
@@ -186,8 +186,8 @@ function Recruit:OnPlayerActivated()
     self:BuildZoneList()
     self:RefreshBar()
     -- Every load screen (the tour waits for the one after a jump).
-    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitArrive", EVENT_PLAYER_ACTIVATED, function() self:OnArrived() end)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitArrive", EVENT_PLAYER_DEACTIVATED, function() self:OnLeaving() end)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_RecruitArrive", EVENT_PLAYER_ACTIVATED, function() self:OnArrived() end)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_RecruitArrive", EVENT_PLAYER_DEACTIVATED, function() self:OnLeaving() end)
 end
 
 -- Roster history tells us who invited or accepted whom; only needed for welcomes.
@@ -422,10 +422,10 @@ function Recruit:PutInChatBox(ad)
     textEntry:SetText(ad)
     StartChatInput(ad, CHAT_CHANNEL_ZONE)
     local pasted = self.pasted
-    EVENT_MANAGER:UnregisterForUpdate("FuryGMTRecruitAdBox")
-    EVENT_MANAGER:RegisterForUpdate("FuryGMTRecruitAdBox", AD_WATCH_MS, function()
+    EVENT_MANAGER:UnregisterForUpdate("FurysGuildToolset_RecruitAdBox")
+    EVENT_MANAGER:RegisterForUpdate("FurysGuildToolset_RecruitAdBox", AD_WATCH_MS, function()
         if self.pasted ~= pasted or GetTimeStamp() - pasted.at > PASTE_WINDOW_SECONDS then
-            EVENT_MANAGER:UnregisterForUpdate("FuryGMTRecruitAdBox")
+            EVENT_MANAGER:UnregisterForUpdate("FurysGuildToolset_RecruitAdBox")
         elseif CHAT_SYSTEM:IsTextEntryOpen() and not textEntry:GetEditControl():HasFocus() then
             local KEEP_TEXT = true
             CHAT_SYSTEM:CloseTextEntry(KEEP_TEXT)
@@ -512,7 +512,7 @@ function Recruit:StopTour(reason)
     self.touring = false
     self.trip = nil
     self:RefreshBar()
-    EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
+    EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_RecruitJump", EVENT_SOCIAL_ERROR)
     U.Print(reason or "Zone tour stopped.")
     GT.Report:RefreshIfShown()
 end
@@ -574,8 +574,8 @@ function Recruit:Jump(trip)
     end
     -- The game reports a refused jump ("not in same group", "can't travel there") as a social
     -- error; a jump that never starts (cancelled, they moved) just times out.
-    EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR, function(_, result)
+    EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_RecruitJump", EVENT_SOCIAL_ERROR)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_RecruitJump", EVENT_SOCIAL_ERROR, function(_, result)
         if self.trip == trip and trip.token == token and not trip.started then self:JumpFailed(trip, GetString("SI_SOCIALACTIONRESULT", result)) end
     end)
     zo_callLater(function()
@@ -592,7 +592,7 @@ end
 local RETRY_DELAY_MS = 2000
 
 function Recruit:JumpFailed(trip, reason)
-    EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
+    EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_RecruitJump", EVENT_SOCIAL_ERROR)
     trip.token = nil
     local way, zone = trip.ways[trip.index], trip.zone
     local why = (reason and reason ~= "") and reason or "the travel didn't start"
@@ -633,7 +633,7 @@ function Recruit:OnLeaving()
     local trip = self.trip
     if trip and trip.token then
         trip.started = true
-        EVENT_MANAGER:UnregisterForEvent("FuryGMTRecruitJump", EVENT_SOCIAL_ERROR)
+        EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_RecruitJump", EVENT_SOCIAL_ERROR)
     end
 end
 

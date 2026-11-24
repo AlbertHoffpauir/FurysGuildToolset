@@ -18,7 +18,7 @@
 --   Discord: the addon can't reach Discord. "Copy for Discord" shows the text to copy.
 -- Off on a new install.
 
-local GT = FuryGMT
+local GT = FurysGuildToolset
 local U = GT.Util
 local A = GT.Actions
 
@@ -28,7 +28,7 @@ GT.Events = Events
 local MAX_PASTE = 12000
 local MAX_CHAT = 350
 local REFRESH_DELAY_MS = 500
-local CHAT_EVENT_NAME = "FuryGMTEventsChat"
+local CHAT_EVENT_NAME = "FurysGuildToolset_EventsChat"
 local DRAFT = GROUP_FINDER_GROUP_LISTING_USER_TYPE_GROUP_LISTING_DRAFT
 
 local GUILD_CHANNELS = {
@@ -75,7 +75,7 @@ local OLD_DEFAULTS = {
     inviteCode = { "+trial" },
 }
 
-local CODE_EVENT_NAME = "FuryGMTEventsCode"
+local CODE_EVENT_NAME = "FurysGuildToolset_EventsCode"
 local CODE_HOURS_AFTER_START = 2   -- the invite code works until this long after the start time
 local MAX_GROUP = 12
 
@@ -369,11 +369,11 @@ function Events:Initialize(sv)
         end
     end
     self:RegisterTab()
-    SCENE_MANAGER:RegisterTopLevel(FuryGMTEventsInput, false)
-    FuryGMTEventsInputTextBox:SetMaxInputChars(MAX_PASTE)
-    FuryGMTEventsInputTextBox:SetMultiLine(true)
-    FuryGMTEventsInputTextBox:SetNewLineEnabled(true)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTEventsListing", EVENT_GROUP_FINDER_CREATE_GROUP_LISTING_RESULT,
+    SCENE_MANAGER:RegisterTopLevel(FurysGuildToolset_EventsInput, false)
+    FurysGuildToolset_EventsInputTextBox:SetMaxInputChars(MAX_PASTE)
+    FurysGuildToolset_EventsInputTextBox:SetMultiLine(true)
+    FurysGuildToolset_EventsInputTextBox:SetNewLineEnabled(true)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_EventsListing", EVENT_GROUP_FINDER_CREATE_GROUP_LISTING_RESULT,
         function(_, result) self:OnListingResult(result) end)
     self:RegisterWatch()
     self:RegisterCode()
@@ -387,7 +387,7 @@ local WATCH_EVENTS = {
 
 function Events:RegisterWatch()
     for i, event in ipairs(WATCH_EVENTS) do
-        local name = "FuryGMTEventsWatch" .. i
+        local name = "FurysGuildToolset_EventsWatch" .. i
         EVENT_MANAGER:UnregisterForEvent(name, event)
         if self.sv.enabled then
             EVENT_MANAGER:RegisterForEvent(name, event, function() self:QueueRefresh() end)
@@ -847,31 +847,31 @@ end
 local INPUT_HEIGHT, INPUT_HEIGHT_LINE = 520, 230
 
 local function InputBox(def)
-    if def and def.singleLine then return FuryGMTEventsInputLineBox end
-    return FuryGMTEventsInputTextBox
+    if def and def.singleLine then return FurysGuildToolset_EventsInputLineBox end
+    return FurysGuildToolset_EventsInputTextBox
 end
 
 function Events:OpenInput(def)
     self.input = def
-    FuryGMTEventsInputTitle:SetText(def.title)
-    FuryGMTEventsInputHint:SetText(def.hint or "")
-    FuryGMTEventsInputOK:SetText(def.okLabel or "OK")
-    FuryGMTEventsInputText:SetHidden(def.singleLine == true)
-    FuryGMTEventsInputLine:SetHidden(def.singleLine ~= true)
-    FuryGMTEventsInput:SetHeight(def.singleLine and INPUT_HEIGHT_LINE or INPUT_HEIGHT)
+    FurysGuildToolset_EventsInputTitle:SetText(def.title)
+    FurysGuildToolset_EventsInputHint:SetText(def.hint or "")
+    FurysGuildToolset_EventsInputOK:SetText(def.okLabel or "OK")
+    FurysGuildToolset_EventsInputText:SetHidden(def.singleLine == true)
+    FurysGuildToolset_EventsInputLine:SetHidden(def.singleLine ~= true)
+    FurysGuildToolset_EventsInput:SetHeight(def.singleLine and INPUT_HEIGHT_LINE or INPUT_HEIGHT)
     local box = InputBox(def)
     box:SetText(def.text or "")
-    U.ShowOnTop(FuryGMTEventsInput)
+    U.ShowOnTop(FurysGuildToolset_EventsInput)
     box:TakeFocus()
     if def.onShown then
-        zo_callLater(function() if self.input == def and not FuryGMTEventsInput:IsHidden() then def.onShown() end end, 100)
+        zo_callLater(function() if self.input == def and not FurysGuildToolset_EventsInput:IsHidden() then def.onShown() end end, 100)
     end
 end
 
 function Events:CloseInput()
-    FuryGMTEventsInputTextBox:LoseFocus()
-    FuryGMTEventsInputLineBox:LoseFocus()
-    SCENE_MANAGER:HideTopLevel(FuryGMTEventsInput)
+    FurysGuildToolset_EventsInputTextBox:LoseFocus()
+    FurysGuildToolset_EventsInputLineBox:LoseFocus()
+    SCENE_MANAGER:HideTopLevel(FurysGuildToolset_EventsInput)
 end
 
 -- onOk returning false keeps the window open (Set account shows why the name wasn't found).
@@ -1056,7 +1056,7 @@ end
 
 function Events:SetUpAccountComplete()
     if self.accountComplete then return end
-    local box = FuryGMTEventsInputLineBox
+    local box = FurysGuildToolset_EventsInputLineBox
     local complete = ZO_AutoComplete:New(box, nil, nil, AUTO_COMPLETION_ONLINE_OR_OFFLINE, MAX_SUGGESTIONS, AUTO_COMPLETION_MANUAL_MODE)
     complete:SetUseCallbacks(true)
     complete:RegisterCallback(ZO_AutoComplete.ON_ENTRY_SELECTED, function(label)
@@ -1088,7 +1088,7 @@ function Events:AskAccount(person, current)
         singleLine = true,
         person = person,
         onOk = function(text) return self:CheckAccount(person, text, def) end,
-        onShown = function() self:ShowAccountSuggestions(FuryGMTEventsInputLineBox:GetText()) end,
+        onShown = function() self:ShowAccountSuggestions(FurysGuildToolset_EventsInputLineBox:GetText()) end,
     }
     self:OpenInput(def)
 end
@@ -1119,8 +1119,8 @@ function Events:CheckAccount(person, text, def)
     local hint = string.format("|cFFA45C%s isn't in any of your guilds, your friend list, your group or your recent contacts,|r so the addon can't check it (the game has no lookup for other accounts).", account)
     if #close > 0 then hint = hint .. " Did you mean " .. table.concat(close, ", ") .. "?" end
     hint = hint .. " Fix the name, or press Save anyway to keep it as typed."
-    FuryGMTEventsInputHint:SetText(hint)
-    FuryGMTEventsInputOK:SetText("Save anyway")
+    FurysGuildToolset_EventsInputHint:SetText(hint)
+    FurysGuildToolset_EventsInputOK:SetText("Save anyway")
     def.okTip = "Keeps this account as typed, without a check."
     return false
 end
@@ -1171,9 +1171,9 @@ local CODE_SIZES = {
 function Events:CodeBar()
     if self.codeBar then return self.codeBar end
     local T = GT.Theme
-    local bar = WINDOW_MANAGER:CreateControl("FuryGMTEventsCodeBar", FuryGMTReport, CT_CONTROL)
+    local bar = WINDOW_MANAGER:CreateControl("FurysGuildToolset_EventsCodeBar", FurysGuildToolset_Report, CT_CONTROL)
     bar:SetDimensions(640, 30)
-    bar:SetAnchor(RIGHT, FuryGMTReportSettings, LEFT, -12, 0)
+    bar:SetAnchor(RIGHT, FurysGuildToolset_ReportSettings, LEFT, -12, 0)
     bar:SetDrawLayer(DL_CONTROLS)
     bar:SetHidden(true)
 
@@ -1758,7 +1758,7 @@ function Events:CopyForDiscord(mode)
     Report.exportTitle = "Copy for Discord"
     Report.exportHint = "Select all, Ctrl+C, paste into Discord. The :emoji: and <t:...> times turn fancy when you send."
     Report.exportIndex = 1
-    U.ShowOnTop(FuryGMTExport)
+    U.ShowOnTop(FurysGuildToolset_Export)
     Report:ShowExportPart(0)
     U.Print("The Discord message is in the copy window. Click Select all, press Ctrl+C, and paste it into Discord.")
 end
@@ -2033,13 +2033,13 @@ function Events:SwitchDifficultyThen(veteran, fn)
     local function Go()
         if done then return end
         done = true
-        EVENT_MANAGER:UnregisterForEvent("FuryGMTEventsDifficulty", EVENT_VETERAN_DIFFICULTY_CHANGED)
-        EVENT_MANAGER:UnregisterForEvent("FuryGMTEventsDifficulty", EVENT_GROUP_VETERAN_DIFFICULTY_CHANGED)
+        EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_EventsDifficulty", EVENT_VETERAN_DIFFICULTY_CHANGED)
+        EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_EventsDifficulty", EVENT_GROUP_VETERAN_DIFFICULTY_CHANGED)
         fn()
     end
     local function Later() zo_callLater(Go, 300) end
-    EVENT_MANAGER:RegisterForEvent("FuryGMTEventsDifficulty", EVENT_VETERAN_DIFFICULTY_CHANGED, Later)
-    EVENT_MANAGER:RegisterForEvent("FuryGMTEventsDifficulty", EVENT_GROUP_VETERAN_DIFFICULTY_CHANGED, Later)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_EventsDifficulty", EVENT_VETERAN_DIFFICULTY_CHANGED, Later)
+    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_EventsDifficulty", EVENT_GROUP_VETERAN_DIFFICULTY_CHANGED, Later)
     zo_callLater(Go, 3000)
     SetVeteranDifficulty(veteran)
 end
