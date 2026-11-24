@@ -11,7 +11,7 @@
 --   on their own.
 --   Mail: the welcome mail opens filled in for you to send, unless you turn on
 --   "Send automatically" (sent through GT.Actions.SendMailNow, like the demotion mail).
--- Every part starts off on a new install.
+-- Every part starts turned off on a new install.
 
 local GT = FurysGuildToolset
 local U = GT.Util
@@ -37,7 +37,7 @@ ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_RECRUIT_TOUR", "Recruit: start/stop t
 ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_RECRUIT_NEXT", "Recruit: travel to the next ready zone")
 
 Recruit.defaults = {
-    -- Every part starts off on a new install (Albert's rule).
+    -- Every part starts turned off on a new install (Albert's rule).
     enabled = false,          -- zone ads, cooldowns and the zone tour
     guildId = 0,              -- guild you recruit for; 0 = your first guild
     ads = {},                 -- [guildId] = zone ad text ({guild} = guild name)
@@ -1034,7 +1034,7 @@ function Recruit:BuildSettings(options)
     end
     local function NotOn() local w = W(); return not (w and w.on) end
     local controls = {
-        { type = "description", text = "Everything here starts off. Chat is never sent for you: ads and welcomes go into the chat box and you press Enter. Nobody is invited until you click Invite." },
+        { type = "description", text = "Everything here starts turned off. Chat is never sent for you: ads and welcomes go into the chat box and you press Enter. Nobody is invited until you click Invite." },
         { type = "header", name = "Zone ads and zone tour" },
         { type = "checkbox", name = "Turn on zone ads and the zone tour",
           tooltip = "Adds zone cooldowns and the zone tour to the Recruit tab (/gt recruit), plus keybinds to put the ad in chat, start or stop the tour, and travel to the next ready zone.",

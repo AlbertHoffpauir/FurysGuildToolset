@@ -23,7 +23,7 @@ local WEEK = 7 * 86400
 local KNOWN_FLIP = 1794924000
 
 TraderWeek.defaults = {
-    enabled = false,     -- every feature starts off on a new install (Albert, 1.3.0)
+    enabled = false,     -- every feature starts turned off on a new install (Albert, 1.3.0)
     keepWeeks = 12,
     weeks = {},          -- [guildId] = { [weekStart] = week totals }
     bankGold = {},       -- [guildId] = { amount =, ts = } last count, taken when that guild bank is opened

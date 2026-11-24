@@ -72,7 +72,7 @@ local RAFFLE_DEFAULTS = {
 local RAFFLE_TABLES = { "adjust", "excluded", "changes" }
 
 Raffle.defaults = {
-    enabled = false,        -- every feature starts off on a new install (Albert, 1.3.0)
+    enabled = false,        -- every feature starts turned off on a new install (Albert, 1.3.0)
     buyNotice = false,      -- chat line when someone buys tickets
     deposits = {},          -- { g =, id =, ts =, who =, amt =, src = "mail" or nil, subj = } bank deposits and gold mails, kept KEEP_DAYS
     raffles = {},           -- the raffles, each like RAFFLE_DEFAULTS (1.9.0; before that one sv.raffle)

@@ -30,7 +30,7 @@ local STATUS_LABEL = {
 local KEEP_CLOSED_CASES_SECONDS = 30 * 86400
 
 BankWatch.defaults = {
-    enabled = false,                 -- every feature starts off on a new install (Albert, 1.3.0)
+    enabled = false,                 -- every feature starts turned off on a new install (Albert, 1.3.0)
     countMode = "withdrawals",       -- "withdrawals": each stack taken counts as 1. "quantity": every item in the stack counts
     windowMode = "day",              -- "day": per calendar day, midnight to midnight on this PC's clock. "rolling": any windowHours
     windowHours = 24,

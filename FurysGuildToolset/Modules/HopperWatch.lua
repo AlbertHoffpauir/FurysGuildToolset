@@ -13,7 +13,7 @@ local KEEP_JOINS_SECONDS = 30 * 86400
 local KEEP_RECORDS_SECONDS = 60 * 86400
 
 HopperWatch.defaults = {
-    enabled = false,   -- every feature starts off on a new install (Albert, 1.3.0)
+    enabled = false,   -- every feature starts turned off on a new install (Albert, 1.3.0)
     maxHours = 48,
     countKicks = false,
     autoWatchlist = false,

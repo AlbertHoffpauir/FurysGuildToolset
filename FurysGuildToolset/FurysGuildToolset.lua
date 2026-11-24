@@ -6,7 +6,7 @@ local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.24.2"
+GT.version = "1.24.3"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -74,7 +74,7 @@ function GT:SetAlertGuild(guildId, on)
     end
 end
 
--- 1.3.0: everything that can be turned off starts off on a new install (Albert). These
+-- 1.3.0: everything that can be turned off starts turned off on a new install (Albert). These
 -- settings used to start on. An install from before 1.3.0 that never saved one of them gets
 -- the old value (on) written in once, so nothing changes for people who already use the addon.
 local OLD_ON_DEFAULTS = {
@@ -112,7 +112,7 @@ local function SetUpDefaults(oldMissing)
         sv.defaultsOff = false   -- installed before 1.3.0: keep what they had
         for _, entry in ipairs(oldMissing) do sv.modules[entry[1]][entry[2]] = true end
     else
-        sv.defaultsOff = true    -- new install: every feature starts off
+        sv.defaultsOff = true    -- new install: every feature starts turned off
         sv.alertGuildsOptIn = true
     end
 end

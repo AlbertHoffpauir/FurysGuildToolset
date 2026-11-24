@@ -23,7 +23,7 @@ local RULE_BY_LABEL = { ["Officer limit"] = RULE_OFFICER, ["Member limit"] = RUL
 local RANK_COLORS = { "D4AF37", "E06666", "C27BA0", "8E7CC3", "6FA8DC", "76A5AF", "93C47D", "B7B7B7", "999999", "888888" }
 
 Members.defaults = {
-    inactiveEnabled = false,   -- every feature starts off on a new install (Albert, 1.3.0)
+    inactiveEnabled = false,   -- every feature starts turned off on a new install (Albert, 1.3.0)
     officerDays = 30,
     memberDays = 21,
     recruitDays = 14,

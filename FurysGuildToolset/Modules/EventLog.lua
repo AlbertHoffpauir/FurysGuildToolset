@@ -13,7 +13,7 @@ local EventLog = GT:RegisterModule("log", {})
 local MAX_ROWS_SHOWN = 2000
 
 EventLog.defaults = {
-    enabled = false,   -- every feature starts off on a new install (Albert, 1.3.0)
+    enabled = false,   -- every feature starts turned off on a new install (Albert, 1.3.0)
     keepDays = 90,
     maxEntries = 20000,
     returnHours = 72,   -- a deposit of the same item by the same member within this time counts as a return

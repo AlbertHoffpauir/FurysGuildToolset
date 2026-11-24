@@ -359,7 +359,7 @@ end
 
 function Events:Initialize(sv)
     self.sv = sv
-    -- Invite by code starts off at every login and /reloadui (1.24.1, Albert): it's only on
+    -- Invite by code starts turned off at every login and /reloadui (1.24.1, Albert): it's only on
     -- from a click until the group fills or breaks up.
     sv.autoInvite = false
     sv.codeSize = nil
@@ -1183,7 +1183,7 @@ function Events:CodeBar()
     toggle:SetHandler("OnClicked", function() self:SetCodeOn(not self.sv.autoInvite) end)
     GT.Report.SetTip(toggle, function()
         local now = self.sv.autoInvite and ("\n\n" .. self:CodeStatus()) or ""
-        return string.format("Turns Invite by code on or off. While it's on, anyone who types %s (upper or lower case) in the chat of a guild ticked for ads, or whispers it to you, gets a group invite. With no event pasted: anyone, up to a full group. With an event pasted: once its group forms (until 2 hours after the start), up to its group size, and not when their CP is under the post's requirement. Only while you lead the group or are solo. Starts off at every login, and turns itself off when your group fills up or breaks up.%s", self:CodeText(), now)
+        return string.format("Turns Invite by code on or off. While it's on, anyone who types %s (upper or lower case) in the chat of a guild ticked for ads, or whispers it to you, gets a group invite. With no event pasted: anyone, up to a full group. With an event pasted: once its group forms (until 2 hours after the start), up to its group size, and not when their CP is under the post's requirement. Only while you lead the group or are solo. Starts turned off at every login, and turns itself off when your group fills up or breaks up.%s", self:CodeText(), now)
     end)
 
     local label = WINDOW_MANAGER:CreateControl("$(parent)Label", bar, CT_LABEL)
@@ -2216,7 +2216,7 @@ function Events:SettingsControls()
         { type = "editbox", name = "Guild ad for sign-ups", tooltip = "Before the group forms: Advertise in guilds puts this in each ticked guild's chat box. {need} is the sign-up slots nobody has taken. Up to 350 characters.",
           getFunc = function() return sv.signupAdText or Events.defaults.signupAdText end, setFunc = function(v) sv.signupAdText = v end, default = Events.defaults.signupAdText },
         { type = "checkbox", name = "Invite by code",
-          tooltip = "Anyone who types the invite code (upper or lower case) in the chat of a guild ticked below, or whispers it to you, gets a group invite. With no event pasted: anyone, up to a full group. With an event pasted: once its group forms (until 2 hours after the start time), up to its group size, and not when their CP is under the post's requirement. Only while you lead the group or are solo. Put {code} in the replacement ad so people know it. Also on the Events tab: the Invite by code button and Code box. Starts off at every login and /reloadui, and turns itself off when your group fills up or breaks up.",
+          tooltip = "Anyone who types the invite code (upper or lower case) in the chat of a guild ticked below, or whispers it to you, gets a group invite. With no event pasted: anyone, up to a full group. With an event pasted: once its group forms (until 2 hours after the start time), up to its group size, and not when their CP is under the post's requirement. Only while you lead the group or are solo. Put {code} in the replacement ad so people know it. Also on the Events tab: the Invite by code button and Code box. Starts turned off at every login and /reloadui, and turns itself off when your group fills up or breaks up.",
           getFunc = function() return sv.autoInvite end, setFunc = function(v) if v ~= sv.autoInvite then self:SetCodeOn(v) end end, default = false },
         { type = "editbox", name = "Invite code", tooltip = "The whole message has to be this (upper or lower case). {code} in the ads.",
           getFunc = function() return sv.inviteCode or Events.defaults.inviteCode end, setFunc = function(v) sv.inviteCode = zo_strtrim(v) end, default = Events.defaults.inviteCode },

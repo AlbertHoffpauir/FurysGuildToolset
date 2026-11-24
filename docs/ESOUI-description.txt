@@ -11,7 +11,7 @@
 
 [CENTER][SIZE="6"][FONT="Georgia"][COLOR="#A08CFF"][B]Fury's Guild Management Toolset[/B][/COLOR][/FONT][/SIZE]
 [SIZE="3"][COLOR="#5CC2FF"][I]Bank, roster, trader, recruiting, raffles and events. One window, your rules.[/I][/COLOR][/SIZE][/CENTER]
-[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL][/SIZE][/CENTER]
+[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL][/SIZE][/CENTER]
 
 [B]Built for the leaders and officers who keep a guild running.[/B] It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
 [QUOTE][SIZE="3"][COLOR="#5CC2FF"][B]Get your data out of the game[/B][/COLOR][/SIZE]
@@ -85,7 +85,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
 [LIST]
 [*]Tick your guilds under [B]Guilds to get alerts from[/B], then turn on [B]Guild bank alerts > Enable bank alerts[/B] (main settings page).
-[*]On the [B]Guild rules[/B] page, set each guild's limits: warn, demote and kick at X stacks per day (0 = never). Demote starts at 50; warn and kick start off.
+[*]On the [B]Guild rules[/B] page, set each guild's limits: warn, demote and kick at X stacks per day (0 = never). Demote starts at 50; warn and kick start turned off.
 [*]Add your bankers and restocking officers under [B]Ignore rank names[/B] or [B]Ignore @names[/B]. The top 2 ranks are ignored from the start.
 [*]Optional: [B]Watch gold withdrawals too[/B] (warn 50,000, demote 200,000, kick 500,000 gold per day), counting items instead of stacks, or a rolling window of hours instead of midnight to midnight.
 [/LIST]
@@ -299,7 +299,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*]Open the [B]Events[/B] settings page (or the button under Events in [FONT="Courier New"][B]/gtsettings[/B][/FONT]) and tick [B]Turn on Events[/B].
 [*]Under [B]Guilds to advertise in[/B], tick the guilds that should get your ads for open slots.
 [*][B]Group forms (minutes before start)[/B] is when your group starts forming (15 minutes before the start time by default). Before then, ads ask people to sign up. From then on, they ask for replacements.
-[*]Turn [B]Invite by code[/B] on and set your [B]Invite code[/B] ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots). The Events tab has its own [B]Invite by code: ON/OFF[/B] button and [B]Code[/B] box at the top of the window, so you can switch it and change the code without opening the settings. With no event pasted, the [B]IA (2)[/B], [B]Group (4)[/B] and [B]Trial (12)[/B] buttons next to them turn it on until your group has that many (you included), solo or already grouped; it turns off by itself at that size, or when you leave or disband the group. Invite by code always starts off when you log in or reload, and the ON button also turns itself off when your group fills up or breaks up.
+[*]Turn [B]Invite by code[/B] on and set your [B]Invite code[/B] ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots). The Events tab has its own [B]Invite by code: ON/OFF[/B] button and [B]Code[/B] box at the top of the window, so you can switch it and change the code without opening the settings. With no event pasted, the [B]IA (2)[/B], [B]Group (4)[/B] and [B]Trial (12)[/B] buttons next to them turn it on until your group has that many (you included), solo or already grouped; it turns off by itself at that size, or when you leave or disband the group. Invite by code always starts turned off when you log in or reload, and the ON button also turns itself off when your group fills up or breaks up.
 [*]Change the whisper, mail and guild ad texts if you like (one ad for sign-ups, one for replacements). {name}, {event}, {time} (how long until it starts, like "3d 4h 30m from now", right in every time zone), {date}, {need}, {cp}, {code} and {me} are filled in for you.
 [/LIST]
 [COLOR="#A08CFF"][B]Read the sign-ups[/B][/COLOR]
@@ -361,4 +361,4 @@ The menus do what the game lets your rank do. If your rank can't demote, kick or
 Bug reports and ideas are welcome in the comments.
 Source code: [URL="https://github.com/AlbertHoffpauir/FurysGuildToolset"]GitHub[/URL]
 
-[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL][/SIZE][/CENTER]
+[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL][/SIZE][/CENTER]

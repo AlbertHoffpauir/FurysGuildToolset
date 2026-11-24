@@ -14,7 +14,7 @@ local BankCapacity = GT:RegisterModule("capacity", {})
 local REARM_BELOW_POINTS = 5   -- alert again only after dropping 5 points below the threshold
 
 BankCapacity.defaults = {
-    enabled = false,   -- every feature starts off on a new install (Albert, 1.3.0)
+    enabled = false,   -- every feature starts turned off on a new install (Albert, 1.3.0)
     alertAtPercent = 90,
     snapshots = {},   -- [guildId] = { used, size, ts }
     alerted = {},     -- [guildId] = true while over the threshold and already alerted
