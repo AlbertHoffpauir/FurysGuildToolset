@@ -534,7 +534,7 @@ function EventLog:BuildGuildSettings(controls, guildId)
     local g = GT:GuildSettings(self, guildId)
     controls[#controls + 1] = { type = "header", name = "Bank: put back" }
     controls[#controls + 1] = { type = "slider", name = "Count a deposit as put back within (hours)", min = 1, max = 336, step = 1,
-        tooltip = "When a member deposits the same item they withdrew within this time, the withdrawal is marked as put back, whole or partly used. Stacks put back whole don't count toward bank alert limits. After changing this, click Rescan with current settings.",
+        tooltip = "When a member deposits the same item they withdrew within this time, the withdrawal is marked as put back, whole or partly used. Stacks put back whole don't count toward bank alert limits. After changing this, click Rescan alerts.",
         getFunc = function() return g.returnHours end,
         setFunc = function(v) g.returnHours = v; self.returns = nil; GT.Report:RefreshIfShown() end,
         default = self.defaults.returnHours }

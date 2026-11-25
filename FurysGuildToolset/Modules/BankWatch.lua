@@ -999,7 +999,7 @@ function BankWatch:BuildGuildSettings(controls, guildId)
           choices = { "Item quantity", "Stacks (each withdrawal = 1)" }, choicesValues = { "quantity", "withdrawals" },
           getFunc = function() return g.countMode end, setFunc = function(v) g.countMode = v end, default = defaults.countMode },
         { type = "dropdown", name = "Count per",
-          tooltip = "Calendar day: everything taken from midnight to midnight (your PC's clock) counts together, so 5 stacks Saturday night and 5 Sunday morning are 5 each day. Rolling window: everything within the hours below counts together. Click Rescan with current settings after changing it.",
+          tooltip = "Calendar day: everything taken from midnight to midnight (your PC's clock) counts together, so 5 stacks Saturday night and 5 Sunday morning are 5 each day. Rolling window: everything within the hours below counts together. Click Rescan alerts after changing it.",
           choices = { "Calendar day", "Rolling window (hours)" }, choicesValues = { "day", "rolling" },
           getFunc = function() return g.windowMode end, setFunc = function(v) g.windowMode = v end, default = defaults.windowMode },
         { type = "slider", name = "Rolling window (hours)", min = 1, max = 168, step = 1,

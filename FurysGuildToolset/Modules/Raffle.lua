@@ -1282,6 +1282,7 @@ end
 function Raffle:ShowCopy(text, what)
     local Report = GT.Report
     Report.exportParts = { text }
+    Report.exportTitles = nil
     Report.exportIndex = 1
     U.ShowOnTop(FurysGuildToolset_Export)
     Report:ShowExportPart(0)
@@ -1358,6 +1359,7 @@ function Raffle:Post(r, parts)
     end
     local Report = GT.Report
     Report.exportParts = { table.concat(parts, "\n") }
+    Report.exportTitles = nil
     Report.exportIndex = 1
     U.ShowOnTop(FurysGuildToolset_Export)
     Report:ShowExportPart(0)

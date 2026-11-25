@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.24.6
+# Fury's Guild Management Toolset (ESO addon) v1.25.12
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -14,7 +14,7 @@
 
 **Video tutorial:** new to the toolset? See how everything works in my video. [Watch it on YouTube](https://www.youtube.com/live/IoDgDIp34fA).
 
-**Built for the leaders and officers who keep a guild running.** It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
+**Built for the leaders and officers who keep a guild running.** It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from Discord sign-ups (sesh or any sign-up sheet).
 
 **Get your data out of the game.** ESO keeps your guild's records locked inside the game. Here, every tab has an **Export / copy** button: the member list, inactive members, bank alerts, hoppers, the watchlist, the bank and roster history, trader weeks and member sales all come out as comma-separated text you paste straight into Excel, Google Sheets or Discord.
 
@@ -24,7 +24,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.24.6.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.24.6.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.25.12.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.25.12.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -93,7 +93,7 @@ Catch members who take more from the guild bank than your rules allow.
 - A stack put back whole within 72 hours (adjustable) doesn't count. A partly used stack still counts.
 - Deposits never count, so stocking the bank never triggers anything.
 - The first time, the addon looks back 30 days. Old withdrawals show up as alerts to review; nothing is done to anyone for them.
-- After changing limits, click **Rescan with current settings** (main page) or type `/gt reset`.
+- After changing limits, click **Rescan alerts** (main page) or type `/gt reset`.
 
 ## Auto-demote and the Auto tab
 
@@ -295,28 +295,34 @@ Sell raffle tickets for gold and draw the winners. Works without a guild too, fo
 
 ## Events
 
-See who signed up for a guild event in Discord (sesh bot) and who actually showed up, then fill the empty slots. Works for trials with Tank, Healer and DPS limits, and for classes or any event with no limit.
+See who signed up for a guild event in Discord and who actually showed up, then fill the empty slots. Reads sesh bot posts and your guild's own sign-up sheets. Works for trials with Tank, Healer and DPS limits, and for classes or any event with no limit. Events starts turned off.
 
 ### Turn it on
 
 - Open the **Events** settings page (or the button under Events in `/gtsettings`) and tick **Turn on Events**.
 - Under **Guilds to advertise in**, tick the guilds that should get your ads for open slots.
 - **Group forms (minutes before start)** is when your group starts forming (15 minutes before the start time by default). Before then, ads ask people to sign up. From then on, they ask for replacements.
-- Turn **Invite by code** on and set your **Invite code** ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots). The Events tab has its own **Invite by code: ON/OFF** button and **Code** box at the top of the window, so you can switch it and change the code without opening the settings. With no event pasted, the **IA (2)**, **Group (4)** and **Trial (12)** buttons next to them turn it on until your group has that many (you included), solo or already grouped; it turns off by itself at that size, or when you leave or disband the group. Invite by code always starts turned off when you log in or reload, and the ON button also turns itself off when your group fills up or breaks up.
+- Turn **Invite by code** on and set your **Invite code** ("X" to start with; upper or lower case both work) if people who type the code in guild chat should get a group invite (see Fill the empty slots). The top of the Events tab shows the status button (**Invite by code: ON**, **OFF** or **FULL**): click it to turn Invite by code on or off. Next to it, **Options** opens the **Invite by code** window: **Turn on** / **Turn off**, the **Code** box, and, with no event pasted, the **IA (2)**, **Group (4)** and **Trial (12)** buttons that turn it on until your group has that many (you included), solo or already grouped. The window also has a **Dynamic group** button. The ways work differently: **Dynamic group** fills the group (to a pasted event's size, or 12), then pauses (the button says **FULL**) and starts listening again by itself when a spot opens, until you turn it off. A size button fills the group to that size and then stops (Invite by code turns off). **Turn on** with an event pasted fills the event's group and then turns off; with no event pasted it works as a Dynamic group. Either way it turns off when you leave or disband the group. The window explains this too. Invite by code always starts turned off when you log in or reload.
+- **Kick offline members** (starts turned off; in the Invite by code window and the Events settings): while Invite by code is on or paused and you lead the group, anyone in the group who has been offline for the minutes you set (10 to start with) is removed from the group, so the spot opens for someone who types the code. A chat line says who and how long they were offline.
 - Change the whisper, mail and guild ad texts if you like (one ad for sign-ups, one for replacements). {name}, {event}, {time} (how long until it starts, like "3d 4h 30m from now", right in every time zone), {date}, {need}, {cp}, {code} and {me} are filled in for you.
 
 ### Read the sign-ups
 
-- In Discord, select the sesh event post from its title down to the last name under the last role, and press Ctrl+C.
-- On the **Events** tab (`/gt events`), click **Paste sign-ups**, click in the box, press Ctrl+V, then **Read sign-ups**.
-- The addon reads the title, time, CP requirement ("160 CP"), required addons, and every sign-up section with its limit: "Tank (1 / 2)", "DPS (1 / 8)", "Standby (0)" or "Attendees (4)". Any number of tanks or DPS works, and so does a section with no limit.
+- In Discord, select the sign-up sheet (a sesh post or your guild's own) from its title down to the last name under the last role, and press Ctrl+C.
+- On the **Events** tab (`/gt events`), click **Paste sign-ups**, click in the box, press Ctrl+V, then **Read sign-ups**. Chat tells you how many sign-ups it read, when the event starts in your time, and how many it matched to accounts.
+- **sesh posts:** the addon reads the title, time, CP requirement ("160 CP"), required addons, and every sign-up section with its limit: "Tank (1 / 2)", "DPS (1 / 8)", "Standby (0)" or "Attendees (4)". Any number of tanks or DPS works, and so does a section with no limit.
+- **Your own sheet:** line 1 is always the title. Tags have a colon: **Time:** with the time zone written out ("Time: Sat Nov 28 1:00 PM CT", "Time: 2026-11-28 13:00 CT" or "Time: 28.11.2026 13:00 CET"; CT, ET, PT, CET, UTC+2 and others work, and summer time is taken care of), **CP:** ("CP: 600") and **Duration:**. Roles are "Name (have / need)" with the names under them, one per line, as @name or "Name (@Account)". Lines the addon doesn't know are skipped, and lines above the first role are the description.
+- Role names with Tank, Heal or DPS in them count as those group roles. Any other role name (Plar, Kite, Portal) is your own role and counts toward the group size. **Standby**, **Tentative**, **Absent** and sesh's **Fills** are never roles. For a class or any event with no roles, use one line **Attending (0 / 20)** (or just "Attending" for no limit) with the names under it.
+- **Copy template** (in the Paste sign-ups window) opens with a page on how sheets are read, then gives you blank sheets in that layout to copy into Discord, with an example time in your own time zone: a trial with your own roles (MT, OT, GH, KH, DPS and a Portal role of your own), a trial with Tank, Healer and DPS, a dungeon, and a class with Attending. Pick one with **Next part**, click **Select all** and press Ctrl+C. The parts work in any sheet, so mix tags and roles from different examples as you like. Any name before (have / need) is a role, so rename, add or remove them.
+- **Discord time** (in the same window): type a date and time ("Sat Nov 28 8:00 PM CT") and get Discord time codes to copy. Discord shows them in each reader's own time zone, with a countdown, and the addon reads them back when you paste the sheet.
+- **Other guilds' sheets** are read as well as they can be: one role per line ("MT: @Briar", "DD @Rumple", "R Plar: @Revan (Cantgetright86)"), a role with no name is an open slot, and a boss-by-boss plan that repeats the roles without names only counts the first set. Notes about gear and mechanics are skipped.
 - When the event is over, click **Clear** to empty the tab. The accounts you matched to Discord names are kept for the next event.
 
 ### Who's here, who's missing
 
 - Each sign-up shows as **In group**, **In group as (another role)**, **Online, not in group** or **Offline** (with how long), plus their group role and CP. CP under the requirement shows in red.
 - People in your group who didn't sign up show as **Not signed up**.
-- Discord names are matched to @accounts by name (fancy letters and spaces are ignored). If a match is wrong or missing, right-click the row > **Set account**. **Set account (type it)** drops down names from your guilds, friends, group and recent contacts as you type (it starts with names that look like the Discord name); click one, or pick it with the arrow keys and Tab. A name you type is checked when you save and saved with the game's spelling; if it isn't found, the addon says so and suggests close names, and **Save anyway** keeps it as typed. The addon remembers it for every event.
+- Names are matched to @accounts in your guilds and friends by name (fancy letters, emoji and spaces are ignored). An @name on a sheet is often a Discord name, so it's looked up too. "Name (@Account)" uses the account written there, "@Revan (Cantgetright86)" also tries the name in brackets, and when no name matches exactly but only one account has a name like it ("zephyrus" in @zephyrus_eso), that one is used; the row's tip says so. If a match is wrong or missing, right-click the row > **Set account**. **Set account (type it)** drops down names from your guilds, friends, group and recent contacts as you type (it starts with names that look like the Discord name); click one, or pick it with the arrow keys and Tab. A name you type is checked when you save and saved with the game's spelling; if it isn't found, the addon says so and suggests close names, and **Save anyway** keeps it as typed. The addon remembers it for every event.
 - The line at the top shows each section's sign-ups and how many are here, and the open slots:
 - Before the group forms: **Open sign-up slots** (for example "1 tank, 6 DPS"), the slots nobody has signed up for. Everyone who signed up keeps their slot.
 - Once the group forms (start time minus the minutes in the settings): **Need now** (for example "1 tank, 1 healer, 7 DPS"), what your group is missing, so people who signed up and didn't show count as open too.
@@ -331,7 +337,7 @@ See who signed up for a guild event in Discord (sesh bot) and who actually showe
 
 - With **Invite by code** on, anyone who types your invite code (upper or lower case) in the chat of a guild you advertise in, or whispers it to you, gets a group invite. With no event pasted, that works any time, up to a full group. With an event pasted, it starts once the group forms (until 2 hours after the start time) and stops at the event's group size. The replacement ad tells people the code; while Invite by code is off, the ad leaves the code out. Nobody is invited when the group is full, when you aren't the group leader, when the event hasn't formed yet, or when their CP (as their guild shows it) is under the post's requirement; you get a chat line saying why instead.
 - **Advertise in guilds** puts an ad in the chat box of each ticked guild, one after another. Press Enter for each. Pick the kind from the menu: **Ask for sign-ups** (before the event, for the slots nobody signed up for) or **Ask for replacements, join now** (once the group forms, for no-shows and empty slots). The one that fits the time is first.
-- **Group Finder** shows a listing to check: the first line is its title (the event's name; numbers and symbols are taken out, since the Group Finder takes letters and spaces only, and at most 5 words: day names go first, then words from the end), the rest its description (the description from the sesh post, cut to fit; the Group Finder shows the roles it still needs by itself). It picks the trial from the post ("Sunspire", "vSS") and lists it as Veteran unless the post says normal (or "nSS") and switches your difficulty to match, as the game's own Group Finder does, the playstyle (Educational when the post says trainer or training, Speed Run for a zerg or loot run, Standard otherwise), Voice Chat Required with VOICE REQUIRED in the description (and in the title when the game takes it) when the post says learn, sets the CP minimum, and sets the group's roles to the sign-up limits (2 tanks, 2 healers, 8 DPS for a trial when the post doesn't say). The Group Finder shows who's there and who's still needed by itself. Edit it, then press **Create listing**. You accept applicants in the game's Group Finder window.
+- **Group Finder** shows a listing to check: the first line is its title (the event's name; numbers and symbols are taken out, since the Group Finder takes letters and spaces only, and at most 5 words: day names go first, then words from the end), the rest its description (the description from the sheet, cut to fit; the Group Finder shows the roles it still needs by itself). It picks the trial from the post ("Sunspire", "vSS") and lists it as Veteran unless the post says normal (or "nSS") and switches your difficulty to match, as the game's own Group Finder does, the playstyle (Educational when the post says trainer or training, Speed Run for a zerg or loot run, Standard otherwise), Voice Chat Required with VOICE REQUIRED in the description (and in the title when the game takes it) when the post says learn, sets the CP minimum, and sets the group's roles to the sign-up limits (2 tanks, 2 healers, 8 DPS for a trial when the post doesn't say). The Group Finder shows who's there and who's still needed by itself. Edit it, then press **Create listing**. You accept applicants in the game's Group Finder window.
 
 ## Questions
 

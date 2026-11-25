@@ -118,6 +118,7 @@ function Report:ShowCopy(text)
     self.exportParts = { text }
     self.exportIndex = 1
     self.exportTitle = "Copy"
+    self.exportTitles = nil
     self.exportHint = nil
     GT.Util.ShowOnTop(FurysGuildToolset_Export)
     self:ShowExportPart(0)
@@ -593,6 +594,7 @@ function Report:ShowExport(tabLines)
     self.exportParts = parts
     self.exportIndex = 1
     self.exportTitle = nil
+    self.exportTitles = nil
     self.exportHint = nil
     GT.Util.ShowOnTop(FurysGuildToolset_Export)
     self:ShowExportPart(0)
@@ -602,7 +604,8 @@ function Report:ShowExportPart(delta)
     local parts = self.exportParts or { "" }
     self.exportIndex = zo_clamp((self.exportIndex or 1) + delta, 1, #parts)
     FurysGuildToolset_ExportTextBox:SetText(parts[self.exportIndex])
-    FurysGuildToolset_ExportTitle:SetText(self.exportTitle or "Export")
+    -- 1.25.4: a title per part when exportTitles is set (the Events sheet examples).
+    FurysGuildToolset_ExportTitle:SetText(self.exportTitles and self.exportTitles[self.exportIndex] or self.exportTitle or "Export")
     FurysGuildToolset_ExportHint:SetText(self.exportHint or EXPORT_HINT)
     FurysGuildToolset_ExportPart:SetText(string.format("Part %d of %d", self.exportIndex, #parts))
     FurysGuildToolset_ExportPrev:SetHidden(#parts <= 1)
