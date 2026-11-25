@@ -29,7 +29,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#B4B0D8"][I]Every part has its own tab in the report window and its own section below.[/I][/COLOR]
 [QUOTE][LIST]
 [*][COLOR="#A08CFF"][B]Bank alerts:[/B][/COLOR]  Catch members who take more than your rules allow. Warn, demote or remove them from one menu.
-[*][COLOR="#A08CFF"][B]Members:[/B][/COLOR]  Your whole roster with time at rank, plus everyone who has been gone too long for their rank.
+[*][COLOR="#A08CFF"][B]Members:[/B][/COLOR]  Your whole roster with time in guild and time at rank, plus everyone who has been gone too long for their rank.
 [*][COLOR="#A08CFF"][B]Hoppers:[/B][/COLOR]  Spot people who join, empty the bank and leave, and keep a watchlist across all your guilds.
 [*][COLOR="#A08CFF"][B]History:[/B][/COLOR]  A searchable bank and roster log, with what was taken and what came back.
 [*][COLOR="#A08CFF"][B]Trader:[/B][/COLOR]  Weekly trader results, what each trader really cost, and what each member sold.
@@ -94,15 +94,15 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Use it[/B][/COLOR]
 [LIST]
 [*]You get a chat and on-screen alert as it happens while you're online, and a summary at login.
-[*]The [B]Bank alerts[/B] tab ([FONT="Courier New"][B]/gt bank[/B][/FONT]) lists everyone over a limit: how many stacks and items they took, and how many came back. Hover for the full item list.
+[*]The [B]Bank alerts[/B] tab ([FONT="Courier New"][B]/gt bank[/B][/FONT]) lists everyone over a limit: how many stacks and items they took, and how many came back. Alerts you haven't looked at yet are marked [B]NEW[/B]; the tag goes away when you leave the tab or close the window, or with [B]Mark seen[/B] (right-click) or [B]Mark all seen[/B]. Seen alerts stay in the list until you deal with them. Hover for the full item list.
 [*]Right-click an alert for [B]Whisper[/B], [B]Mail[/B], [B]Warn[/B] (by whisper or mail), [B]Demote[/B], [B]Set rank[/B], [B]Add to guild note[/B], [B]Kick[/B], [B]Kick and blacklist[/B] and [B]Dismiss[/B]. Anything that changes the guild asks first.
 [*]Warn and Demote open a filled-in message: the date, what they took, and your bank rules (from the Crier's "Guild Bank 101" message unless you write your own). Every text can be changed in the guild's rules.
 [/LIST]
 [COLOR="#A08CFF"][B]Good to know[/B][/COLOR]
 [LIST]
-[*]A stack put back whole within 72 hours (adjustable) doesn't count. A partly used stack still counts.
+[*]A stack put back whole within 72 hours (adjustable) doesn't count. A partly used stack still counts. An alert that drops under every limit once stacks come back (for example after someone restacks the bank) leaves the list by itself.
 [*]Deposits never count, so stocking the bank never triggers anything.
-[*]The first time, the addon looks back 30 days. Old withdrawals show up as alerts to review; nothing is done to anyone for them.
+[*]The first time, the addon looks back 30 days (change it with [B]First run: look back[/B], up to 365 days, before a guild is first read). Old withdrawals show up as alerts to review; nothing is done to anyone for them.
 [*]After changing limits, click [B]Rescan alerts[/B] (main page) or type [FONT="Courier New"][B]/gt reset[/B][/FONT].
 [/LIST]
 
@@ -130,7 +130,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#B4B0D8"][I]See your whole roster, and who has been offline too long.[/I][/COLOR]
 [COLOR="#A08CFF"][B]Members tab[/B][/COLOR]
 [LIST]
-[*][FONT="Courier New"][B]/gt members[/B][/FONT]: every member's rank, time at rank, last promotion, last online and guild note. Filter by guild or rank, hide offline members, search and sort. Offline members are drawn a bit faded, so the ones online now stand out.
+[*][FONT="Courier New"][B]/gt members[/B][/FONT]: every member's rank, time in guild, time at rank, last online and guild note (hover a row for their last promotion). Join and rank dates come from all the roster history LibHistoire has saved for the guild and from the toolset's own History log (the first time, reading it can take a minute); anyone who joined or got their rank before the oldest history it has shows [B]before[/B] that date. Filter by guild or rank, hide offline members, search and sort. Offline members are drawn a bit faded, so the ones online now stand out.
 [*]Right-click a member to whisper or mail them, [B]Set rank[/B], [B]Kick[/B] or [B]Kick and blacklist[/B]. Each change asks first.
 [/LIST]
 [COLOR="#A08CFF"][B]Turn on inactivity alerts[/B][/COLOR]
@@ -141,7 +141,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [/LIST]
 [COLOR="#A08CFF"][B]Inactive tab[/B][/COLOR]
 [LIST]
-[*][FONT="Courier New"][B]/gt inactive[/B][/FONT]: members over the limit for their rank, and how many guild slots each guild has open (out of 500).
+[*][FONT="Courier New"][B]/gt inactive[/B][/FONT]: members over the limit for their rank, how long they have been in the guild, and how many guild slots each guild has open (out of 500).
 [*]Right-click for a [B]"we miss you" mail[/B], a blank mail, [B]Set rank[/B], [B]Kick[/B], [B]Kick and blacklist[/B] or [B]Dismiss[/B]. A dismissed member comes back if they go over the limit again after logging in.
 [*]Tip: pick Rank: Recruit and sort by Offline to go through recruits from most to least inactive.
 [/LIST]
@@ -330,7 +330,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [LIST]
 [*]Right-click a sign-up to [B]Whisper[/B] them (the text waits in the chat box), [B]Invite[/B] them to the group, or [B]Mail[/B] them (the mail opens for you to send).
 [*][B]Invite online[/B] sends a group invite to every sign-up who is online and not in your group (not Standby).
-[*][B]Copy for Discord[/B] gives you a ready-made Discord post with headings, emoji and the start time shown in each reader's own time zone. Before the group forms it shows the open slots per role and who signed up. Once it forms it shows who is still missing and what the group needs now. A menu lets you pick either; the one that fits the time is first. Events with no limit (Attendees only) always say there's room for more.
+[*][B]Copy for Discord[/B] gives you a ready-made Discord post with headings, emoji and the start time shown in each reader's own time zone. Before the group forms it shows the open slots per role and who signed up. Once it forms it shows who is still missing and what the group needs now. Names are written as Discord mentions ([B]@name[/B], an @ is added when the sheet has none), so Discord pings those people when you send it. Roles are written as Discord role mentions too: the open slots as [B]@Tank[/B], [B]@Healer[/B] and [B]@DPS[/B], and the sign-up list with the sheet's own role names ([B]@MT[/B], [B]@Portal[/B]...), so a server with roles of those names gets pinged. Standby, Tentative, Absent and Attending are not roles and stay as they are. A menu lets you pick either; the one that fits the time is first. Events with no limit (Attendees only) always say there's room for more.
 [/LIST]
 [COLOR="#A08CFF"][B]Fill the empty slots[/B][/COLOR]
 [LIST]

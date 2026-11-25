@@ -174,6 +174,7 @@ function Report:Initialize()
     SCENE_MANAGER:RegisterTopLevel(FurysGuildToolset_Export, false)
     FurysGuildToolset_Report:SetHandler("OnHide", function()
         ClearTooltip(InformationTooltip)
+        self:LeaveTab()
         if self.panelTab then self.panelTab.SetPanelShown(false); self.panelTab = nil end
     end)
 
@@ -397,7 +398,14 @@ function Report.OnRowMouseExit(control)
     ClearTooltip(InformationTooltip)
 end
 
+-- A tab can have OnLeave: called when you switch to another tab or close the window while it is shown.
+function Report:LeaveTab()
+    local tab = self:GetTab(self.currentTab)
+    if tab and tab.OnLeave then tab.OnLeave() end
+end
+
 function Report:SelectTab(id)
+    if id ~= self.currentTab and not self.control:IsHidden() then self:LeaveTab() end
     self.currentTab = id
     GT.sv.lastTab = id
     self.selectedData = nil
@@ -490,6 +498,7 @@ end
 
 function Report:Show(tabId)
     if tabId and self:GetTab(tabId) then
+        if tabId ~= self.currentTab and not self.control:IsHidden() then self:LeaveTab() end
         self.currentTab = tabId
         GT.sv.lastTab = tabId
     end

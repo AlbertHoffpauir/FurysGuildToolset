@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.25.12
+# Fury's Guild Management Toolset (ESO addon) v1.26.9
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -24,7 +24,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.25.12.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.25.12.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.26.9.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.26.9.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -84,15 +84,15 @@ Catch members who take more from the guild bank than your rules allow.
 ### Use it
 
 - You get a chat and on-screen alert as it happens while you're online, and a summary at login.
-- The **Bank alerts** tab (`/gt bank`) lists everyone over a limit: how many stacks and items they took, and how many came back. Hover for the full item list.
+- The **Bank alerts** tab (`/gt bank`) lists everyone over a limit: how many stacks and items they took, and how many came back. Alerts you haven't looked at yet are marked **NEW**; the tag goes away when you leave the tab or close the window, or with **Mark seen** (right-click) or **Mark all seen**. Seen alerts stay in the list until you deal with them. Hover for the full item list.
 - Right-click an alert for **Whisper**, **Mail**, **Warn** (by whisper or mail), **Demote**, **Set rank**, **Add to guild note**, **Kick**, **Kick and blacklist** and **Dismiss**. Anything that changes the guild asks first.
 - Warn and Demote open a filled-in message: the date, what they took, and your bank rules (from the Crier's "Guild Bank 101" message unless you write your own). Every text can be changed in the guild's rules.
 
 ### Good to know
 
-- A stack put back whole within 72 hours (adjustable) doesn't count. A partly used stack still counts.
+- A stack put back whole within 72 hours (adjustable) doesn't count. A partly used stack still counts. An alert that drops under every limit once stacks come back (for example after someone restacks the bank) leaves the list by itself.
 - Deposits never count, so stocking the bank never triggers anything.
-- The first time, the addon looks back 30 days. Old withdrawals show up as alerts to review; nothing is done to anyone for them.
+- The first time, the addon looks back 30 days (change it with **First run: look back**, up to 365 days, before a guild is first read). Old withdrawals show up as alerts to review; nothing is done to anyone for them.
 - After changing limits, click **Rescan alerts** (main page) or type `/gt reset`.
 
 ## Auto-demote and the Auto tab
@@ -122,7 +122,7 @@ See your whole roster, and who has been offline too long.
 
 ### Members tab
 
-- `/gt members`: every member's rank, time at rank, last promotion, last online and guild note. Filter by guild or rank, hide offline members, search and sort. Offline members are drawn a bit faded, so the ones online now stand out.
+- `/gt members`: every member's rank, time in guild, time at rank, last online and guild note (hover a row for their last promotion). Join and rank dates come from all the roster history LibHistoire has saved for the guild and from the toolset's own History log (the first time, reading it can take a minute); anyone who joined or got their rank before the oldest history it has shows **before** that date. Filter by guild or rank, hide offline members, search and sort. Offline members are drawn a bit faded, so the ones online now stand out.
 - Right-click a member to whisper or mail them, **Set rank**, **Kick** or **Kick and blacklist**. Each change asks first.
 
 ### Turn on inactivity alerts
@@ -133,7 +133,7 @@ See your whole roster, and who has been offline too long.
 
 ### Inactive tab
 
-- `/gt inactive`: members over the limit for their rank, and how many guild slots each guild has open (out of 500).
+- `/gt inactive`: members over the limit for their rank, how long they have been in the guild, and how many guild slots each guild has open (out of 500).
 - Right-click for a **"we miss you" mail**, a blank mail, **Set rank**, **Kick**, **Kick and blacklist** or **Dismiss**. A dismissed member comes back if they go over the limit again after logging in.
 - Tip: pick Rank: Recruit and sort by Offline to go through recruits from most to least inactive.
 
@@ -331,7 +331,7 @@ See who signed up for a guild event in Discord and who actually showed up, then 
 
 - Right-click a sign-up to **Whisper** them (the text waits in the chat box), **Invite** them to the group, or **Mail** them (the mail opens for you to send).
 - **Invite online** sends a group invite to every sign-up who is online and not in your group (not Standby).
-- **Copy for Discord** gives you a ready-made Discord post with headings, emoji and the start time shown in each reader's own time zone. Before the group forms it shows the open slots per role and who signed up. Once it forms it shows who is still missing and what the group needs now. A menu lets you pick either; the one that fits the time is first. Events with no limit (Attendees only) always say there's room for more.
+- **Copy for Discord** gives you a ready-made Discord post with headings, emoji and the start time shown in each reader's own time zone. Before the group forms it shows the open slots per role and who signed up. Once it forms it shows who is still missing and what the group needs now. Names are written as Discord mentions (**@name**, an @ is added when the sheet has none), so Discord pings those people when you send it. Roles are written as Discord role mentions too: the open slots as **@Tank**, **@Healer** and **@DPS**, and the sign-up list with the sheet's own role names (**@MT**, **@Portal**...), so a server with roles of those names gets pinged. Standby, Tentative, Absent and Attending are not roles and stay as they are. A menu lets you pick either; the one that fits the time is first. Events with no limit (Attendees only) always say there's room for more.
 
 ### Fill the empty slots
 

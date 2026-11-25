@@ -1394,7 +1394,7 @@ function Events:TabFooter()
         { label = "Paste sign-ups", width = 150, tip = "Opens a box to paste a sign-up sheet into (Ctrl+V): a sesh post or any guild's own sheet. Replaces the event shown now. The box also has Copy template (a blank sheet for Discord) and Discord time (turns a date and time into a time code that shows in everyone's own time zone).", fn = function() self:AskPaste() end },
         { label = "Clear", width = 90, tip = "Clears the event shown now, for when it's over. The accounts you matched to Discord names are kept for the next event.", fn = function() self:ClearEvent() end },
         { label = "Invite online", width = 140, tip = "Sends a group invite to every sign-up who is online and not in your group (not Standby). One click, one invite each.", fn = function() self:InviteOnline() end },
-        { label = "Advertise in guilds", width = 170, tip = "Puts an ad in the chat box of each guild ticked in the Events settings, one guild after another. You press Enter for each. Pick the kind: sign-ups (before the group forms) or replacements (once it forms). The one that fits now is first.",
+        { label = "Advertise in guilds", width = 170, tip = "Puts an ad in the chat box of each guild ticked in the Events settings, one guild after another. You press Enter for each. Pick the kind: sign-ups (before the group forms) or replacements (once it forms). The one that fits now is first. Names are written as @mentions, and roles as @Tank / @Healer / @DPS / @MT (the sheet's own role names), so Discord pings them when you send it.",
           fn = function(control) self:AdMenu(control, function(mode) self:Advertise(mode) end) end },
         { label = "Group Finder", width = 140, tip = "Shows a Group Finder listing for the open slots (title, description, CP and roles from the post) to check. Nothing is listed until you press Create listing.", fn = function() self:AskListing() end },
         { label = "Copy for Discord", width = 170, tip = "Shows a message to copy into Discord: the open sign-up slots (before the group forms), or the missing names and the slots to fill now (once it forms). The one that fits now is first.",
@@ -2610,7 +2610,11 @@ local function DiscordOpenLines(state, open, now)
             local label = kind == "any" and "Spots" or DISCORD_ROLE[kind][2]
             -- Taken = the limit minus the open slots, so walk-ins in your group count too.
             local count = string.format("(%d/%d %s)", math.max(0, maxOf[kind] - n), maxOf[kind], now and "here" or "taken")
-            if n > 0 then
+            if n > 0 and kind ~= "any" then
+                -- 1.26.9 (Albert): "@Tank" pings the server's Tank role when the message is
+                -- sent. Outside the ** so Discord reads it as a mention. Only open roles ping.
+                lines[#lines + 1] = string.format("> %s @%s: **%d open** %s", DISCORD_EMOJI[kind], DISCORD_ROLE[kind][1], n, count)
+            elseif n > 0 then
                 lines[#lines + 1] = string.format("> %s **%s:** %d open %s", DISCORD_EMOJI[kind], label, n, count)
             else
                 lines[#lines + 1] = string.format("> %s **%s:** full :white_check_mark: %s", DISCORD_EMOJI[kind], label, count)
@@ -2620,7 +2624,26 @@ local function DiscordOpenLines(state, open, now)
     return lines
 end
 
--- ":shield: **Tank (1/2):** Furyous, Marth Wolf", one line per section that isn't "out" (or
+-- A sign-up's Discord name as a mention, "@Furyous", so Discord pings them when the message
+-- is sent (1.26.8, Albert). Names on Sesh sheets have no @, so one is added. Not escaped:
+-- Discord usernames use "_" and "." and an escaped name would not ping.
+local function DiscordMention(person)
+    local name = Trim(person.base or ""):gsub("^@+", "")
+    if name == "" then return "" end
+    return "@" .. name
+end
+
+-- A sheet role as a Discord role mention, "@MT" (1.26.9, Albert: anything that is a role in
+-- Discord needs the @ to ping). Standby / Tentative / Absent and Attending aren't roles: nil.
+local NOT_DISCORD_ROLES = { attending = true, attendees = true, ["sign-up"] = true, ["sign-ups"] = true, signups = true }
+local function DiscordRoleTag(section)
+    if section.kind == "standby" or section.kind == "out" then return nil end
+    local name = Trim(section.name or ""):gsub("^@+", "")
+    if name == "" or NOT_DISCORD_ROLES[zo_strlower(name)] then return nil end
+    return "@" .. name
+end
+
+-- ":shield: **Tank (1/2):** @Furyous, @Marth Wolf", one line per section that isn't "out" (or
 -- an empty standby).
 -- withNames false gives counts only (for a long roster that would pass Discord's limit).
 local function DiscordRoster(state, withNames)
@@ -2628,10 +2651,12 @@ local function DiscordRoster(state, withNames)
     for _, section in ipairs(state.ev.sections) do
         if section.kind ~= "out" and not (section.kind == "standby" and #section.people == 0) then
             local count = section.max and string.format("%d/%d", #section.people, section.max) or tostring(#section.people)
-            local line = string.format("%s **%s (%s)**", DISCORD_EMOJI[section.kind] or ":small_blue_diamond:", DiscordEscape(section.name), count)
+            local tag = DiscordRoleTag(section)
+            local line = tag and string.format("%s %s **(%s)**", DISCORD_EMOJI[section.kind] or ":small_blue_diamond:", tag, count)
+                or string.format("%s **%s (%s)**", DISCORD_EMOJI[section.kind] or ":small_blue_diamond:", DiscordEscape(section.name), count)
             if withNames and #section.people > 0 then
                 local names = {}
-                for _, person in ipairs(section.people) do names[#names + 1] = DiscordEscape(person.base) end
+                for _, person in ipairs(section.people) do names[#names + 1] = DiscordMention(person) end
                 line = line .. ": " .. table.concat(names, ", ")
             end
             lines[#lines + 1] = line
@@ -2685,11 +2710,12 @@ function Events:DiscordText(state, mode, withNames)
                 local section = info.section
                 if not namesOf[section] then order[#order + 1] = section; namesOf[section] = {} end
                 local names = namesOf[section]
-                names[#names + 1] = DiscordEscape(info.person.base)
+                names[#names + 1] = DiscordMention(info.person)
             end
             for _, section in ipairs(order) do
                 local names = namesOf[section]
-                lines[#lines + 1] = string.format("> %s **%s:** %s", DISCORD_EMOJI[section.kind] or ":small_blue_diamond:", DiscordEscape(section.name),
+                local tag = DiscordRoleTag(section)
+                lines[#lines + 1] = string.format("> %s %s %s", DISCORD_EMOJI[section.kind] or ":small_blue_diamond:", tag and (tag .. ":") or ("**" .. DiscordEscape(section.name) .. ":**"),
                     withNames and table.concat(names, ", ") or (#names .. (#names == 1 and " person" or " people")))
             end
             lines[#lines + 1] = "Are you coming? Log in and we'll send an invite!"

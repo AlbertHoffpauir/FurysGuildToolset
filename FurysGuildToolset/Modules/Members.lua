@@ -1,19 +1,28 @@
--- Members: a roster overview (rank, time at rank, last promotion, last online, guild note)
+-- Members: a roster overview (rank, time in guild, time at rank, last online, guild note)
 -- and an Inactive tab that flags members who have been offline too long.
 --
 -- API limits:
 --   * The roster only gives "seconds since logoff" (GetGuildMemberInfo). That is when the
 --     member last logged off, so "last online" is a date, not an exact login time.
 --   * The game does not store when someone got their rank. We take it from roster history
---     (promotions, demotions and joins, through LibHistoire) and from what the History tab has
+--     (promotions, demotions and joins, through LibHistoire, all of it that LibHistoire has
+--     saved, see Members.historyReadAll) and from what the History tab has
 --     already logged. For anyone whose last rank change is older than that, the tab shows
 --     "before <date>", the oldest roster event we have for that guild.
+--   * The game does not store when someone joined either. Time in guild comes from the same
+--     roster history (their latest join or accepted application), with the same "before <date>"
+--     for anyone who joined before the oldest roster event we have.
 
 local GT = FurysGuildToolset
 local U = GT.Util
 local A = GT.Actions
 
 local Members = GT:RegisterModule("members", {})
+-- Own LibHistoire reader (see Core/History.lua) that reads all the roster history LibHistoire
+-- has saved, not just the look-back period, so join and rank dates go back as far as possible.
+-- Only the latest join, rank change and promotion of current members are kept (rankInfo).
+Members.historyReader = "members"
+Members.historyReadAll = true
 
 local DAY = 86400
 local RULE_OFFICER, RULE_MEMBER, RULE_RECRUIT, RULE_OFF = "officer", "member", "recruit", "off"
@@ -70,6 +79,8 @@ function Members:Initialize(sv)
         elseif e.t == "promote" or e.t == "demote" then self:Apply(e.g, e.t, e.target, e.ts)
         end
     end
+    -- 1.26.4: the Last promoted column is gone (Time at rank shows the same); its sort falls back.
+    if self.sv.filter.sort == "promoted" then self.sv.filter.sort = "atrank" end
     self:RegisterTabs()
     -- Kicking (or Set rank) only asks the server; the roster changes a moment later.
     -- Redraw when it does, so kicked members drop off Members and Inactive right away
@@ -84,7 +95,7 @@ function Members:GetHistoryCategories()
     return { GUILD_HISTORY_EVENT_CATEGORY_ROSTER }
 end
 
-function Members:OnHistoryEvent(guildId, category, info)
+function Members:OnHistoryEvent(guildId, category, info, isLive)
     local t = info.eventType
     if t == GUILD_HISTORY_ROSTER_EVENT_JOIN then
         self:Apply(guildId, "join", info.actingDisplayName, info.timestampS)
@@ -101,6 +112,11 @@ function Members:OnHistoryEvent(guildId, category, info)
     else
         return
     end
+    -- While the backlog is read (thousands of events the first time), redraw once at the end instead.
+    if isLive then GT.Report:RefreshIfShown() end
+end
+
+function Members:OnHistoryCaughtUp()
     GT.Report:RefreshIfShown()
 end
 
@@ -181,6 +197,16 @@ function Members:DescribeRankTime(member)
     return oldest and ("since before " .. FormatDay(oldest)) or "unknown", nil
 end
 
+-- "120.4d (since 2026-07-28)" or "since before 2026-10-19" when we never saw them join.
+function Members:DescribeJoined(member)
+    local rec = self:GetRankInfo(member.guildId, member.name)
+    if rec and rec.joined then
+        return U.FormatDuration(GetTimeStamp() - rec.joined) .. " (since " .. FormatDay(rec.joined) .. ")", rec.joined
+    end
+    local oldest = self.sv.oldest[member.guildId]
+    return oldest and ("since before " .. FormatDay(oldest)) or "unknown", nil
+end
+
 function Members:DescribePromoted(member)
     local rec = self:GetRankInfo(member.guildId, member.name)
     if rec and rec.promoted then return FormatDay(rec.promoted), rec.promoted end
@@ -207,9 +233,17 @@ end
 function Members:SortList(list, filter, multiGuild)
     local sort, desc = filter.sort, filter.desc
     local now = GetTimeStamp()
+    -- Someone with no join or rank change in history has had it longer than anyone we do know about,
+    -- so they sort as just past the oldest roster event of their guild.
+    local function Since(m, ts)
+        if ts then return now - ts end
+        local oldest = self.sv.oldest[m.guildId]
+        return oldest and (now - oldest + 1) or -1
+    end
     local function Value(m)
         if sort == "rank" then return m.rankIndex end
-        if sort == "atrank" then local rec = self:GetRankInfo(m.guildId, m.name); return (rec and rec.changed) and (now - rec.changed) or -1 end
+        if sort == "atrank" then local rec = self:GetRankInfo(m.guildId, m.name); return Since(m, rec and rec.changed) end
+        if sort == "inguild" then local rec = self:GetRankInfo(m.guildId, m.name); return Since(m, rec and rec.joined) end
         if sort == "promoted" then local rec = self:GetRankInfo(m.guildId, m.name); return rec and rec.promoted or 0 end
         if sort == "offline" or sort == "lastonline" then return m.offlineSecs end
         if sort == "limit" then return m.limitDays or 0 end
@@ -284,7 +318,7 @@ function Members:OnSortClicked(filter, key)
         filter.desc = not filter.desc
     else
         filter.sort = key
-        filter.desc = (key == "atrank" or key == "offline" or key == "lastonline")
+        filter.desc = (key == "inguild" or key == "atrank" or key == "offline" or key == "lastonline")
     end
 end
 
@@ -345,9 +379,9 @@ function Members:GetColumns()
     local columns = {
         { title = "Member", width = 160, sort = "name" },
         { title = "Rank", width = 120, sort = "rank" },
-        { title = "Time at rank", width = 140, sort = "atrank", tip = "How long they have held their current rank, from roster history." },
-        { title = "Last promoted", width = 105, sort = "promoted", tip = "Their last promotion seen in roster history." },
-        { title = "Last online", width = 150, sort = "offline" },
+        { title = "Time in guild", width = 150, sort = "inguild", tip = "How long they have been in the guild, from their latest join in roster history. \"before <date>\" means they joined before the oldest roster history you have." },
+        { title = "Time at rank", width = 150, sort = "atrank", tip = "How long they have held their current rank, from roster history. \"before <date>\" means their rank has not changed since the oldest roster history you have." },
+        { title = "Last online", width = 145, sort = "offline" },
     }
     if not self:GetGuildFilter() then columns[#columns + 1] = { title = "Guild", width = 110, sort = "guild" } end
     local used = 0
@@ -360,26 +394,32 @@ end
 function Members:GetMemberRow(m)
     local rec = self:GetRankInfo(m.guildId, m.name)
     local oldest = self.sv.oldest[m.guildId]
+    local inGuild
+    if rec and rec.joined then
+        inGuild = U.FormatDuration(GetTimeStamp() - rec.joined) .. "  |cB4B0D8" .. FormatDay(rec.joined) .. "|r"
+    else
+        inGuild = "|cB4B0D8" .. (oldest and ("before " .. FormatDay(oldest)) or "unknown") .. "|r"
+    end
     local held
     if rec and rec.changed then
         held = U.FormatDuration(GetTimeStamp() - rec.changed) .. "  |cB4B0D8" .. FormatDay(rec.changed) .. "|r"
     else
         held = "|cB4B0D8" .. (oldest and ("before " .. FormatDay(oldest)) or "unknown") .. "|r"
     end
-    local promoted = (rec and rec.promoted) and FormatDay(rec.promoted) or "|cB4B0D8-|r"
     local online = m.online and "|c5EE6A0online now|r"
         or (U.FormatDuration(m.offlineSecs) .. " ago  |cB4B0D8" .. FormatDay(m.lastOnline) .. "|r")
     local cells = {
         m.name,
         "|c" .. self:GetRankColor(m.rankIndex) .. m.rankName .. "|r",
+        inGuild,
         held,
-        promoted,
         online,
     }
     if not self:GetGuildFilter() then cells[#cells + 1] = "|cB4B0D8" .. U.GuildName(m.guildId) .. "|r" end
     cells[#cells + 1] = "|cB4B0D8" .. OneLine(m.note) .. "|r"
     local tooltip = table.concat({
         m.name .. " - " .. U.GuildName(m.guildId),
+        "In guild: " .. self:DescribeJoined(m),
         "Rank: " .. m.rankName .. ", held " .. self:DescribeRankTime(m),
         "Last promoted: " .. self:DescribePromoted(m),
         "Last online: " .. (m.online and "online now" or self:DescribeOnline(m)),
@@ -499,7 +539,6 @@ function Members:GetVisibleInactive()
 end
 
 function Members:GetInactiveColumns()
-    -- About 350 px on the right stay free for the four buttons.
     return {
         { title = "Member", width = 160, sort = "name" },
         { title = "Rank", width = 115, sort = "rank" },
@@ -507,7 +546,8 @@ function Members:GetInactiveColumns()
         { title = "Offline", width = 70, sort = "offline", tip = "How long they have been offline." },
         { title = "Last online", width = 95, sort = "lastonline" },
         { title = "Limit", width = 45, sort = "limit", tip = "The inactivity limit for their rank, in days." },
-        { title = "Note", width = 470, sort = "note" },
+        { title = "In guild", width = 150, sort = "inguild", tip = "How long they have been in the guild, from their latest join in roster history. \"before <date>\" means they joined before the oldest roster history you have." },
+        { title = "Note", width = 312, sort = "note" },
     }
 end
 
@@ -550,6 +590,14 @@ function Members:MemberItems(m, inactive)
     return items
 end
 
+-- Short "In guild" cell for the Inactive tab: "120.4d", or "before 2026-10-19" in grey.
+function Members:InGuildCell(m)
+    local rec = self:GetRankInfo(m.guildId, m.name)
+    if rec and rec.joined then return U.FormatDuration(GetTimeStamp() - rec.joined) end
+    local oldest = self.sv.oldest[m.guildId]
+    return "|cB4B0D8" .. (oldest and ("before " .. FormatDay(oldest)) or "unknown") .. "|r"
+end
+
 function Members:GetInactiveRow(m)
     local cells = {
         m.name,
@@ -558,10 +606,12 @@ function Members:GetInactiveRow(m)
         "|cFFA45C" .. U.FormatDuration(m.offlineSecs) .. "|r",
         FormatDay(m.lastOnline),
         m.limitDays .. "d",
+        self:InGuildCell(m),
         "|cB4B0D8" .. OneLine(m.note) .. "|r",
     }
     local tooltip = table.concat({
         m.name .. " - " .. U.GuildName(m.guildId),
+        "In guild: " .. self:DescribeJoined(m),
         "Rank: " .. m.rankName .. ", held " .. self:DescribeRankTime(m),
         "Last online: " .. FormatDay(m.lastOnline),
         "Note: " .. (m.note ~= "" and m.note or "(none)"),
@@ -578,15 +628,17 @@ function Members:MembersTabRows(tab)
 end
 
 function Members:MembersTabExportLines(tab)
-    local lines = { "Guild\tMember\tRank\tAt rank since\tDays at rank\tLast promoted\tLast online\tDays offline\tNote" }
+    local lines = { "Guild\tMember\tRank\tIn guild since\tDays in guild\tAt rank since\tDays at rank\tLast promoted\tLast online\tDays offline\tNote" }
     local now = GetTimeStamp()
     for _, m in ipairs(self:GetVisibleMembers(tab.searchText)) do
         local rec = self:GetRankInfo(m.guildId, m.name)
         local oldest = self.sv.oldest[m.guildId]
         local since = (rec and rec.changed) and FormatDay(rec.changed) or (oldest and ("before " .. FormatDay(oldest)) or "")
         local daysAt = (rec and rec.changed) and string.format("%.1f", (now - rec.changed) / DAY) or ""
+        local joined = (rec and rec.joined) and FormatDay(rec.joined) or (oldest and ("before " .. FormatDay(oldest)) or "")
+        local daysIn = (rec and rec.joined) and string.format("%.1f", (now - rec.joined) / DAY) or ""
         local promoted = (rec and rec.promoted) and FormatDay(rec.promoted) or ""
-        lines[#lines + 1] = table.concat({ U.GuildName(m.guildId), m.name, m.rankName, since, daysAt, promoted,
+        lines[#lines + 1] = table.concat({ U.GuildName(m.guildId), m.name, m.rankName, joined, daysIn, since, daysAt, promoted,
             m.online and "online" or FormatDay(m.lastOnline), string.format("%.1f", m.offlineSecs / DAY), OneLine(m.note) }, "\t")
     end
     return lines
@@ -599,17 +651,22 @@ function Members:InactiveTabRows()
 end
 
 function Members:InactiveTabExportLines()
-    local lines = { "Guild\tMember\tRank\tLast online\tDays offline\tLimit (days)\tNote" }
+    local lines = { "Guild\tMember\tRank\tLast online\tDays offline\tLimit (days)\tIn guild since\tDays in guild\tNote" }
+    local now = GetTimeStamp()
     for _, m in ipairs(self:GetVisibleInactive()) do
+        local rec = self:GetRankInfo(m.guildId, m.name)
+        local oldest = self.sv.oldest[m.guildId]
+        local joined = (rec and rec.joined) and FormatDay(rec.joined) or (oldest and ("before " .. FormatDay(oldest)) or "")
+        local daysIn = (rec and rec.joined) and string.format("%.1f", (now - rec.joined) / DAY) or ""
         lines[#lines + 1] = table.concat({ U.GuildName(m.guildId), m.name, m.rankName, FormatDay(m.lastOnline),
-            string.format("%.1f", m.offlineSecs / DAY), m.limitDays, OneLine(m.note) }, "\t")
+            string.format("%.1f", m.offlineSecs / DAY), m.limitDays, joined, daysIn, OneLine(m.note) }, "\t")
     end
     return lines
 end
 
 function Members:MembersTabSummary(membersTab)
     local guildId = self:GetGuildFilter()
-    return string.format("%s: %d members. Click a column header to sort. Rank dates come from roster history; hover a row for the full note.",
+    return string.format("%s: %d members. Click a column header to sort. Join and rank dates come from roster history; hover a row for the full note.",
         guildId and U.GuildName(guildId) or "All guilds", #self:GetVisibleMembers(membersTab.searchText))
 end
 
@@ -634,7 +691,7 @@ function Members:RegisterTabs()
     membersTab = {
         id = "members",
         title = function() return self:GetMembersTitle(membersTab.searchText) end,
-        tip = "Everyone in your guilds: rank, time at rank, last promotion, last online and note.",
+        tip = "Everyone in your guilds: rank, time in guild, time at rank, last online and note. Hover a row for their last promotion.",
         searchable = true,
         columns = function() return self:GetColumns() end,
         sortKey = function() return self.sv.filter.sort, self.sv.filter.desc end,

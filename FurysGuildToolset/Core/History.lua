@@ -57,7 +57,8 @@ local function CollectStreams()
                 local stream = StreamKey(reader, category)
                 if not subscribers[stream] then
                     subscribers[stream] = {}
-                    wanted[#wanted + 1] = { reader = reader, category = category, stream = stream }
+                    -- readAll: on first use, read everything LibHistoire has saved, not just the look-back period.
+                    wanted[#wanted + 1] = { reader = reader, category = category, stream = stream, readAll = module.historyReadAll }
                 end
                 table.insert(subscribers[stream], module)
             end
@@ -151,7 +152,8 @@ function History:StartProcessor(lib, guildId, def)
     if def.reader ~= MAIN_READER then key = def.reader .. ":" .. key end
     if cursors[key] then
         processor:SetAfterEventId(cursors[key])
-    else
+    elseif not def.readAll then
+        -- A reader with readAll sets no start, so LibHistoire starts at the oldest event it has.
         local lookback = (GT.sv.firstRunLookbackDays or 30) * 86400
         processor:SetAfterEventTime(GetTimeStamp() - lookback)
     end

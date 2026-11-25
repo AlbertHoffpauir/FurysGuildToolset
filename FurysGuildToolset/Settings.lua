@@ -135,8 +135,8 @@ function Settings:Build()
 
     local options = {
         { type = "description", text = "Type /gt to open the report window. Alerts appear in chat and on screen while you play, and a summary appears at login." },
-        { type = "slider", name = "First run: look back (days)", min = 1, max = 30, step = 1,
-          tooltip = "How far back to scan the first time a guild is checked. Later logins pick up where the last session stopped.",
+        { type = "slider", name = "First run: look back (days)", min = 1, max = 365, step = 1,
+          tooltip = "How far back to scan the first time a guild is checked (up to what LibHistoire has saved). Later logins pick up where the last session stopped, so changing it only affects guilds the toolset has not read yet. The Members tab always reads all saved roster history.",
           getFunc = function() return GT.sv.firstRunLookbackDays end, setFunc = function(v) GT.sv.firstRunLookbackDays = v end, default = 30 },
         { type = "button", name = "Rescan alerts", width = "half",
           tooltip = "Rebuilds bank alerts and the hopper report from the History log using the settings below. No reload needed. Use it after changing thresholds or ignored ranks.",
