@@ -292,6 +292,13 @@ function Setup:TabRows()
     rows[#rows + 1] = Heading("Step 2: features", "Click the ones you want. Hover a row for more, right-click it for its tab and its settings.")
     for _, feature in ipairs(FEATURES) do rows[#rows + 1] = self:FeatureRow(feature) end
     rows[#rows + 1] = Heading("Step 3: reload", "If anything says \"after reload\", click Reload to apply below. Then each guild's limits are on the Guild rules page.")
+    -- 1.31.2: the other Fury addons, the same lines as in every Fury addon (Theme.lua).
+    rows[#rows + 1] = Heading(GT.Theme.MORE_TITLE, GT.Theme.MORE_FOOT .. " Click one for its ESOUI page.")
+    for _, entry in ipairs(GT.Theme.More()) do
+        local function Open() RequestOpenUnsafeURL(entry.url) end
+        rows[#rows + 1] = { cells = { "", entry.short, "|cB4B0D8" .. entry.name .. ": " .. entry.about .. "|r" }, OnClick = Open,
+            tooltip = "Click to open the ESOUI page of " .. entry.name .. " in your web browser. The game asks first." }
+    end
     return rows
 end
 

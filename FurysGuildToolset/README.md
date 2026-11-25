@@ -16,7 +16,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.31.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.31.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.31.2.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.31.2.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -366,6 +366,14 @@ Addons only run while you're logged in. Anything that happened while you were aw
 
 **Can my rank use the menus?**  
 The menus do what the game lets your rank do. If your rank can't demote, kick or invite in that guild, the game won't allow it.
+
+## More from Fury
+
+- [Fury's Character Tracker](https://www.esoui.com/downloads/info5078.html): every character on one board: skill lines, crafting, research, daily writs, wallet and gear.
+- [Fury's Inventory Ledger](https://www.esoui.com/downloads/info5099.html): every item you own in one list, across all your characters, the bank and your houses, with export to Excel.
+- [Fury's Account Sync](https://www.esoui.com/downloads/info5106.html): make your other accounts on this PC match your main one: settings, keybinds, addon settings and builds.
+
+All free on ESOUI and in Minion.
 
 ## Credits
 

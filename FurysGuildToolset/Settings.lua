@@ -155,6 +155,7 @@ function Settings:Build()
     options[#options + 1] = { type = "description", text = "Each guild's bank limits, ignored ranks, mail texts, auto-demote, inactivity limits, hopper and bank space settings are on their own page: \"Fury's Guild Management Toolset - Guild rules\" in the Add-Ons list." }
     options[#options + 1] = { type = "button", name = "Open Guild rules settings", width = "half",
         tooltip = "Opens the Guild rules settings page.", func = function() self:OpenRules() end }
+    GT.Theme.MoreOptions(options)   -- 1.31.2: the other Fury addons, at the very end
     LAM:RegisterOptionControls("FurysGuildToolset_Settings", options)
 end
 
