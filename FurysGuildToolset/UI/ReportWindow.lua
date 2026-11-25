@@ -163,7 +163,9 @@ function Report:Initialize()
     self.summary = FurysGuildToolset_ReportSummary
     self.search = FurysGuildToolset_ReportSearch
     self.searchBox = FurysGuildToolset_ReportSearchBox
-    FurysGuildToolset_ReportVersion:SetText("v" .. GT.version)
+    -- 1.31.1: the version sits in the title itself, the same way in every Fury addon (Theme.lua).
+    GT.Theme.SetTitle(FurysGuildToolset_Report, "Fury's Guild Management Toolset", GT.version)
+    FurysGuildToolset_ReportVersion:SetText("")
     -- 1.27.0: a top line too long for the window ends in "..." and shows in full on hover.
     self.summary:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
     self.summary:SetMouseEnabled(true)
@@ -259,6 +261,7 @@ function Report:Initialize()
     local perRow = math.ceil(shownTabs / rows)
     local width = math.min(180, math.floor((1160 - 4 * (perRow - 1)) / perRow))
     FurysGuildToolset_ReportTabs:SetHeight(32 * rows)
+    GT.Theme.TabLine("FurysGuildToolset_ReportTabsLine", FurysGuildToolset_ReportTabs)
     if rows > 1 then FurysGuildToolset_Report:SetHeight(600 + 32 * (rows - 1)) end
     -- tabButtons[i] belongs to tabs[i]; a hidden tab has none.
     local previous
@@ -266,7 +269,8 @@ function Report:Initialize()
     for i, tab in ipairs(self.tabs) do
         if not tab.hidden then
             slot = slot + 1
-            local button = WINDOW_MANAGER:CreateControlFromVirtual("FurysGuildToolset_ReportTab" .. i, FurysGuildToolset_ReportTabs, "ZO_DefaultButton")
+            -- 1.31.1: Fury tabs (Theme.lua): words with a violet line under the tab you are on.
+            local button = GT.Theme.Tab("FurysGuildToolset_ReportTab" .. i, FurysGuildToolset_ReportTabs)
             button:SetDimensions(width, 28)
             if (slot - 1) % perRow ~= 0 then
                 button:SetAnchor(TOPLEFT, previous, TOPRIGHT, 4, 0)
@@ -291,7 +295,7 @@ function Report:Initialize()
     if self:GetTab(START_TAB) then
         local start = WINDOW_MANAGER:CreateControlFromVirtual("FurysGuildToolset_ReportStart", FurysGuildToolset_Report, "ZO_DefaultButton")
         start:SetDimensions(110, 28)
-        start:SetAnchor(LEFT, FurysGuildToolset_ReportVersion, RIGHT, 14, 0)
+        start:SetAnchor(LEFT, FurysGuildToolset_ReportTitle, RIGHT, 14, 0)
         start:SetDrawLayer(DL_CONTROLS)
         start:SetDrawLevel(1)
         start:SetText("Start here")
@@ -510,7 +514,7 @@ function Report:Refresh()
             local title = Resolve(tab.title)
             if tab.GetOffText and tab.GetOffText() then title = "|c8A86B0" .. title .. "|r" end
             button:SetText(title)
-            button:SetEnabled(tab.id ~= self.currentTab)
+            GT.Theme.TabActive(button, tab.id == self.currentTab)
         end
     end
     if self.startButton then self.startButton:SetEnabled(self.currentTab ~= START_TAB) end

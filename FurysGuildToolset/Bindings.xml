@@ -1,6 +1,6 @@
 <Bindings>
     <Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
-        <Category name="Fury's Guild Management">
+        <Category name="Fury's Guild Management Toolset">
             <Action name="FURYGMT_REPORT">
                 <Down>FurysGuildToolset.Report:Toggle()</Down>
             </Action>

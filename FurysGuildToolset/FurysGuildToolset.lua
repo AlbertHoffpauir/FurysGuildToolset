@@ -6,7 +6,8 @@ local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.31.0"
+GT.version = "1.31.1"
+GT.website = "https://www.esoui.com/downloads/info5063.html"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -291,7 +292,7 @@ function GT.RegisterSlashCommands()
         elseif arg == "settings" then
             GT.Settings:Open()
         else
-            GT.Util.Print("Fury's Guild Management Toolset v%s", GT.version)
+            GT.Util.Print("Fury's Guild Management Toolset v%s commands:", GT.version)
             GT.Util.Print("/gt  open the report window")
             GT.Util.Print("/gt start  open the Start here page: pick your guilds and turn features on or off")
             -- No "|" here: ESO treats it as a text-formatting character and hides it.

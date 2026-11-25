@@ -73,7 +73,7 @@ local function TryReminder()
         GC.Say("Reminder: next rotation message loaded into chat. Press Enter to send.")
         GC.Post()
     else
-        ZO_Alert(UI_ALERT_CATEGORY_ALERT, SOUNDS.NEW_NOTIFICATION, "Fury's Guild Crier: time for a guild message!")
+        ZO_Alert(UI_ALERT_CATEGORY_ALERT, SOUNDS.NEW_NOTIFICATION, "Guild Crier: time for a guild message!")
         GC.Say("Time for a guild message! Use your rotation key or /crier next.")
     end
 end
@@ -600,10 +600,11 @@ function GC.InitSettings()
         EVENT_MANAGER:UnregisterForEvent(GC.name .. "Settings", EVENT_PLAYER_ACTIVATED)
         panel = LAM:RegisterAddonPanel("FurysGuildToolset_CrierPanel", {
             type = "panel",
-            name = "Fury's Guild Management - Crier",
+            name = "Fury's Guild Management Toolset - Crier",
             displayName = "|cA08CFFFury's Guild Management Toolset: Guild Crier|r",
             author = "Furyous",
             version = GT.version,
+            website = GT.website,
             registerForRefresh = true,
         })
         LAM:RegisterOptionControls("FurysGuildToolset_CrierPanel", BuildOptions())

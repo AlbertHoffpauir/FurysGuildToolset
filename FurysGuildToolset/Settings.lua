@@ -3,7 +3,7 @@ local U = GT.Util
 local Settings = {}
 GT.Settings = Settings
 
--- 1.10.0: big sections have settings pages of their own ("Fury's Guild Management - <title>"),
+-- 1.10.0: big sections have settings pages of their own ("Fury's Guild Management Toolset - <title>"),
 -- like the Crier, so the main page stays short. The main page keeps a small section with a
 -- button that opens each one. Only where the controls are shown changes; the saved settings
 -- stay the same.
@@ -12,10 +12,11 @@ function Settings:AddPage(id, title, controls, withDefaults)
     local name = "FurysGuildToolset_" .. id .. "Panel"
     local panel = LAM:RegisterAddonPanel(name, {
         type = "panel",
-        name = "Fury's Guild Management - " .. title,
+        name = "Fury's Guild Management Toolset - " .. title,
         displayName = "|cA08CFFFury's Guild Management Toolset: " .. title .. "|r",
         author = "Furyous",
         version = GT.version,
+        website = GT.website,
         registerForRefresh = true,
         registerForDefaults = withDefaults,
     })
@@ -81,7 +82,7 @@ function Settings:AppendGuildRules(options)
         if GT:IsAlertGuild(guildId) then monitored[#monitored + 1] = guildId end
     end
     if #monitored == 0 then
-        options[#options + 1] = { type = "description", text = "Tick at least one guild under Guilds to get alerts from (on the main Fury's Guild Management settings page), then reload, to set its rules here." }
+        options[#options + 1] = { type = "description", text = "Tick at least one guild under Guilds to get alerts from (on the main Fury's Guild Management Toolset settings page), then reload, to set its rules here." }
         return
     end
     options[#options + 1] = { type = "description",
@@ -123,10 +124,11 @@ function Settings:Build()
     local LAM = LibAddonMenu2
     local panelData = {
         type = "panel",
-        name = "Fury's Guild Management",
+        name = "Fury's Guild Management Toolset",
         displayName = "|cA08CFFFury's Guild Management Toolset|r",
         author = "Furyous",
         version = GT.version,
+        website = GT.website,
         slashCommand = "/gtsettings",
         registerForRefresh = true,
         registerForDefaults = true,
@@ -134,7 +136,7 @@ function Settings:Build()
     self.panel = LAM:RegisterAddonPanel("FurysGuildToolset_Settings", panelData)
 
     local options = {
-        { type = "description", text = "Type /gt to open the report window. Its Start here button (next to the version number) sets up your guilds and features in one place; the pages here have the details. Alerts appear in chat and on screen while you play, and a summary appears at login." },
+        { type = "description", text = "Type /gt to open the report window. Its Start here button (next to the window title) sets up your guilds and features in one place; the pages here have the details. Alerts appear in chat and on screen while you play, and a summary appears at login." },
         { type = "slider", name = "First run: look back (days)", min = 1, max = 365, step = 1,
           tooltip = "How far back to scan the first time a guild is checked (up to what LibHistoire has saved). Later logins pick up where the last session stopped, so changing it only affects guilds the toolset has not read yet. The Members tab always reads all saved roster history.",
           getFunc = function() return GT.sv.firstRunLookbackDays end, setFunc = function(v) GT.sv.firstRunLookbackDays = v end, default = 30 },
@@ -150,7 +152,7 @@ function Settings:Build()
     self:AppendGuildRules(rules)
     self.rulesPanel = self:AddPage("Rules", "Guild rules", rules, true)
     options[#options + 1] = { type = "header", name = "Rules for each guild" }
-    options[#options + 1] = { type = "description", text = "Each guild's bank limits, ignored ranks, mail texts, auto-demote, inactivity limits, hopper and bank space settings are on their own page: \"Fury's Guild Management - Guild rules\" in the Add-Ons list." }
+    options[#options + 1] = { type = "description", text = "Each guild's bank limits, ignored ranks, mail texts, auto-demote, inactivity limits, hopper and bank space settings are on their own page: \"Fury's Guild Management Toolset - Guild rules\" in the Add-Ons list." }
     options[#options + 1] = { type = "button", name = "Open Guild rules settings", width = "half",
         tooltip = "Opens the Guild rules settings page.", func = function() self:OpenRules() end }
     LAM:RegisterOptionControls("FurysGuildToolset_Settings", options)

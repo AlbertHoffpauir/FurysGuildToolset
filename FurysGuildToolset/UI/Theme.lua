@@ -130,3 +130,152 @@ end
 function T.RowHover(row, on)
     row:GetNamedChild("Highlight"):SetHidden(not on)
 end
+
+------------------------------------------------------------------------------
+-- The same window header in every Fury addon, as in the Guild Toolset:
+--   [glyph] Title  v1.2.3  [Start here]  . . .  [search]  [gear]  [X]
+-- The version sits right after the title in muted violet, Start here right after the version,
+-- the settings gear left of the close button, and every one of them has a hover tip.
+------------------------------------------------------------------------------
+T.VERSION_COLOR = "|c8A86B0"
+
+-- "Fury's Something  v1.2.3", the version muted.
+function T.TitleText(text, version)
+    return text .. "  " .. T.VERSION_COLOR .. "v" .. version .. "|r"
+end
+
+-- Sets a window's title with its version. `name` is the Title label's child name (default "Title").
+function T.SetTitle(win, text, version, name)
+    win:GetNamedChild(name or "Title"):SetText(T.TitleText(text, version))
+end
+
+local function ShowTip(control, text)
+    if not text or text == "" then return end
+    InitializeTooltip(InformationTooltip, control, BOTTOM, 0, -4)
+    SetTooltipText(InformationTooltip, text)
+end
+local function HideTip()
+    ClearTooltip(InformationTooltip)
+end
+T.ShowTip, T.HideTip = ShowTip, HideTip
+
+-- A hover tip on any control. `tip` is a text, or a function that returns one when the mouse comes in.
+function T.Tip(control, tip)
+    control:SetHandler("OnMouseEnter", function(self)
+        if type(tip) == "function" then ShowTip(self, tip()) else ShowTip(self, tip) end
+    end)
+    control:SetHandler("OnMouseExit", HideTip)
+end
+
+-- The close button's tip, the same words everywhere.
+function T.CloseTip(button, text)
+    T.Tip(button, text or "Close (Esc)")
+end
+
+-- The settings gear, left of `anchorTo` (normally the close button).
+function T.Gear(win, anchorTo, onClick, tip)
+    local gear = WINDOW_MANAGER:CreateControl(win:GetName() .. "Gear", win, CT_BUTTON)
+    gear:SetDimensions(32, 32)
+    gear:SetAnchor(RIGHT, anchorTo, LEFT, -10, 0)
+    gear:SetNormalTexture("/esoui/art/chatwindow/chat_options_up.dds")
+    gear:SetPressedTexture("/esoui/art/chatwindow/chat_options_down.dds")
+    gear:SetMouseOverTexture("/esoui/art/chatwindow/chat_options_over.dds")
+    gear:SetHandler("OnClicked", onClick)
+    T.Tip(gear, tip)
+    return gear
+end
+
+-- The Start here button, right after the title and its version.
+function T.StartButton(win, onClick, tip, title)
+    local start = WINDOW_MANAGER:CreateControlFromVirtual(win:GetName() .. "StartHere", win, "ZO_DefaultButton")
+    start:SetDimensions(110, 28)
+    start:SetAnchor(LEFT, title or win:GetNamedChild("Title"), RIGHT, 14, 0)
+    start:SetDrawLayer(DL_CONTROLS)
+    start:SetDrawLevel(1)
+    start:SetText("Start here")
+    start:SetHandler("OnClicked", onClick)
+    T.Tip(start, tip)
+    return start
+end
+
+------------------------------------------------------------------------------
+-- Tabs: bold lavender words, white on hover, and the tab you are on is white with a violet
+-- line under it. A tab is a plain button, so SetText, SetEnabled and OnClicked work as usual;
+-- call T.TabActive to mark the one you are on.
+------------------------------------------------------------------------------
+T.FONT_TAB = "$(BOLD_FONT)|16|soft-shadow-thin"
+
+function T.Tab(name, parent)
+    local tab = WINDOW_MANAGER:CreateControl(name, parent, CT_BUTTON)
+    tab:SetFont(T.FONT_TAB)
+    tab:SetNormalFontColor(T.SUB:UnpackRGBA())
+    tab:SetMouseOverFontColor(T.TEXT:UnpackRGBA())
+    tab:SetPressedFontColor(T.TEXT:UnpackRGBA())
+    tab:SetDisabledFontColor(T.TEXT:UnpackRGBA())
+    local line = T.Rect(name .. "Line", tab, T.VIOLET, DL_CONTROLS, 2)
+    line:SetAnchor(BOTTOMLEFT, tab, BOTTOMLEFT, 4, 0)
+    line:SetAnchor(BOTTOMRIGHT, tab, BOTTOMRIGHT, -4, 0)
+    line:SetHeight(3)
+    line:SetHidden(true)
+    tab.furyLine = line
+    return tab
+end
+
+function T.TabActive(tab, active)
+    tab:SetEnabled(not active)
+    tab.furyLine:SetHidden(not active)
+end
+
+-- The thin indigo line the tabs sit on.
+function T.TabLine(name, tabs)
+    local line = T.Rect(name, tabs:GetParent(), T.EDGE, DL_BACKGROUND, 2)
+    line:SetAnchor(TOPLEFT, tabs, BOTTOMLEFT, 0, 1)
+    line:SetAnchor(TOPRIGHT, tabs, BOTTOMRIGHT, 0, 1)
+    line:SetHeight(1)
+    return line
+end
+
+------------------------------------------------------------------------------
+-- Start here page: a window (from the addon's StartHere.xml) with numbered sections.
+-- sections = { { title = "1. ...", lines = { "...", "..." } }, ... }
+------------------------------------------------------------------------------
+function T.FillStartPage(win, intro, sections)
+    local child = win:GetNamedChild("Body"):GetNamedChild("ScrollChild")
+    local width = win:GetWidth() - 64
+    local prefix = win:GetName() .. "Line"
+    local index, previous = 0, nil
+    local function Add(text, font, color, gap)
+        index = index + 1
+        local label = WINDOW_MANAGER:GetControlByName(prefix .. index) or WINDOW_MANAGER:CreateControl(prefix .. index, child, CT_LABEL)
+        label:SetWidth(width)
+        label:SetFont(font)
+        Paint(label, color)
+        label:SetText(text)
+        label:ClearAnchors()
+        if previous then
+            label:SetAnchor(TOPLEFT, previous, BOTTOMLEFT, 0, gap)
+        else
+            label:SetAnchor(TOPLEFT, child, TOPLEFT, 0, 0)
+        end
+        previous = label
+    end
+    if intro then Add(intro, "ZoFontGame", T.SUB, 0) end
+    for _, section in ipairs(sections) do
+        Add(section.title, T.FONT_SECTION, T.BLUE, previous and 16 or 0)
+        for _, line in ipairs(section.lines) do
+            Add(line, "ZoFontGame", T.TEXT, 6)
+        end
+    end
+end
+
+-- Opens a Start here page. The first time, it is painted, filled and registered so Esc closes it.
+function T.StartPage(win, intro, sections)
+    if not win.furyReady then
+        win.furyReady = true
+        T.Window(win)
+        T.CloseTip(win:GetNamedChild("Close"))
+        T.FillStartPage(win, intro, sections)
+        SCENE_MANAGER:RegisterTopLevel(win, false)
+    end
+    SCENE_MANAGER:ShowTopLevel(win)
+end

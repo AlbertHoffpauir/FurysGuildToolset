@@ -14,7 +14,7 @@ end
 
 function U.Print(fmt, ...)
     local text = select("#", ...) > 0 and string.format(fmt, ...) or fmt
-    local line = "|cA08CFF[Fury GMT]|r " .. text
+    local line = "|cA08CFF[Guild Toolset]|r " .. text
     CHAT_ROUTER:AddSystemMessage(line)
 end
 

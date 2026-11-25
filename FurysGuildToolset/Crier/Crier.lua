@@ -16,7 +16,7 @@ ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_CRIER_POST", "Guild Crier: post next 
 ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_REPORT", "Open/close the report window")
 
 local MAX_CHAT = 350
-local PREFIX = "|cA08CFF[Fury's Guild Crier]|r "
+local PREFIX = "|cA08CFF[Guild Crier]|r "
 
 -- Fury Night colors (UI/Theme.lua): violet section heads, blue on hover
 local GOLD      = { 0.627, 0.549, 1.000, 1 }   -- violet A08CFF
@@ -484,14 +484,14 @@ local function ShowList()
 end
 
 local function ShowHelp()
-    Say("Commands:")
-    d("  /crier - open/close the message menu")
-    d("  /crier next - load the next rotation message")
-    d("  /crier guild <1-5> - which guild to post to")
-    d("  /crier list - show all messages, categories and rotation share")
-    d("  /crier reset - restart the rotation")
-    d("  /crier settings - open the settings panel")
-    d("  Keybinds: Controls > Keybindings > Fury's Guild Crier")
+    Say("Guild Crier commands (part of Fury's Guild Management Toolset v" .. GT.version .. "):")
+    Say("/crier  open or close the message menu")
+    Say("/crier next  load the next rotation message")
+    Say("/crier guild 1-5  which guild to post to")
+    Say("/crier list  show all messages, categories and rotation share")
+    Say("/crier reset  restart the rotation")
+    Say("/crier settings  open the settings")
+    Say("Keys: Controls > Keybindings > Fury's Guild Management Toolset")
 end
 
 local function Slash(args)
@@ -650,7 +650,7 @@ function module:BuildSettings(options)
     options[#options + 1] = { type = "submenu", name = "Guild Crier", controls = {
         { type = "description", text = function()
             if not GC.active then return PAUSED_TEXT end
-            return "The crier's messages, rotation and reminder have their own settings page: \"Fury's Guild Management - Crier\" in the Add-Ons list. Open the message menu with /crier, /gt crier, the Crier tab in /gt, or a keybind (Controls > Keybindings > Fury's Guild Management)."
+            return "The crier's messages, rotation and reminder have their own settings page: \"Fury's Guild Management Toolset - Crier\" in the Add-Ons list. Open the message menu with /crier, /gt crier, the Crier tab in /gt, or a keybind (Controls > Keybindings > Fury's Guild Management Toolset)."
         end },
         { type = "button", name = "Open Crier settings", width = "half",
           tooltip = "Opens the Crier's own settings page for messages, rotation and reminder.",

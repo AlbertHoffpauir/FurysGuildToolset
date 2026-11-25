@@ -42,7 +42,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Getting started[/B][/COLOR][/FONT][/SIZE]
 [LIST=1]
 [*]Install [B]LibHistoire[/B] and [B]LibAddonMenu-2.0[/B] (see Requires above). The addon won't load without them.
-[*]Log in and type [FONT="Courier New"][B]/gt[/B][/FONT]. On a new install the window opens on the [B]Start here[/B] page (later: the [B]Start here[/B] button next to the version number, or [FONT="Courier New"][B]/gt start[/B][/FONT]).
+[*]Log in and type [FONT="Courier New"][B]/gt[/B][/FONT]. On a new install the window opens on the [B]Start here[/B] page (later: the [B]Start here[/B] button next to the window title, or [FONT="Courier New"][B]/gt start[/B][/FONT]).
 [*]Click the guilds you look after (step 1 on the page). Bank, hopper, inactivity and bank space alerts only happen in these.
 [*]Click the features you want (step 2). Each row says what the feature does; hover it for more, right-click it for its tab and its settings.
 [*]If a row says "after reload", click [B]Reload to apply[/B] (step 3).
@@ -65,8 +65,8 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [/LIST]
 [COLOR="#A08CFF"][B]The settings pages[/B][/COLOR]
 [LIST]
-[*]Esc > Settings > Add-Ons, or [FONT="Courier New"][B]/gtsettings[/B][/FONT]. There are six pages, all starting with "Fury's Guild Management":
-[*][B]Fury's Guild Management[/B] (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
+[*]Esc > Settings > Add-Ons, or [FONT="Courier New"][B]/gtsettings[/B][/FONT]. There are six pages, all starting with "Fury's Guild Management Toolset":
+[*][B]Fury's Guild Management Toolset[/B] (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
 [*][B]- Guild rules:[/B] a [B]Rules for (guild)[/B] section for each ticked guild.
 [*][B]- Recruiting[/B], [B]- Raffle[/B], [B]- Events[/B] and [B]- Crier:[/B] everything for those features.
 [/LIST]
@@ -84,7 +84,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [/LIST]
 [COLOR="#A08CFF"][B]Keybinds[/B][/COLOR]
 [LIST]
-[*]Controls > Keybindings > Fury's Guild Management: open or close the report window, open or close the Crier menu, post the next Crier message, put the zone ad in chat, start or stop the zone tour, and travel to the next ready zone.
+[*]Controls > Keybindings > Fury's Guild Management Toolset: open or close the report window, open or close the Crier menu, post the next Crier message, put the zone ad in chat, start or stop the zone tour, and travel to the next ready zone.
 [/LIST]
 
 [SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Bank alerts[/B][/COLOR][/FONT][/SIZE]

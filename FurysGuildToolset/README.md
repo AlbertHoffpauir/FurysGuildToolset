@@ -1,14 +1,6 @@
-# Fury's Guild Management Toolset (ESO addon) v1.31.0
+# Fury's Guild Management Toolset
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
-
-**Credits:**
-
-- Guild history is read through **LibHistoire** by sirinsidiator (Artistic License 2.0).
-- Settings pages use **LibAddonMenu-2.0** by Seerah and sirinsidiator.
-- Game API details from the ESOUI wiki and ZeniMax's ESO UI source code.
-- Thanks to Dack for code review feedback on how guild history should be read.
-- The Guild Crier started as my own separate addon, "Fury's Guild Crier", and is now part of this toolset.
 
 *Bank, roster, trader, recruiting, raffles and events. One window, your rules.*
 
@@ -24,14 +16,14 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.31.0.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.31.0.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.31.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.31.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
 ## Getting started
 
 1. Install **LibHistoire** and **LibAddonMenu-2.0** (see Requires above). The addon won't load without them.
-2. Log in and type `/gt`. On a new install the window opens on the **Start here** page (later: the **Start here** button next to the version number, or `/gt start`).
+2. Log in and type `/gt`. On a new install the window opens on the **Start here** page (later: the **Start here** button next to the window title, or `/gt start`).
 3. Click the guilds you look after (step 1 on the page). Bank, hopper, inactivity and bank space alerts only happen in these.
 4. Click the features you want (step 2). Each row says what the feature does; hover it for more, right-click it for its tab and its settings.
 5. If a row says "after reload", click **Reload to apply** (step 3).
@@ -54,8 +46,8 @@
 
 ### The settings pages
 
-- Esc > Settings > Add-Ons, or `/gtsettings`. There are six pages, all starting with "Fury's Guild Management":
-- **Fury's Guild Management** (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
+- Esc > Settings > Add-Ons, or `/gtsettings`. There are six pages, all starting with "Fury's Guild Management Toolset":
+- **Fury's Guild Management Toolset** (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
 - **- Guild rules:** a **Rules for (guild)** section for each ticked guild.
 - **- Recruiting**, **- Raffle**, **- Events** and **- Crier:** everything for those features.
 
@@ -73,7 +65,7 @@
 
 ### Keybinds
 
-- Controls > Keybindings > Fury's Guild Management: open or close the report window, open or close the Crier menu, post the next Crier message, put the zone ad in chat, start or stop the zone tour, and travel to the next ready zone.
+- Controls > Keybindings > Fury's Guild Management Toolset: open or close the report window, open or close the Crier menu, post the next Crier message, put the zone ad in chat, start or stop the zone tour, and travel to the next ready zone.
 
 ## Bank alerts
 
@@ -374,6 +366,14 @@ Addons only run while you're logged in. Anything that happened while you were aw
 
 **Can my rank use the menus?**  
 The menus do what the game lets your rank do. If your rank can't demote, kick or invite in that guild, the game won't allow it.
+
+## Credits
+
+- Guild history is read through **LibHistoire** by sirinsidiator (Artistic License 2.0).
+- Settings pages use **LibAddonMenu-2.0** by Seerah and sirinsidiator.
+- Game API details from the ESOUI wiki and ZeniMax's ESO UI source code.
+- Thanks to Dack for code review feedback on how guild history should be read.
+- The Guild Crier started as my own separate addon, "Fury's Guild Crier", and is now part of this toolset.
 
 Bug reports and ideas are welcome in the comments on ESOUI.
 

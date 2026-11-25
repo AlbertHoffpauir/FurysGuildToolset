@@ -1920,11 +1920,11 @@ function Raffle:SetPrice(r, text)
     self:PrintWarnings(r)
 end
 
--- The raffle settings have a page of their own, "Fury's Guild Management - Raffle" (1.8.1),
+-- The raffle settings have a page of their own, "Fury's Guild Management Toolset - Raffle" (1.8.1),
 -- which New raffle and Raffle settings open. Since 1.10.0 the main page only points to it.
 function Raffle:BuildSettings(options)
     self.panel = GT.Settings:AddPage("Raffle", "Raffle", self:SettingsControls(), false)
-    GT.Settings:AddPointer(options, "Raffle", "Turning the raffle on, prizes, ticket price, sale times and running several raffles are on their own page: \"Fury's Guild Management - Raffle\" in the Add-Ons list. The Raffle settings button on the Raffle tab (/gt raffle) opens it too.",
+    GT.Settings:AddPointer(options, "Raffle", "Turning the raffle on, prizes, ticket price, sale times and running several raffles are on their own page: \"Fury's Guild Management Toolset - Raffle\" in the Add-Ons list. The Raffle settings button on the Raffle tab (/gt raffle) opens it too.",
         function() self:OpenSettings() end)
 end
 

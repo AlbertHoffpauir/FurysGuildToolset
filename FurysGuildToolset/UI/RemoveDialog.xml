@@ -14,6 +14,8 @@
                 <Button name="$(parent)Close" inherits="ZO_CloseButton">
                     <Anchor point="TOPRIGHT" offsetX="-12" offsetY="16" />
                     <OnClicked>FurysGuildToolset.Actions.CloseRemoveDialog()</OnClicked>
+                    <OnMouseEnter>FurysGuildToolset.Report.ShowTip(self, "Close without doing anything (Esc)")</OnMouseEnter>
+                    <OnMouseExit>FurysGuildToolset.Report.HideTip()</OnMouseExit>
                 </Button>
                 <Label name="$(parent)Title" font="ZoFontWinH2" color="FFA45C" horizontalAlignment="CENTER">
                     <Dimensions x="540" />
