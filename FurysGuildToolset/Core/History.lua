@@ -98,7 +98,7 @@ function History:PrepareBackfill()
         end
     end
     local log = GT:GetModule("log")
-    self.logCountBefore = #log.sv.entries
+    self.logCountBefore = #log.entries
 end
 
 function History:IsOtherReaderKey(key)
@@ -116,7 +116,7 @@ function History:MaybeFinishBackfill()
     self.backfill = false
     GT.sv.historyBackfill = BACKFILL_VERSION
     local log = GT:GetModule("log")
-    local added = #log.sv.entries - (self.logCountBefore or #log.sv.entries)
+    local added = #log.entries - (self.logCountBefore or #log.entries)
     GT.Util.Print("History check done: %d %s the addon had missed %s now in the History log.", added,
         added == 1 and "event" or "events", added == 1 and "is" or "are")
     GT:Rescan()

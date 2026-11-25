@@ -1241,6 +1241,11 @@ function Events:RegisterTab()
         title = function() return self:TabTitle() end,
         tip = "Sign-ups from a sign-up sheet in Discord (sesh or any guild's own), checked against who is in your group: who is missing, open slots, invites, guild ads and a Group Finder listing.",
         GetOffText = function() return GT:FeatureOffText(self.sv.enabled, "Events") end,
+        about = {
+            "Fills your guild events from Discord sign-ups: paste a sign-up sheet and see who is in your group, who is missing and which slots are open.",
+            "From here you can invite everyone who is online, advertise the open slots in guild chat and list the group in Group Finder.",
+        },
+        emptyText = "",   -- the top line already says how to paste a sheet
         GetSummary = function() return self:TabSummary() end,
         GetRows = function() return self:TabRows() end,
         columns = Events.columns,

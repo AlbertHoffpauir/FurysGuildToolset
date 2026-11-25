@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.26.9
+# Fury's Guild Management Toolset (ESO addon) v1.30.1
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -24,23 +24,27 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.26.9.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.26.9.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.30.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.30.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
 ## Getting started
 
 1. Install **LibHistoire** and **LibAddonMenu-2.0** (see Requires above). The addon won't load without them.
-2. Log in and type `/gtsettings`. Under **Guilds to get alerts from**, tick the guilds you look after, then reload when asked. (Only needed for the bank, member, hopper and bank space features.)
-3. On the same page, turn on the features you want. Each one has its own section below with what to turn on and where.
-4. Click **Open Guild rules settings** and set the rules for each ticked guild: bank limits, who to ignore, inactivity limits and so on. **Copy rules from** gives a guild the same rules as another in one click.
-5. Type `/gt` (or set a keybind) to open the report window. Each feature has its own tab.
+2. Log in and type `/gt`. On a new install the window opens on the **Start here** page (later: the **Start here** button next to the version number, or `/gt start`).
+3. Click the guilds you look after (step 1 on the page). Bank, hopper, inactivity and bank space alerts only happen in these.
+4. Click the features you want (step 2). Each row says what the feature does; hover it for more, right-click it for its tab and its settings.
+5. If a row says "after reload", click **Reload to apply** (step 3).
+6. Click **Guild rules** and set the rules for each of your guilds: bank limits, who to ignore, inactivity limits and so on. **Copy rules from** gives a guild the same rules as another in one click.
+7. Each feature has its own tab. A tab with nothing to list yet tells you what it is for. Everything on the Start here page is also in the settings (`/gtsettings`), with more detail.
 
 ## Finding your way around
 
 ### The report window
 
 - `/gt` opens it; `/gt bank`, `/gt members`, `/gt raffle` and so on open a tab directly (see Commands).
+- The tabs are grouped by job: the top row is your people and your trader (Members, Inactive, Recruit, Events, Raffle, Trader, Member sales), the bottom row is the bank and the Crier (Bank alerts, Bank space, Bank hoppers, Watchlist, Auto, History, Crier).
+- A tab whose feature is turned off has a dimmed name. Open it for what it does and a **Set up** button that takes you to the **Start here** page.
 - **Right-click any row** for what you can do with it: whisper, mail, set rank, kick, dismiss and more. The line at the top of each tab reminds you.
 - To copy someone's @name, right-click their row > **Copy @name**. The name shows up selected in a small window; press Ctrl+C.
 - **Hover** over any button, tab, column header or row for a short tip or the full details.
@@ -58,6 +62,7 @@
 ### Commands
 
 - `/gt`: open or close the report window.
+- `/gt start`: open the Start here page (pick your guilds, turn features on or off).
 - `/gt bank`, `hoppers`, `watchlist`, `history`, `space`, `members`, `inactive`, `trader`, `sales`, `auto`, `recruit`, `raffle`, `events`, `crier`: open that tab.
 - `/gtsettings` (or `/gt settings`): open the settings.
 - `/gt tour`: start or stop the recruiting zone tour.
@@ -76,7 +81,7 @@ Catch members who take more from the guild bank than your rules allow.
 
 ### Turn it on
 
-- Tick your guilds under **Guilds to get alerts from**, then turn on **Guild bank alerts > Enable bank alerts** (main settings page).
+- On the **Start here** page, click your guilds and then **Bank alerts**, and reload. (The same switches are on the main settings page: **Guilds to get alerts from** and **Guild bank alerts > Enable bank alerts**.)
 - On the **Guild rules** page, set each guild's limits: warn, demote and kick at X stacks per day (0 = never). Demote starts at 50; warn and kick start turned off.
 - Add your bankers and restocking officers under **Ignore rank names** or **Ignore @names**. The top 2 ranks are ignored from the start.
 - Optional: **Watch gold withdrawals too** (warn 50,000, demote 200,000, kick 500,000 gold per day), counting items instead of stacks, or a rolling window of hours instead of midnight to midnight.
@@ -184,6 +189,7 @@ A searchable log of your guild banks and rosters.
 - `/gt history`: bank items, bank gold and roster events (joins, leaves, kicks, promotions, demotions, blacklist changes) for all your guilds.
 - Filter by type, time and guild, search by name or item, or see totals per member.
 - **Show: Bank items** marks every withdrawal as returned whole, returned partly or not returned, so you can see who took what and what came back.
+- The log is saved as one line per event, so even a full log keeps your saved file small. If you update from a version before 1.28.0, your log is moved over at your first login, every event is checked, and the old copy stays as a backup for 7 days (**History log and export > Remove the old log backup** removes it sooner).
 
 ## Bank space
 
@@ -274,11 +280,13 @@ Sell raffle tickets for gold and draw the winners. Works without a guild too, fo
 ### Run it
 
 - On the **Raffle** tab (`/gt raffle`), click **Start sales now** (or let your start time arrive). The tab counts down to the end.
-- **Announce in guild** puts the announcement in the guild chat box; **Text for Discord** gives you text to paste into Discord, with the tickets sold so far and one line per holder with their ticket numbers.
+- The top line keeps a running total: tickets sold, the number of buyers and the gold paid for them.
+- **Announce in guild** puts the announcement in the guild chat box; **Text for Discord** gives you text to paste into Discord, with one line per holder with their ticket numbers. Both include the running totals, and so do the winners posts.
 - Each deposit or mail buys its amount divided by the ticket price; the rest is dropped (with 1,000g tickets, 5,600g buys 5). Plain donations count too.
 - For mailed gold, open your mailbox: each gold mail is counted once and printed in chat. Open it once more after sales end.
+- Gold mailed to you counts for whoever mailed it. When you then put that gold in the guild bank, your deposit buys you no tickets until all the mailed gold is passed on: with 100,000g mailed to you and 101,000g deposited, 1,000g is yours. The top line shows what you have passed on and what you still hold.
 - Ticket numbers never change once someone has them. New tickets always get the next numbers after everyone else's, so someone who buys again later holds numbers spread through the list. Tickets you remove by hand take that person's highest numbers out of the draw.
-- Right-click a buyer to add or remove tickets, or leave them out of the draw. To give tickets to someone who hasn't bought any (a helper, say), right-click them on the **Members** tab and pick **Give raffle tickets...**. Every change is logged.
+- Right-click a buyer and pick **Add tickets...** or **Remove tickets...**, type how many, and confirm; or leave them out of the draw. To give tickets to someone who hasn't bought any (a helper, say), right-click them on the **Members** tab and pick **Give raffle tickets...**. Every change is logged.
 
 ### Draw the winners
 
@@ -354,7 +362,7 @@ Addons can't send chat messages. Press Enter to send it. Mails open filled in an
 Add their rank name or @name to the ignore lists in that guild's rules (Guild rules page), then type `/gt reset`.
 
 **I don't see a Rules for section for my guild.**  
-Tick the guild under Guilds to get alerts from (main settings page) and reload. The Rules for sections are on the Guild rules page.
+Turn the guild on in step 1 of the Start here page (or tick it under Guilds to get alerts from on the main settings page) and reload. The Rules for sections are on the Guild rules page.
 
 **Why is the Bank space tab empty?**  
 The game only shows how full a guild bank is while it's open. Open each guild bank once.

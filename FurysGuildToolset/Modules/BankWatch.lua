@@ -610,7 +610,7 @@ end
 
 function BankWatch:PrintStatus()
     local log = GT:GetModule("log")
-    local entries = log and log.sv and log.sv.entries or {}
+    local entries = log and log.entries or {}
     U.Print("Bank alerts (each guild has its own limits):")
 
     -- Item withdrawals per guild and member, oldest first.
@@ -965,7 +965,7 @@ function BankWatch:TabSummary()
     for _, guildId in ipairs(U.GetGuildIds()) do
         if GT:IsAlertGuild(guildId) then parts[#parts + 1] = U.GuildName(guildId) .. ": " .. self:DescribeLimits(guildId) end
     end
-    if #parts == 0 then return "No guild is ticked under Guilds to get alerts from (/gtsettings)." end
+    if #parts == 0 then return "" end   -- the tab says so itself (GT:FeatureOffText)
     return table.concat(parts, ".  ") .. ".  Stacks put back whole don't count. |c5EB8FFNEW|r = not seen yet. Hover a row for details."
 end
 
@@ -975,6 +975,12 @@ function BankWatch:RegisterTab()
             GetOffText = function() return GT:FeatureOffText(self.sv.enabled, "Bank alerts", true) end,
         tip = "People who took more from the guild bank than your limits allow.",
         title = function() return string.format("Bank alerts (%d new)", self:CountNew()) end,
+        about = {
+            "Lists members who took more from a guild bank in one day than your limits allow.",
+            "Right-click an alert to warn, demote or kick the member, or to dismiss it. Each one asks first; nothing is automatic unless you turn on auto-demote.",
+            "Stacks a member puts back whole don't count. Limits and who to ignore are set for each guild on the Guild rules settings page.",
+        },
+        emptyText = "No one is over your limits.",
         OnLeave = function() self:MarkShownSeen() end,
         GetSummary = function() return self:TabSummary() end,
         GetRows = function() return self:TabRows() end,

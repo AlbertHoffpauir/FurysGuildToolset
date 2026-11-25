@@ -134,7 +134,7 @@ function Settings:Build()
     self.panel = LAM:RegisterAddonPanel("FurysGuildToolset_Settings", panelData)
 
     local options = {
-        { type = "description", text = "Type /gt to open the report window. Alerts appear in chat and on screen while you play, and a summary appears at login." },
+        { type = "description", text = "Type /gt to open the report window. Its Start here button (next to the version number) sets up your guilds and features in one place; the pages here have the details. Alerts appear in chat and on screen while you play, and a summary appears at login." },
         { type = "slider", name = "First run: look back (days)", min = 1, max = 365, step = 1,
           tooltip = "How far back to scan the first time a guild is checked (up to what LibHistoire has saved). Later logins pick up where the last session stopped, so changing it only affects guilds the toolset has not read yet. The Members tab always reads all saved roster history.",
           getFunc = function() return GT.sv.firstRunLookbackDays end, setFunc = function(v) GT.sv.firstRunLookbackDays = v end, default = 30 },

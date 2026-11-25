@@ -934,7 +934,7 @@ end
 
 function Recruit:TabOffText()
     if self:AnyOn() then return nil end
-    return "Recruiting is turned off. Turn it on in /gtsettings under Recruiting."
+    return "Recruiting is turned off. Click Set up below, or turn it on in /gtsettings under Recruiting."
 end
 
 function Recruit:TabSummary()
@@ -1057,6 +1057,12 @@ function Recruit:RegisterTab()
         tip = "Recruiting: zone ad cooldowns, the zone tour, whisper leads and welcome mails waiting to be written.",
         title = function() return self:TabTitle() end,
         GetOffText = function() return self:TabOffText() end,
+        about = {
+            "Helps you advertise in zone chat: which zones are ready for an ad, a tour from zone to zone, and people who whispered you about joining.",
+            "An ad is put in your chat box and waits for your Enter. Nothing is posted by itself.",
+            "Welcome messages, welcome mails and whisper leads are turned on separately on the Recruiting settings page.",
+        },
+        emptyText = "No whisper leads or welcome mails are waiting.",
         GetSummary = function() return self:TabSummary() end,
         GetRows = function() return self:TabRows() end,
         footer = function() return self:TabFooter() end,

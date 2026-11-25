@@ -73,7 +73,7 @@ function Members:Initialize(sv)
     self.sv = sv
     -- Rank dates logged by the History tab before this module existed.
     local log = GT:GetModule("log")
-    for _, e in ipairs(log.sv.entries) do
+    for _, e in ipairs(log.entries) do
         if e.t == "join" then self:Apply(e.g, "join", e.who, e.ts)
         elseif e.t == "app_ok" then self:Apply(e.g, "join", e.target, e.ts)
         elseif e.t == "promote" or e.t == "demote" then self:Apply(e.g, e.t, e.target, e.ts)
@@ -163,7 +163,13 @@ end
 -- Roster ---------------------------------------------------------------------
 
 -- Every member of a guild: { guildId, name, note, rankIndex, rankName, online, lastOnline, offlineSecs }
+-- 1.27.0: read once per redraw of the window (the Members and Inactive tab buttons, the top
+-- line and the rows all share it) instead of once for each of them.
 function Members:GetRoster(guildId)
+    return GT.Report:Cached("members:roster:" .. guildId, function() return self:ReadRoster(guildId) end)
+end
+
+function Members:ReadRoster(guildId)
     local list, now = {}, GetTimeStamp()
     for i = 1, GetNumGuildMembers(guildId) do
         local name, note, rankIndex, status, secsSinceLogoff = GetGuildMemberInfo(guildId, i)
@@ -330,6 +336,14 @@ end
 
 -- Returns the members the tab shows, sorted, plus how many members the picked guild(s) have in all.
 function Members:GetVisibleMembers(searchText)
+    local found = GT.Report:Cached("members:visible:" .. (searchText or ""), function()
+        local list, total = self:BuildVisibleMembers(searchText)
+        return { list = list, total = total }
+    end)
+    return found.list, found.total
+end
+
+function Members:BuildVisibleMembers(searchText)
     local guildId = self:GetGuildFilter()
     local list, total = {}, 0
     local search = zo_strlower(searchText or "")
@@ -497,6 +511,10 @@ function Members:GetSlotSummary()
 end
 
 function Members:GetInactive()
+    return GT.Report:Cached("members:inactive", function() return self:BuildInactive() end)
+end
+
+function Members:BuildInactive()
     local list = {}
     local me = GetDisplayName()
     for _, guildId in ipairs(U.GetGuildIds()) do
@@ -683,6 +701,7 @@ function Members:InactiveTabSummary()
             end
         end
     end
+    if #parts == 0 then return "" end   -- no guild ticked: the tab says so itself
     return string.format("%s  Limits: %s.", self:GetSlotSummary(), table.concat(parts, "; "))
 end
 
@@ -693,6 +712,7 @@ function Members:RegisterTabs()
         title = function() return self:GetMembersTitle(membersTab.searchText) end,
         tip = "Everyone in your guilds: rank, time in guild, time at rank, last online and note. Hover a row for their last promotion.",
         searchable = true,
+        emptyText = "No members match. Clear the search, the rank filter or Online only.",
         columns = function() return self:GetColumns() end,
         sortKey = function() return self.sv.filter.sort, self.sv.filter.desc end,
         OnSort = function(key) self:OnSortClicked(self.sv.filter, key) end,
@@ -731,6 +751,12 @@ function Members:RegisterTabs()
             GetOffText = function() return GT:FeatureOffText(self:AnyInactiveOn(), "Inactivity alerts (in Rules for each guild)", true) end,
         tip = "Members who have been offline longer than the limit for their rank, and how many guild slots are open. Limits and ranks are on the Guild rules settings page (/gtsettings > Open Guild rules settings).",
         title = function() return string.format("Inactive (%d)", #self:GetInactive()) end,
+        about = {
+            "Lists members who have been offline longer than the limit for their rank, so you can free up slots.",
+            "Right-click a member to mail them a \"we miss you\" text, set their rank, kick them or dismiss them. Every change asks first.",
+            "Limits (30 days for officers, 21 for members and 14 for recruits to start) are set for each guild on the Guild rules settings page.",
+        },
+        emptyText = "No one is over their limit.",
         columns = function() return self:GetInactiveColumns() end,
         sortKey = function() return self.sv.inactiveFilter.sort, self.sv.inactiveFilter.desc end,
         OnSort = function(key) self:OnSortClicked(self.sv.inactiveFilter, key) end,

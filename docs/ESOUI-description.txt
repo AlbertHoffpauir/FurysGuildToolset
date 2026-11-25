@@ -42,16 +42,20 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Getting started[/B][/COLOR][/FONT][/SIZE]
 [LIST=1]
 [*]Install [B]LibHistoire[/B] and [B]LibAddonMenu-2.0[/B] (see Requires above). The addon won't load without them.
-[*]Log in and type [FONT="Courier New"][B]/gtsettings[/B][/FONT]. Under [B]Guilds to get alerts from[/B], tick the guilds you look after, then reload when asked. (Only needed for the bank, member, hopper and bank space features.)
-[*]On the same page, turn on the features you want. Each one has its own section below with what to turn on and where.
-[*]Click [B]Open Guild rules settings[/B] and set the rules for each ticked guild: bank limits, who to ignore, inactivity limits and so on. [B]Copy rules from[/B] gives a guild the same rules as another in one click.
-[*]Type [FONT="Courier New"][B]/gt[/B][/FONT] (or set a keybind) to open the report window. Each feature has its own tab.
+[*]Log in and type [FONT="Courier New"][B]/gt[/B][/FONT]. On a new install the window opens on the [B]Start here[/B] page (later: the [B]Start here[/B] button next to the version number, or [FONT="Courier New"][B]/gt start[/B][/FONT]).
+[*]Click the guilds you look after (step 1 on the page). Bank, hopper, inactivity and bank space alerts only happen in these.
+[*]Click the features you want (step 2). Each row says what the feature does; hover it for more, right-click it for its tab and its settings.
+[*]If a row says "after reload", click [B]Reload to apply[/B] (step 3).
+[*]Click [B]Guild rules[/B] and set the rules for each of your guilds: bank limits, who to ignore, inactivity limits and so on. [B]Copy rules from[/B] gives a guild the same rules as another in one click.
+[*]Each feature has its own tab. A tab with nothing to list yet tells you what it is for. Everything on the Start here page is also in the settings ([FONT="Courier New"][B]/gtsettings[/B][/FONT]), with more detail.
 [/LIST]
 
 [SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Finding your way around[/B][/COLOR][/FONT][/SIZE]
 [COLOR="#A08CFF"][B]The report window[/B][/COLOR]
 [LIST]
 [*][FONT="Courier New"][B]/gt[/B][/FONT] opens it; [FONT="Courier New"][B]/gt bank[/B][/FONT], [FONT="Courier New"][B]/gt members[/B][/FONT], [FONT="Courier New"][B]/gt raffle[/B][/FONT] and so on open a tab directly (see Commands).
+[*]The tabs are grouped by job: the top row is your people and your trader (Members, Inactive, Recruit, Events, Raffle, Trader, Member sales), the bottom row is the bank and the Crier (Bank alerts, Bank space, Bank hoppers, Watchlist, Auto, History, Crier).
+[*]A tab whose feature is turned off has a dimmed name. Open it for what it does and a [B]Set up[/B] button that takes you to the [B]Start here[/B] page.
 [*][B]Right-click any row[/B] for what you can do with it: whisper, mail, set rank, kick, dismiss and more. The line at the top of each tab reminds you.
 [*]To copy someone's @name, right-click their row > [B]Copy @name[/B]. The name shows up selected in a small window; press Ctrl+C.
 [*][B]Hover[/B] over any button, tab, column header or row for a short tip or the full details.
@@ -69,6 +73,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Commands[/B][/COLOR]
 [LIST]
 [*][FONT="Courier New"][B]/gt[/B][/FONT]: open or close the report window.
+[*][FONT="Courier New"][B]/gt start[/B][/FONT]: open the Start here page (pick your guilds, turn features on or off).
 [*][FONT="Courier New"][B]/gt bank[/B][/FONT], [FONT="Courier New"][B]hoppers[/B][/FONT], [FONT="Courier New"][B]watchlist[/B][/FONT], [FONT="Courier New"][B]history[/B][/FONT], [FONT="Courier New"][B]space[/B][/FONT], [FONT="Courier New"][B]members[/B][/FONT], [FONT="Courier New"][B]inactive[/B][/FONT], [FONT="Courier New"][B]trader[/B][/FONT], [FONT="Courier New"][B]sales[/B][/FONT], [FONT="Courier New"][B]auto[/B][/FONT], [FONT="Courier New"][B]recruit[/B][/FONT], [FONT="Courier New"][B]raffle[/B][/FONT], [FONT="Courier New"][B]events[/B][/FONT], [FONT="Courier New"][B]crier[/B][/FONT]: open that tab.
 [*][FONT="Courier New"][B]/gtsettings[/B][/FONT] (or [FONT="Courier New"][B]/gt settings[/B][/FONT]): open the settings.
 [*][FONT="Courier New"][B]/gt tour[/B][/FONT]: start or stop the recruiting zone tour.
@@ -86,7 +91,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#B4B0D8"][I]Catch members who take more from the guild bank than your rules allow.[/I][/COLOR]
 [COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
 [LIST]
-[*]Tick your guilds under [B]Guilds to get alerts from[/B], then turn on [B]Guild bank alerts > Enable bank alerts[/B] (main settings page).
+[*]On the [B]Start here[/B] page, click your guilds and then [B]Bank alerts[/B], and reload. (The same switches are on the main settings page: [B]Guilds to get alerts from[/B] and [B]Guild bank alerts > Enable bank alerts[/B].)
 [*]On the [B]Guild rules[/B] page, set each guild's limits: warn, demote and kick at X stacks per day (0 = never). Demote starts at 50; warn and kick start turned off.
 [*]Add your bankers and restocking officers under [B]Ignore rank names[/B] or [B]Ignore @names[/B]. The top 2 ranks are ignored from the start.
 [*]Optional: [B]Watch gold withdrawals too[/B] (warn 50,000, demote 200,000, kick 500,000 gold per day), counting items instead of stacks, or a rolling window of hours instead of midnight to midnight.
@@ -189,6 +194,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][FONT="Courier New"][B]/gt history[/B][/FONT]: bank items, bank gold and roster events (joins, leaves, kicks, promotions, demotions, blacklist changes) for all your guilds.
 [*]Filter by type, time and guild, search by name or item, or see totals per member.
 [*][B]Show: Bank items[/B] marks every withdrawal as returned whole, returned partly or not returned, so you can see who took what and what came back.
+[*]The log is saved as one line per event, so even a full log keeps your saved file small. If you update from a version before 1.28.0, your log is moved over at your first login, every event is checked, and the old copy stays as a backup for 7 days ([B]History log and export > Remove the old log backup[/B] removes it sooner).
 [/LIST]
 
 [SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Bank space[/B][/COLOR][/FONT][/SIZE]
@@ -274,11 +280,13 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Run it[/B][/COLOR]
 [LIST]
 [*]On the [B]Raffle[/B] tab ([FONT="Courier New"][B]/gt raffle[/B][/FONT]), click [B]Start sales now[/B] (or let your start time arrive). The tab counts down to the end.
-[*][B]Announce in guild[/B] puts the announcement in the guild chat box; [B]Text for Discord[/B] gives you text to paste into Discord, with the tickets sold so far and one line per holder with their ticket numbers.
+[*]The top line keeps a running total: tickets sold, the number of buyers and the gold paid for them.
+[*][B]Announce in guild[/B] puts the announcement in the guild chat box; [B]Text for Discord[/B] gives you text to paste into Discord, with one line per holder with their ticket numbers. Both include the running totals, and so do the winners posts.
 [*]Each deposit or mail buys its amount divided by the ticket price; the rest is dropped (with 1,000g tickets, 5,600g buys 5). Plain donations count too.
 [*]For mailed gold, open your mailbox: each gold mail is counted once and printed in chat. Open it once more after sales end.
+[*]Gold mailed to you counts for whoever mailed it. When you then put that gold in the guild bank, your deposit buys you no tickets until all the mailed gold is passed on: with 100,000g mailed to you and 101,000g deposited, 1,000g is yours. The top line shows what you have passed on and what you still hold.
 [*]Ticket numbers never change once someone has them. New tickets always get the next numbers after everyone else's, so someone who buys again later holds numbers spread through the list. Tickets you remove by hand take that person's highest numbers out of the draw.
-[*]Right-click a buyer to add or remove tickets, or leave them out of the draw. To give tickets to someone who hasn't bought any (a helper, say), right-click them on the [B]Members[/B] tab and pick [B]Give raffle tickets...[/B]. Every change is logged.
+[*]Right-click a buyer and pick [B]Add tickets...[/B] or [B]Remove tickets...[/B], type how many, and confirm; or leave them out of the draw. To give tickets to someone who hasn't bought any (a helper, say), right-click them on the [B]Members[/B] tab and pick [B]Give raffle tickets...[/B]. Every change is logged.
 [/LIST]
 [COLOR="#A08CFF"][B]Draw the winners[/B][/COLOR]
 [LIST]
@@ -353,7 +361,7 @@ Addons can't send chat messages. Press Enter to send it. Mails open filled in an
 Add their rank name or @name to the ignore lists in that guild's rules (Guild rules page), then type [FONT="Courier New"][B]/gt reset[/B][/FONT].
 
 [B]I don't see a Rules for section for my guild.[/B]
-Tick the guild under Guilds to get alerts from (main settings page) and reload. The Rules for sections are on the Guild rules page.
+Turn the guild on in step 1 of the Start here page (or tick it under Guilds to get alerts from on the main settings page) and reload. The Rules for sections are on the Guild rules page.
 
 [B]Why is the Bank space tab empty?[/B]
 The game only shows how full a guild bank is while it's open. Open each guild bank once.
