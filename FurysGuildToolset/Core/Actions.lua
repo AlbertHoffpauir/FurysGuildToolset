@@ -147,48 +147,164 @@ function Actions.Demote(guildId, displayName, targetRankIndex, onDone, note)
         end)
 end
 
--- Background mail for the opt-in auto-demote (Albert chose to send it automatically).
--- The game only sends mail while the mailbox is open, so we open it quietly, send,
--- and close it. Waits while you're in combat or using the mail window yourself.
--- onResult(true) on success, onResult(false, reason) on failure.
+-- Background mail for the opt-in auto-demote and automatic welcome mails (Albert chose to
+-- send these automatically). The game only sends mail while the mailbox is open, so we open
+-- it quietly, send, and close it. Waits while you're in combat or using the mail window yourself.
+--
+-- 1.31.0 (Albert): other addons work the mailbox too (Writ Crafter loots hireling mails as soon
+-- as a mailbox opens), and a send made while they take items can get no answer from the server.
+-- So the queue waits until the mailbox is closed and no mail has moved for a few seconds,
+-- waits again after the mailbox opens, closes it only when the others are done, and tries
+-- each mail up to 3 times, a while apart, before it reports a failure.
+-- onResult(true) on success, onResult(false, reason) on failure (after the last try).
 local mailQueue, mailBusy = {}, false
 local MAIL_TIMEOUT_MS = 15000
+local MAIL_TRIES = 3
+local MAIL_RETRY_MS = { 30000, 60000 }   -- wait before the 2nd and the 3rd try
+local MAIL_QUIET_MS = 5000               -- no mail moved for this long = other addons are done
+local MAIL_MAX_WAIT_MS = 120000          -- never wait longer than this for others
+local MAIL_POLL_MS = 1000
 
-local function MailPump()
-    if mailBusy or #mailQueue == 0 then return end
+local mailboxOpen = nil                  -- nil, "ours" or "other"
+local ourOpenPending = nil               -- function to call when the mailbox we asked for opens
+local lastMailActivity = 0
+
+local function Now() return GetGameTimeMilliseconds() end
+local function MailQuiet() return Now() - lastMailActivity >= MAIL_QUIET_MS end
+local function MarkMailActivity() lastMailActivity = Now() end
+
+-- Calls fn once no mail has moved for MAIL_QUIET_MS, or after maxMs at the latest.
+local function WhenMailQuiet(fn, maxMs)
+    local started = Now()
+    local function check()
+        if MailQuiet() or Now() - started >= maxMs then fn() else zo_callLater(check, MAIL_POLL_MS) end
+    end
+    check()
+end
+
+local function WatchMailbox()
+    local ns = "FurysGuildToolset_MailWatch"
+    EVENT_MANAGER:RegisterForEvent(ns, EVENT_MAIL_OPEN_MAILBOX, function()
+        MarkMailActivity()
+        if ourOpenPending then
+            local fn = ourOpenPending
+            ourOpenPending = nil
+            mailboxOpen = "ours"
+            fn()
+        else
+            mailboxOpen = "other"
+        end
+    end)
+    EVENT_MANAGER:RegisterForEvent(ns, EVENT_MAIL_CLOSE_MAILBOX, function()
+        mailboxOpen = nil
+        MarkMailActivity()
+    end)
+    EVENT_MANAGER:RegisterForEvent(ns, EVENT_MAIL_INBOX_UPDATE, MarkMailActivity)
+    EVENT_MANAGER:RegisterForEvent(ns, EVENT_MAIL_READABLE, MarkMailActivity)
+    EVENT_MANAGER:RegisterForEvent(ns, EVENT_MAIL_REMOVED, MarkMailActivity)
+    EVENT_MANAGER:RegisterForEvent(ns, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, MarkMailActivity)
+    EVENT_MANAGER:RegisterForEvent(ns, EVENT_MAIL_TAKE_ATTACHED_MONEY_SUCCESS, MarkMailActivity)
+end
+WatchMailbox()
+
+local MailPump
+local pumpScheduled = false
+
+-- One pending pump at a time, so waiting jobs don't start several polling loops.
+local function SchedulePump(ms)
+    if pumpScheduled then return end
+    pumpScheduled = true
+    zo_callLater(function() pumpScheduled = false; MailPump() end, ms)
+end
+
+local function Blocked()
     -- Opening the mailbox would pull you out of a guild bank, crafting station or dialogue,
     -- so wait until you're free.
-    if IsUnitInCombat("player") or IsUnitDead("player") or IsInteracting()
-        or SCENE_MANAGER:IsShowing("mailInbox") or SCENE_MANAGER:IsShowing("mailSend") then
-        zo_callLater(MailPump, 5000)
-        return
-    end
-    mailBusy = true
-    local job = mailQueue[1]
+    return IsUnitInCombat("player") or IsUnitDead("player") or IsInteracting()
+        or SCENE_MANAGER:IsShowing("mailInbox") or SCENE_MANAGER:IsShowing("mailSend")
+end
+
+local function RunJob(job)
     local token = {}
     job.token = token
-    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_OPEN_MAILBOX, function()
-        EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_OPEN_MAILBOX)
-        SendMail(job.to, job.subject, job.body)
-    end)
+    job.tries = (job.tries or 0) + 1
+    local opened = false
     local function Finish(ok, reason)
         if job.token ~= token then return end
         job.token = nil
-        EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_OPEN_MAILBOX)
+        ourOpenPending = nil
         EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_SEND_SUCCESS)
         EVENT_MANAGER:UnregisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_SEND_FAILED)
-        CloseMailbox()
-        table.remove(mailQueue, 1)
-        mailBusy = false
-        if job.onResult then job.onResult(ok, reason) end
-        zo_callLater(MailPump, 1500)
+        -- Close the mailbox we opened, but only once other addons are done with it.
+        WhenMailQuiet(function()
+            if mailboxOpen == "ours" or (opened and mailboxOpen == nil) then CloseMailbox() end
+            if mailboxOpen == "ours" then mailboxOpen = nil end
+            table.remove(mailQueue, 1)
+            if not ok and job.tries < MAIL_TRIES then
+                local wait = MAIL_RETRY_MS[job.tries] or MAIL_RETRY_MS[#MAIL_RETRY_MS]
+                U.Print("Mail to %s didn't go through (%s). Trying again in %d seconds (try %d of %d).",
+                    job.to, reason or "unknown", wait / 1000, job.tries + 1, MAIL_TRIES)
+                job.notBefore = Now() + wait
+                mailQueue[#mailQueue + 1] = job
+                mailBusy = false
+                SchedulePump(1500)
+                return
+            end
+            mailBusy = false
+            if job.onResult then job.onResult(ok, reason) end
+            SchedulePump(1500)
+        end, 20000)
     end
-    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_SEND_SUCCESS, function() Finish(true) end)
-    EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_SEND_FAILED, function(_, reason)
-        Finish(false, GetString("SI_SENDMAILRESULT", reason) ~= "" and GetString("SI_SENDMAILRESULT", reason) or tostring(reason))
-    end)
-    zo_callLater(function() Finish(false, "timed out") end, MAIL_TIMEOUT_MS)
+    local function Send()
+        if job.token ~= token then return end
+        if not mailboxOpen then
+            Finish(false, "another addon closed the mailbox")
+            return
+        end
+        EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_SEND_SUCCESS, function() Finish(true) end)
+        EVENT_MANAGER:RegisterForEvent("FurysGuildToolset_Mail", EVENT_MAIL_SEND_FAILED, function(_, reason)
+            Finish(false, GetString("SI_SENDMAILRESULT", reason) ~= "" and GetString("SI_SENDMAILRESULT", reason) or tostring(reason))
+        end)
+        zo_callLater(function() Finish(false, "timed out") end, MAIL_TIMEOUT_MS)
+        SendMail(job.to, job.subject, job.body)
+    end
+    if mailboxOpen then
+        -- Still open after the longest wait (another addon left it open): send through it.
+        Send()
+        return
+    end
+    ourOpenPending = function()
+        opened = true
+        -- Other addons start on the mailbox the moment it opens; let them finish first.
+        zo_callLater(function() WhenMailQuiet(Send, 20000) end, 1500)
+    end
+    zo_callLater(function()
+        if job.token == token and not opened then Finish(false, "the mailbox didn't open") end
+    end, MAIL_TIMEOUT_MS + 25000)
     RequestOpenMailbox()
+end
+
+MailPump = function()
+    if mailBusy or #mailQueue == 0 then return end
+    if Blocked() then
+        SchedulePump(5000)
+        return
+    end
+    local job = mailQueue[1]
+    if job.notBefore and Now() < job.notBefore then
+        SchedulePump(job.notBefore - Now() + 100)
+        return
+    end
+    -- Wait while another addon (or you) has the mailbox open or mail is still moving.
+    job.waitStart = job.waitStart or Now()
+    local waited = Now() - job.waitStart
+    if waited < MAIL_MAX_WAIT_MS and (mailboxOpen or not MailQuiet()) then
+        SchedulePump(MAIL_POLL_MS * 2)
+        return
+    end
+    job.waitStart = nil
+    mailBusy = true
+    RunJob(job)
 end
 
 function Actions.SendMailNow(to, subject, body, onResult)

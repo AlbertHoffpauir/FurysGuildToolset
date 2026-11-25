@@ -643,6 +643,17 @@ function Report:RefreshIfShown()
     end, REFRESH_DELAY_MS)
 end
 
+-- The settings gear opens the settings of the tab you're on (1.31.0); tabs without settings
+-- of their own open the main page.
+function Report.OpenSettings()
+    GT:GetModule("setup"):OpenSettingsForTab(Report.currentTab)
+end
+
+function Report.SettingsTip(control)
+    Report.ShowTip(control, "Opens " .. GT:GetModule("setup"):SettingsPageForTab(Report.currentTab) ..
+        " for this tab. /gtsettings always opens the main settings page.")
+end
+
 function Report.OnSearchChanged(editBox)
     -- The X is always there; it's brighter while there's something to clear.
     FurysGuildToolset_ReportSearchClear:SetAlpha((editBox:GetText() or "") == "" and 0.5 or 1)

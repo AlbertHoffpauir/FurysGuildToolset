@@ -1,8 +1,11 @@
 -- Fury's Guild Crier - settings panel (LibAddonMenu-2.0) and rotation reminder
 --
 -- Edits to text, channel and weight apply right away and update the menu.
--- Adding, deleting or renaming sections changes the layout of this panel,
--- which LibAddonMenu can only rebuild with a UI reload, so those reload.
+-- Deleting and renaming change the layout of this panel, which LibAddonMenu can
+-- only rebuild with a UI reload, so those reload, always after a Confirm / Cancel pop-up
+-- (1.31.0, Albert: nothing reloads without asking). Adding does not (1.31.0, Albert):
+-- a new message goes into the menu and rotation at once and shows on this panel
+-- after the next /reloadui, so you can add several in a row.
 
 local GT = FurysGuildToolset
 local GC = GT.Crier
@@ -113,7 +116,57 @@ end
 local addForm = { newCat = "", chan = "guild", weight = 0, text = "" }
 local renameForm = {}
 local quickAdd = {}
+local quickAddChan, quickAddWeight = {}, {}
 local panel
+
+-- Messages added since the last reload: they are in the menu and rotation, not on this panel yet.
+local addedSinceReload = 0
+local ADD_WARNING = "Does not reload the UI. The new message goes into the /crier menu and the rotation right away, but this settings page only lists it after you type /reloadui. Add as many as you like first."
+
+local function Added(where)
+    addedSinceReload = addedSinceReload + 1
+    GC.MessagesChanged()
+    GC.Say(string.format("Added to %s. It's in the /crier menu and the rotation now. Type /reloadui to see it on this settings page (%d added since your last reload).",
+        where, addedSinceReload))
+    if panel then CALLBACK_MANAGER:FireCallbacks("LAM-RefreshPanel", panel) end
+end
+
+-- Character counters that count while you type (1.31.0, Albert: they only changed after you
+-- clicked out of the box). LibAddonMenu builds the controls when the panel first opens; each
+-- box gets a reference name, and once the controls exist its label is updated on every
+-- keystroke. onText(text), when given, also keeps the typed text (used by the Add boxes, so
+-- Add works without clicking out of the box first).
+local liveBoxes, liveBoxCount = {}, 0
+local function LiveRef(labelFor, onText)
+    liveBoxCount = liveBoxCount + 1
+    local ref = "FurysGuildToolset_CrierBox" .. liveBoxCount
+    liveBoxes[#liveBoxes + 1] = { ref = ref, labelFor = labelFor, onText = onText }
+    return ref
+end
+
+local function HookLiveBoxes(createdPanel)
+    if createdPanel ~= panel then return end
+    for _, box in ipairs(liveBoxes) do
+        local control = _G[box.ref]
+        if control and not box.hooked then
+            box.hooked = true
+            ZO_PostHookHandler(control.editbox, "OnTextChanged", function(edit)
+                local text = edit:GetText()
+                if box.onText then box.onText(text) end
+                control.label:SetText(box.labelFor(text))
+            end)
+        end
+    end
+end
+
+local function CountLabel(prefix, text)
+    local len = #(text or "")
+    local s = string.format("%s (%d/%d characters)", prefix, len, GC.MAX_CHAT)
+    if len > GC.MAX_CHAT then s = s .. " |cFF6B86too long!|r" end
+    return s
+end
+
+local ADD_NOTE = "|cFFC857New messages are in the /crier menu and the rotation as soon as you click Add, but they only show on this settings page after you type /reloadui. Pick the channel and weight here first, because they can only be changed on this page after the reload.|r"
 
 local function GuildChoices()
     local names, values = {}, {}
@@ -132,6 +185,7 @@ local function MessageControls(m, controls)
     controls[#controls + 1] = {
         type = "editbox",
         name = function() return LengthLabel(m) end,
+        reference = LiveRef(function(text) return LengthLabel({ text = text }) end),
         tooltip = "Edit the message, then click outside the box to save. Placeholders: {new} = newest member's @name, {guild} = guild name.",
         isMultiline = true,
         isExtraWide = true,
@@ -171,12 +225,15 @@ local function MessageControls(m, controls)
         name = "Delete message",
         tooltip = function() return "Delete: " .. Preview(m.text) end,
         width = "half",
-        isDangerous = true,
-        warning = "Deletes this message for good and reloads the UI.",
+        warning = "Asks first, then deletes this message for good and reloads the UI.",
         func = function()
-            local i = IndexOf(m)
-            if i then table.remove(GC.Messages(), i) end
-            ReloadUI("ingame")
+            GT.Actions.Confirm("Delete message",
+                "Delete this message for good?\n\n\"" .. Preview(m.text) .. "\"\n\nThis reloads the UI (a few seconds) so the settings page no longer shows it.",
+                function()
+                    local i = IndexOf(m)
+                    if i then table.remove(GC.Messages(), i) end
+                    ReloadUI("ingame")
+                end)
         end,
     }
 end
@@ -205,14 +262,18 @@ local function SectionSubmenu(cat)
         name = "Apply rename",
         tooltip = "Renames this section to the name typed above.",
         width = "half",
-        warning = "Reloads the UI.",
+        warning = "Asks first, then reloads the UI.",
         func = function()
             local new = renameForm[cat]
             if not new or new == "" or new == cat then return end
-            for _, m in ipairs(GC.Messages()) do
-                if (m.cat or "Messages") == cat then m.cat = new end
-            end
-            ReloadUI("ingame")
+            GT.Actions.Confirm("Rename section",
+                string.format("Rename the section \"%s\" to \"%s\"?\n\nThis reloads the UI (a few seconds) so the settings page shows the new name.", cat, new),
+                function()
+                    for _, m in ipairs(GC.Messages()) do
+                        if (m.cat or "Messages") == cat then m.cat = new end
+                    end
+                    ReloadUI("ingame")
+                end)
         end,
     }
     -- Quick add, right inside the section
@@ -220,16 +281,21 @@ local function SectionSubmenu(cat)
     for _, m in ipairs(GC.Messages()) do
         if (m.cat or "Messages") == cat then sectionChan = ChanValue(m) break end
     end
+    local sectionWeight = 0
+    for _, m in ipairs(GC.Messages()) do
+        if (m.cat or "Messages") == cat then sectionWeight = tonumber(m.weight) or 0 break end
+    end
     quickAdd[cat] = quickAdd[cat] or ""
+    quickAddChan[cat] = quickAddChan[cat] or sectionChan
+    quickAddWeight[cat] = quickAddWeight[cat] or sectionWeight
+    local function AddLabel(text) return CountLabel(string.format("|cA08CFF+ Add a message to %s|r", cat), text) end
     controls[#controls + 1] = { type = "divider" }
+    controls[#controls + 1] = { type = "description", text = ADD_NOTE }
     controls[#controls + 1] = {
         type = "editbox",
-        name = function()
-            local len = #(quickAdd[cat] or "")
-            local t = string.format("|cA08CFF+ Add a message to %s|r (%d/%d)", cat, len, GC.MAX_CHAT)
-            return t
-        end,
-        tooltip = "Type the new message, click out of the box, then click Add. It uses the same channel as this section's first message; change channel or weight afterwards if needed.",
+        name = function() return AddLabel(quickAdd[cat]) end,
+        reference = LiveRef(AddLabel, function(text) quickAdd[cat] = CleanText(text) end),
+        tooltip = "Type the new message, pick its channel and rotation weight below, then click Add. Placeholders: {new} = newest member's @name, {guild} = guild name.",
         isMultiline = true,
         isExtraWide = true,
         width = "full",
@@ -238,25 +304,50 @@ local function SectionSubmenu(cat)
         setFunc = function(v) quickAdd[cat] = CleanText(v) end,
     }
     controls[#controls + 1] = {
+        type = "dropdown",
+        name = "Channel for the new message",
+        tooltip = "Guild posts to the guild picked in the menu. Zone posts to zone chat. Whisper goes to the name in the menu's \"Whisper to\" box. Starts as this section's first message's channel.",
+        choices = CHANNEL_NAMES,
+        choicesValues = CHANNEL_VALUES,
+        width = "half",
+        getFunc = function() return quickAddChan[cat] end,
+        setFunc = function(v) quickAddChan[cat] = v end,
+    }
+    controls[#controls + 1] = {
+        type = "slider",
+        name = "Rotation weight for the new message",
+        tooltip = "0 = menu only. Higher numbers come up more often in the rotation (3 comes up 3x as often as 1). Starts as this section's first message's weight.",
+        min = 0, max = 5, step = 1,
+        width = "half",
+        getFunc = function() return quickAddWeight[cat] end,
+        setFunc = function(v) quickAddWeight[cat] = v end,
+    }
+    controls[#controls + 1] = {
         type = "button",
         name = "Add",
-        tooltip = "Adds the message typed above to this section.",
+        tooltip = "Adds the message typed above to this section, with the channel and weight picked above, and empties the box for the next one. No reload: it is in the /crier menu and rotation right away and shows on this page after /reloadui.",
         width = "half",
-        warning = "Reloads the UI so the new message shows up here.",
+        warning = ADD_WARNING,
         func = function()
             local text = quickAdd[cat] or ""
             if text == "" then
                 GC.Say("Type the message first, then click out of the box.")
                 return
             end
+            if #text > GC.MAX_CHAT then
+                GC.Say(string.format("That message is %d characters; chat takes %d. Make it shorter first.", #text, GC.MAX_CHAT))
+                return
+            end
             local m = { cat = cat, text = text }
-            SetChan(m, sectionChan)
+            SetChan(m, quickAddChan[cat])
+            if quickAddWeight[cat] > 0 then m.weight = quickAddWeight[cat] end
             local list, pos = GC.Messages(), nil
             for i, x in ipairs(list) do
                 if (x.cat or "Messages") == cat then pos = i end
             end
             table.insert(list, (pos and pos + 1) or (#list + 1), m)
-            ReloadUI("ingame")
+            quickAdd[cat] = ""
+            Added(cat)
         end,
     }
     return {
@@ -271,6 +362,7 @@ local function AddSubmenu(cats)
         type = "submenu",
         name = "|cA08CFF+ Add a new section|r",
         controls = {
+            { type = "description", text = ADD_NOTE },
             {
                 type = "editbox",
                 name = "Section name",
@@ -298,12 +390,9 @@ local function AddSubmenu(cats)
             },
             {
                 type = "editbox",
-                name = function()
-                    local len = #(addForm.text or "")
-                    local s = string.format("First message (%d/%d characters)", len, GC.MAX_CHAT)
-                    if len > GC.MAX_CHAT then s = "|cFF6B86" .. s .. "|r" end
-                    return s
-                end,
+                name = function() return CountLabel("First message", addForm.text) end,
+                reference = LiveRef(function(text) return CountLabel("First message", text) end,
+                    function(text) addForm.text = CleanText(text) end),
                 isMultiline = true,
                 isExtraWide = true,
                 width = "full",
@@ -314,8 +403,8 @@ local function AddSubmenu(cats)
             {
                 type = "button",
                 name = "Add section",
-                tooltip = "Creates a new section with the name and first message typed above.",
-                warning = "Reloads the UI so the new section shows up here.",
+                tooltip = "Creates a new section with the name and first message typed above, and empties the boxes. No reload: the section shows on this page after /reloadui.",
+                warning = ADD_WARNING,
                 func = function()
                     if addForm.newCat == "" then
                         GC.Say("Give the new section a name first.")
@@ -323,6 +412,10 @@ local function AddSubmenu(cats)
                     end
                     if addForm.text == "" then
                         GC.Say("A section needs at least one message. Type it first, then click out of the box.")
+                        return
+                    end
+                    if #addForm.text > GC.MAX_CHAT then
+                        GC.Say(string.format("That message is %d characters; chat takes %d. Make it shorter first.", #addForm.text, GC.MAX_CHAT))
                         return
                     end
                     local cat = addForm.newCat
@@ -335,7 +428,8 @@ local function AddSubmenu(cats)
                         if (x.cat or "Messages") == cat then pos = i end
                     end
                     table.insert(list, (pos and pos + 1) or (#list + 1), m)
-                    ReloadUI("ingame")
+                    addForm.newCat, addForm.text = "", ""
+                    Added("the new section " .. cat)
                 end,
             },
         },
@@ -367,7 +461,7 @@ local function BuildOptions()
     local o = {}
     o[#o + 1] = {
         type = "description",
-        text = "Open the menu with |cA08CFF/crier|r or your keybind, click a message, then press Enter to send. Edits to a message save when you click out of the box and show in the menu right away. Adding, deleting or renaming reloads the UI.",
+        text = "Open the menu with |cA08CFF/crier|r or your keybind, click a message, then press Enter to send. Edits to a message save when you click out of the box and show in the menu right away. New messages go into the menu right away too, and show on this page after you type /reloadui. Deleting, renaming and importing ask first, then reload the UI.",
     }
 
     -- General
@@ -449,10 +543,14 @@ local function BuildOptions()
                 name = "Import new messages",
                 tooltip = "Adds any message from Messages.lua that isn't already in your list. Nothing is removed.",
                 width = "half",
-                warning = "Reloads the UI.",
+                warning = "Asks first, then reloads the UI.",
                 func = function()
-                    GC.Say(ImportDefaults(nil) .. " new message(s) imported.")
-                    ReloadUI("ingame")
+                    GT.Actions.Confirm("Import new messages",
+                        "Add every message from Messages.lua that isn't in your list yet? Nothing is removed.\n\nThis reloads the UI (a few seconds) so the settings page shows them.",
+                        function()
+                            GC.Say(ImportDefaults(nil) .. " new message(s) imported.")
+                            ReloadUI("ingame")
+                        end)
                 end,
             },
             {
@@ -460,10 +558,14 @@ local function BuildOptions()
                 name = "Import new tips",
                 tooltip = "Adds only the Tips from Messages.lua that aren't already in your list, at the end of your Tips section. Nothing else is added or removed.",
                 width = "half",
-                warning = "Reloads the UI.",
+                warning = "Asks first, then reloads the UI.",
                 func = function()
-                    GC.Say(ImportDefaults("Tips") .. " new tip(s) imported.")
-                    ReloadUI("ingame")
+                    GT.Actions.Confirm("Import new tips",
+                        "Add the Tips from Messages.lua that aren't in your list yet, at the end of your Tips section? Nothing else changes.\n\nThis reloads the UI (a few seconds) so the settings page shows them.",
+                        function()
+                            GC.Say(ImportDefaults("Tips") .. " new tip(s) imported.")
+                            ReloadUI("ingame")
+                        end)
                 end,
             },
             {
@@ -471,12 +573,15 @@ local function BuildOptions()
                 name = "Reset to Messages.lua",
                 tooltip = "Replaces all your messages with the generic samples that come with the addon.",
                 width = "half",
-                isDangerous = true,
-                warning = "Replaces ALL your messages with the generic sample list in Messages.lua. Your own messages will be lost. Reloads the UI.",
+                warning = "Asks first. Replaces ALL your messages with the generic sample list in Messages.lua. Your own messages will be lost. Reloads the UI.",
                 func = function()
-                    GC.sv.messages = GC.CopyDefaults()
-                    GC.ResetRotation()
-                    ReloadUI("ingame")
+                    GT.Actions.Confirm("Reset to Messages.lua",
+                        "Replace ALL your messages with the generic sample list in Messages.lua? Your own messages will be lost.\n\nThis reloads the UI (a few seconds).",
+                        function()
+                            GC.sv.messages = GC.CopyDefaults()
+                            GC.ResetRotation()
+                            ReloadUI("ingame")
+                        end)
                 end,
             },
         },
@@ -502,6 +607,7 @@ function GC.InitSettings()
             registerForRefresh = true,
         })
         LAM:RegisterOptionControls("FurysGuildToolset_CrierPanel", BuildOptions())
+        CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", HookLiveBoxes)
     end
     Register()  -- the toolset calls InitSettings once you're in the world, so guild names are ready
 end

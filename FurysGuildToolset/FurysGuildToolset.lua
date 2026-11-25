@@ -6,7 +6,7 @@ local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.30.1"
+GT.version = "1.31.0"
 GT.savedVarsVersion = 1
 
 GT.modules = {}
@@ -223,8 +223,14 @@ function GT:Rescan()
 end
 
 -- Full reset: forgets the History log too and downloads/replays the look-back period.
--- Typed confirmation instead of a dialog so it works from chat in one step.
+-- Asks with a Confirm / Cancel pop-up first (1.31.0, Albert: nothing reloads without asking).
 function GT:FullReset()
+    GT.Actions.Confirm("Full reset",
+        "Forget the History log, bank alerts, hoppers and trader weeks, and read the look-back period again from LibHistoire?\n\nThis reloads the UI (a few seconds). Your settings are kept.",
+        function() GT:DoFullReset() end)
+end
+
+function GT:DoFullReset()
     GT.sv.historyCursor = {}
     local modules = GT.sv.modules
     if modules.bank then modules.bank.cases = {}; modules.bank.ledger = {} end

@@ -61,7 +61,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][B]Hover[/B] over any button, tab, column header or row for a short tip or the full details.
 [*]Click a column header to sort, and again to reverse. Tabs with a search box have a small X to clear it.
 [*]Every tab has an [B]Export / copy[/B] button: the tab as comma-separated text to paste into Excel, Google Sheets or Discord.
-[*]The gear at the top right opens the settings.
+[*]The gear at the top right opens the settings for the tab you're on (for example the Crier page on the Crier tab, the Guild rules page on Members). Tabs without settings of their own open the main page.
 [/LIST]
 [COLOR="#A08CFF"][B]The settings pages[/B][/COLOR]
 [LIST]
@@ -80,7 +80,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][FONT="Courier New"][B]/gt raffle add @name 3 (reason)[/B][/FONT] and [FONT="Courier New"][B]/gt raffle remove @name 3[/B][/FONT]: change someone's raffle tickets by hand.
 [*][FONT="Courier New"][B]/crier[/B][/FONT]: the Guild Crier menu. [FONT="Courier New"][B]/crier next[/B][/FONT] posts the next message, [FONT="Courier New"][B]/crier reset[/B][/FONT] restarts the rotation.
 [*][FONT="Courier New"][B]/gt status[/B][/FONT]: how much history has loaded per guild, and the biggest withdrawers. [FONT="Courier New"][B]/gt guilds[/B][/FONT]: which guilds have alerts on.
-[*][FONT="Courier New"][B]/gt reset[/B][/FONT]: rebuild the alerts from the logged history with your current settings (what you already did is kept). [FONT="Courier New"][B]/gt reset full[/B][/FONT]: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept).
+[*][FONT="Courier New"][B]/gt reset[/B][/FONT]: rebuild the alerts from the logged history with your current settings (what you already did is kept). [FONT="Courier New"][B]/gt reset full[/B][/FONT]: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept; it asks first, because it reloads the UI).
 [/LIST]
 [COLOR="#A08CFF"][B]Keybinds[/B][/COLOR]
 [LIST]
@@ -237,6 +237,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [LIST]
 [*]On the [B]Crier[/B] settings page, replace the sample messages and the 19 tips for newer players with your own, add sections, and set each section's channel and rotation weight.
 [*]Optional: a [B]Rotation reminder[/B] every X minutes. It keeps its timing across logouts and reloads.
+[*]Adding a message or a section doesn't reload the UI, so you can add several in a row. Pick the new message's channel and rotation weight next to the Add box. Each one is in the menu and the rotation right away, and shows on the settings page after you type [FONT="Courier New"][B]/reloadui[/B][/FONT].
 [*]Updates never replace your messages. [B]Import new tips[/B] adds tips from a newer version.
 [/LIST]
 
@@ -263,6 +264,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [LIST]
 [*]Pick a guild under [B]Welcome settings for[/B], tick [B]Welcome new members in this guild[/B], and write its welcome message and mail. Each guild has its own.
 [*]Someone who joins while you're online gets the welcome in the guild chat box; press Enter. Someone who joined while offline gets a welcome mail that opens for you to send (or goes out by itself, if you turn on [B]Send the welcome mail automatically[/B]).
+[*]Mails that go out by themselves wait for other addons that use the mailbox (like Writ Crafter taking hireling mails) to finish, and are tried up to 3 times before you are told one failed.
 [/LIST]
 [COLOR="#A08CFF"][B]Status bar[/B][/COLOR]
 [LIST]

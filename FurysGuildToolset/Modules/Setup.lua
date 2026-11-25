@@ -150,6 +150,34 @@ local FEATURES = {
     },
 }
 
+-- 1.31.0 (Albert): the report window's settings gear opens the settings of the tab you're on.
+-- Tabs that share a feature's settings; any other tab opens the main settings page.
+local TAB_SETTINGS_ALIAS = { sales = "trader", watchlist = "hoppers", auto = "bank" }
+
+local function FeatureForTab(tabId)
+    local want = TAB_SETTINGS_ALIAS[tabId] or tabId
+    for _, feature in ipairs(FEATURES) do
+        if feature.tab == want and feature.settings then return feature end
+    end
+end
+
+function Setup:OpenSettingsForTab(tabId)
+    local feature = FeatureForTab(tabId)
+    if feature then feature.settings() else GT.Settings:Open() end
+end
+
+-- Name of the settings page the gear opens for a tab, for its hover tip.
+local PAGE_NAMES = { rules = "Guild rules", recruit = "Recruiting", events = "Events", raffle = "Raffle", crier = "Guild Crier" }
+local RULES_TABS = { members = true, inactive = true, bank = true, hoppers = true, capacity = true }
+
+function Setup:SettingsPageForTab(tabId)
+    local feature = FeatureForTab(tabId)
+    if not feature then return "the main settings page" end
+    local page = RULES_TABS[feature.tab] and PAGE_NAMES.rules or PAGE_NAMES[feature.tab]
+    if page then return "the " .. page .. " settings page" end
+    return "the main settings page"
+end
+
 function Setup:Initialize(sv)
     self.sv = sv
     -- What each reload-only switch was when the game loaded: a switch that differs now is waiting
@@ -291,8 +319,11 @@ end
 function Setup:TabFooter()
     local footer = {}
     if self:NeedsReload() then
-        footer[#footer + 1] = { label = "Reload to apply", tip = "Reloads the interface (a few seconds) so the features and guilds you changed start. Your choices are already saved.",
-            fn = function() ReloadUI("ingame") end }
+        footer[#footer + 1] = { label = "Reload to apply", tip = "Reloads the interface (a few seconds) so the features and guilds you changed start, after a pop-up that lets you cancel. Your choices are already saved.",
+            fn = function()
+                GT.Actions.Confirm("Reload to apply", "Reload the UI now (a few seconds) so the features and guilds you changed start? Your choices are already saved.",
+                    function() ReloadUI("ingame") end)
+            end }
     end
     footer[#footer + 1] = { label = "Settings", tip = "Opens the main settings page (also /gtsettings).", fn = function() GT.Settings:Open() end }
     footer[#footer + 1] = { label = "Guild rules", tip = "Opens the Guild rules settings page: each ticked guild's bank limits, who to ignore, inactivity limits, mail texts and more.",

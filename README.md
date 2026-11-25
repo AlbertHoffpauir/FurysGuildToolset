@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.30.1
+# Fury's Guild Management Toolset (ESO addon) v1.31.0
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -24,7 +24,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.30.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.30.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.31.0.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.31.0.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -50,7 +50,7 @@
 - **Hover** over any button, tab, column header or row for a short tip or the full details.
 - Click a column header to sort, and again to reverse. Tabs with a search box have a small X to clear it.
 - Every tab has an **Export / copy** button: the tab as comma-separated text to paste into Excel, Google Sheets or Discord.
-- The gear at the top right opens the settings.
+- The gear at the top right opens the settings for the tab you're on (for example the Crier page on the Crier tab, the Guild rules page on Members). Tabs without settings of their own open the main page.
 
 ### The settings pages
 
@@ -69,7 +69,7 @@
 - `/gt raffle add @name 3 (reason)` and `/gt raffle remove @name 3`: change someone's raffle tickets by hand.
 - `/crier`: the Guild Crier menu. `/crier next` posts the next message, `/crier reset` restarts the rotation.
 - `/gt status`: how much history has loaded per guild, and the biggest withdrawers. `/gt guilds`: which guilds have alerts on.
-- `/gt reset`: rebuild the alerts from the logged history with your current settings (what you already did is kept). `/gt reset full`: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept).
+- `/gt reset`: rebuild the alerts from the logged history with your current settings (what you already did is kept). `/gt reset full`: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept; it asks first, because it reloads the UI).
 
 ### Keybinds
 
@@ -235,6 +235,7 @@ A clickable menu of ready-made guild, zone and whisper messages.
 
 - On the **Crier** settings page, replace the sample messages and the 19 tips for newer players with your own, add sections, and set each section's channel and rotation weight.
 - Optional: a **Rotation reminder** every X minutes. It keeps its timing across logouts and reloads.
+- Adding a message or a section doesn't reload the UI, so you can add several in a row. Pick the new message's channel and rotation weight next to the Add box. Each one is in the menu and the rotation right away, and shows on the settings page after you type `/reloadui`.
 - Updates never replace your messages. **Import new tips** adds tips from a newer version.
 
 ## Recruiting
@@ -262,6 +263,7 @@ Advertise in zones, invite, and welcome new members. Every part is off until you
 
 - Pick a guild under **Welcome settings for**, tick **Welcome new members in this guild**, and write its welcome message and mail. Each guild has its own.
 - Someone who joins while you're online gets the welcome in the guild chat box; press Enter. Someone who joined while offline gets a welcome mail that opens for you to send (or goes out by itself, if you turn on **Send the welcome mail automatically**).
+- Mails that go out by themselves wait for other addons that use the mailbox (like Writ Crafter taking hireling mails) to finish, and are tried up to 3 times before you are told one failed.
 
 ### Status bar
 
