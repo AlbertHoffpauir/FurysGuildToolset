@@ -13,7 +13,7 @@
 [SIZE="3"][COLOR="#5CC2FF"][I]Bank, roster, trader, recruiting, raffles and events. One window, your rules.[/I][/COLOR][/SIZE][/CENTER]
 [CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL][/SIZE][/CENTER]
 
-[B]Video tutorial:[/B] new to the toolset? See how everything works in my video. [URL="https://youtube.com/live/t_RDWiJspy8"]Watch it on YouTube[/URL].
+[B]Video tutorial:[/B] new to the toolset? See how everything works in my video. [URL="https://www.youtube.com/live/IoDgDIp34fA"]Watch it on YouTube[/URL].
 
 [B]Built for the leaders and officers who keep a guild running.[/B] It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
 [QUOTE][SIZE="3"][COLOR="#5CC2FF"][B]Get your data out of the game[/B][/COLOR][/SIZE]
