@@ -31,6 +31,7 @@ local ROW_TYPE = 1
 local COLUMN_ROW_TYPE = 2
 local MAX_COLUMNS = 8
 local COLUMN_GAP = 8
+local FADED_ALPHA = 0.6   -- rows marked faded (offline members) draw their text a bit dimmer
 local ROW_HEIGHT = 32
 local MAX_FOOTER_BUTTONS = 7   -- 1.15.0: 7 for the Events tab (its buttons are narrower)
 local EXPORT_PART_CHARS = 20000
@@ -307,6 +308,7 @@ function Report:SetupColumnRow(control, data)
             label:SetAnchor(LEFT, control, LEFT, x, 0)
             label:SetDimensions(column.width, 28)
             label:SetText(data.cells[i] or "")
+            label:SetAlpha(data.faded and FADED_ALPHA or 1)
             label:SetHidden(false)
             x = x + column.width + COLUMN_GAP
         else

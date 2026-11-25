@@ -385,7 +385,8 @@ function Members:GetMemberRow(m)
         "Last online: " .. (m.online and "online now" or self:DescribeOnline(m)),
         "Note: " .. (m.note ~= "" and m.note or "(none)"),
     }, "\n")
-    local row = { cells = cells, tooltip = tooltip }
+    -- Offline members are drawn a bit faded so the ones online now stand out.
+    local row = { cells = cells, tooltip = tooltip, faded = not m.online }
     if m.name == GetDisplayName() then return row end
     return GT.Report.AddMenu(row, self:MemberItems(m, false))
 end

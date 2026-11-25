@@ -13,6 +13,8 @@
 [SIZE="3"][COLOR="#5CC2FF"][I]Bank, roster, trader, recruiting, raffles and events. One window, your rules.[/I][/COLOR][/SIZE][/CENTER]
 [CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL][/SIZE][/CENTER]
 
+[B]Video tutorial:[/B] new to the toolset? See how everything works in my video. [URL="https://youtube.com/live/t_RDWiJspy8"]Watch it on YouTube[/URL].
+
 [B]Built for the leaders and officers who keep a guild running.[/B] It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
 [QUOTE][SIZE="3"][COLOR="#5CC2FF"][B]Get your data out of the game[/B][/COLOR][/SIZE]
 ESO keeps your guild's records locked inside the game. Here, every tab has an [B]Export / copy[/B] button: the member list, inactive members, bank alerts, hoppers, the watchlist, the bank and roster history, trader weeks and member sales all come out as comma-separated text you paste straight into Excel, Google Sheets or Discord.[/QUOTE]
@@ -128,7 +130,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#B4B0D8"][I]See your whole roster, and who has been offline too long.[/I][/COLOR]
 [COLOR="#A08CFF"][B]Members tab[/B][/COLOR]
 [LIST]
-[*][FONT="Courier New"][B]/gt members[/B][/FONT]: every member's rank, time at rank, last promotion, last online and guild note. Filter by guild or rank, hide offline members, search and sort.
+[*][FONT="Courier New"][B]/gt members[/B][/FONT]: every member's rank, time at rank, last promotion, last online and guild note. Filter by guild or rank, hide offline members, search and sort. Offline members are drawn a bit faded, so the ones online now stand out.
 [*]Right-click a member to whisper or mail them, [B]Set rank[/B], [B]Kick[/B] or [B]Kick and blacklist[/B]. Each change asks first.
 [/LIST]
 [COLOR="#A08CFF"][B]Turn on inactivity alerts[/B][/COLOR]
@@ -242,7 +244,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Zone ads and the zone tour[/B][/COLOR]
 [LIST]
 [*][B]Put ad in chat[/B] (a button on the Recruit tab, or a keybind) puts your ad in zone chat; press Enter. That zone then goes on cooldown (15 minutes to start with, up to 4 hours), and posting there too soon asks first.
-[*][B]Start tour:[/B] each time you press Enter on your ad, you travel to the next ready zone, through a guildmate, a friend or a house you own there, and the ad is waiting when you arrive. Nothing moves until you post. If a jump fails, it tries the next person, then the next zone.
+[*][B]Start tour:[/B] each time you press Enter on your ad, you travel to the next ready zone, through a guildmate, a friend or a house you own there, and the ad is waiting when you arrive. Nothing moves until you post. If a jump fails, it tries the next person, then the next zone. If you're in combat, it waits until combat clears and then travels.
 [*]The [B]Recruit[/B] tab ([FONT="Courier New"][B]/gt recruit[/B][/FONT]) lists every zone as ready or on cooldown. Right-click one to travel there, clear its cooldown or leave it out of the tour.
 [/LIST]
 [COLOR="#A08CFF"][B]Invites and leads[/B][/COLOR]

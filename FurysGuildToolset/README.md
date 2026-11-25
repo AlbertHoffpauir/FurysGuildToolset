@@ -1,4 +1,4 @@
-# Fury's Guild Management Toolset (ESO addon) v1.24.3
+# Fury's Guild Management Toolset (ESO addon) v1.24.5
 
 **AI disclosure:** This addon's code was written with the assistance of an AI coding assistant (Claude by Anthropic), working from my designs and instructions. I test every release in game in my own guilds before it goes up, and I maintain it. Please report any problem in the comments.
 
@@ -12,6 +12,8 @@
 
 *Bank, roster, trader, recruiting, raffles and events. One window, your rules.*
 
+**Video tutorial:** new to the toolset? See how everything works in my video. [Watch it on YouTube](https://youtube.com/live/t_RDWiJspy8).
+
 **Built for the leaders and officers who keep a guild running.** It watches your guild banks, rosters, trader and guild store, tells you when something needs your attention, and lets you deal with it in a click or two. It also helps you advertise, recruit, welcome new members, run raffles and fill your guild events from sesh sign-ups.
 
 **Get your data out of the game.** ESO keeps your guild's records locked inside the game. Here, every tab has an **Export / copy** button: the member list, inactive members, bank alerts, hoppers, the watchlist, the bank and roster history, trader weeks and member sales all come out as comma-separated text you paste straight into Excel, Google Sheets or Discord.
@@ -22,7 +24,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.24.3.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.24.3.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.24.5.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.24.5.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -120,7 +122,7 @@ See your whole roster, and who has been offline too long.
 
 ### Members tab
 
-- `/gt members`: every member's rank, time at rank, last promotion, last online and guild note. Filter by guild or rank, hide offline members, search and sort.
+- `/gt members`: every member's rank, time at rank, last promotion, last online and guild note. Filter by guild or rank, hide offline members, search and sort. Offline members are drawn a bit faded, so the ones online now stand out.
 - Right-click a member to whisper or mail them, **Set rank**, **Kick** or **Kick and blacklist**. Each change asks first.
 
 ### Turn on inactivity alerts
@@ -241,7 +243,7 @@ Advertise in zones, invite, and welcome new members. Every part is off until you
 ### Zone ads and the zone tour
 
 - **Put ad in chat** (a button on the Recruit tab, or a keybind) puts your ad in zone chat; press Enter. That zone then goes on cooldown (15 minutes to start with, up to 4 hours), and posting there too soon asks first.
-- **Start tour:** each time you press Enter on your ad, you travel to the next ready zone, through a guildmate, a friend or a house you own there, and the ad is waiting when you arrive. Nothing moves until you post. If a jump fails, it tries the next person, then the next zone.
+- **Start tour:** each time you press Enter on your ad, you travel to the next ready zone, through a guildmate, a friend or a house you own there, and the ad is waiting when you arrive. Nothing moves until you post. If a jump fails, it tries the next person, then the next zone. If you're in combat, it waits until combat clears and then travels.
 - The **Recruit** tab (`/gt recruit`) lists every zone as ready or on cooldown. Right-click one to travel there, clear its cooldown or leave it out of the tour.
 
 ### Invites and leads
