@@ -6,7 +6,7 @@ local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.32.2"
+GT.version = "1.32.6"
 GT.website = "https://www.esoui.com/downloads/info5063.html"
 GT.savedVarsVersion = 1
 
@@ -79,7 +79,7 @@ end
 -- settings used to start on. An install from before 1.3.0 that never saved one of them gets
 -- the old value (on) written in once, so nothing changes for people who already use the addon.
 local OLD_ON_DEFAULTS = {
-    bank = { "enabled", "goldEnabled", "openWindowOnLogin", "autoDemoteNote", "blacklistOnKick" },
+    bank = { "enabled", "goldEnabled", "openWindowOnLogin", "autoDemoteNote", "blacklistOnKick" },   -- goldEnabled: read once by BankWatch 1.32.3
     auto = { "bigNotice", "alertWindow" },
     capacity = { "enabled" },
     log = { "enabled" },

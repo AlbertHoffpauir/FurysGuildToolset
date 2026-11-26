@@ -16,7 +16,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.32.2.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.32.2.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.32.6.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.32.6.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -59,6 +59,7 @@
 - `/gtsettings` (or `/gt settings`): open the settings.
 - `/gt tour`: start or stop the recruiting zone tour.
 - `/gt raffle add @name 3 (reason)` and `/gt raffle remove @name 3`: change someone's raffle tickets by hand.
+- `/fury`: the Fury addons menu, a small window that lists every Fury addon you have installed, each with an Open and a Settings button. It also has a key: Controls > Keybindings > Fury's Guild Management Toolset > Open the Fury addons menu.
 - `/crier`: the Guild Crier menu. `/crier next` posts the next message, `/crier reset` restarts the rotation.
 - `/gt status`: how much history has loaded per guild, and the biggest withdrawers. `/gt guilds`: which guilds have alerts on.
 - `/gt reset`: rebuild the alerts from the logged history with your current settings (what you already did is kept). `/gt reset full`: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept; it asks first, because it reloads the UI).
@@ -76,7 +77,7 @@ Catch members who take more from the guild bank than your rules allow.
 - On the **Start here** page, click your guilds and then **Bank alerts**, and reload. (The same switches are on the main settings page: **Guilds to get alerts from** and **Guild bank alerts > Enable bank alerts**.)
 - On the **Guild rules** page, set each guild's limits: warn, demote and kick at X stacks per day (0 = never). Demote starts at 50; warn and kick start turned off.
 - Add your bankers and restocking officers under **Ignore rank names** or **Ignore @names**. The top 2 ranks are ignored from the start.
-- Optional: **Watch gold withdrawals too** (warn 50,000, demote 200,000, kick 500,000 gold per day), counting items instead of stacks, or a rolling window of hours instead of midnight to midnight.
+- Optional: gold withdrawals, with their own **Gold: warn at**, **demote at** and **kick at** sliders (all start at 0, which means gold is not watched), counting items instead of stacks, or a rolling window of hours instead of midnight to midnight.
 
 ### Use it
 
@@ -372,6 +373,7 @@ The menus do what the game lets your rank do. If your rank can't demote, kick or
 - [Fury's Character Tracker](https://www.esoui.com/downloads/info5078.html): every character on one board: skill lines, crafting, research, daily writs, wallet and gear.
 - [Fury's Inventory Ledger](https://www.esoui.com/downloads/info5099.html): every item you own in one list, across all your characters, the bank and your houses, with export to Excel.
 - [Fury's Account Sync](https://www.esoui.com/downloads/info5106.html): make your other accounts on this PC match your main one: settings, keybinds, addon settings and builds.
+- [Fury's Quality of Life](https://www.esoui.com/downloads/info5115.html): small comforts for everyday play: Select all when you deconstruct, a fishing bite alert with the right bait, a queue alert and a lock for everything you wear.
 
 All free on ESOUI and in Minion.
 

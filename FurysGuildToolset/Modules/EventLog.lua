@@ -706,8 +706,11 @@ function EventLog:BuildSettings(options)
           getFunc = function() return sv.keepDays end, setFunc = function(v) sv.keepDays = v end, default = defaults.keepDays },
         { type = "description", text = "The log is also saved in SavedVariables/FurysGuildToolset.lua after you log out or /reloadui, if you want the raw data. Each event is one line: guild id; event id; time; type; member; target; quantity; item link; gold; rank." },
         { type = "button", name = "Remove the old log backup", width = "half",
-          tooltip = "Version 1.28.0 saves the History log in a smaller format and keeps the old copy in your saved file as a backup for " .. BACKUP_DAYS .. " days. Click to remove that backup now, so your saved file shrinks at your next logout or /reloadui. The History log itself is not touched. Greyed out when there is no backup.",
-          func = function() self:RemoveOldLog() end,
+          tooltip = "Version 1.28.0 saves the History log in a smaller format and keeps the old copy in your saved file as a backup for " .. BACKUP_DAYS .. " days. Click to remove that backup now, so your saved file shrinks at your next logout or /reloadui. The History log itself is not touched. Asks first. Greyed out when there is no backup.",
+          func = function()
+              GT.Actions.Confirm("Remove the old log backup", "Remove the old copy of the History log for good?\n\nThe log in the new format stays. This can't be undone.",
+                  function() self:RemoveOldLog() end)
+          end,
           disabled = function() return self:OldLogCount() == 0 end,
           isDangerous = true, warning = "Removes the old copy of the History log for good. The log in the new format stays." },
     } }

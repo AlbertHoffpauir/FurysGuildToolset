@@ -19,6 +19,9 @@
             <Action name="FURYGMT_RECRUIT_NEXT">
                 <Down>FurysGuildToolset.Recruit.KeyNext()</Down>
             </Action>
+            <Action name="FURYGMT_FURY_MENU">
+                <Down>FurysAddonMenu.Toggle()</Down>
+            </Action>
         </Category>
     </Layer>
 </Bindings>

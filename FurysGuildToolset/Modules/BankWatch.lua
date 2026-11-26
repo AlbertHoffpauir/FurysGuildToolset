@@ -37,10 +37,10 @@ BankWatch.defaults = {
     warnAt = 0,                      -- 0 = off; new installs start with only the demote limit (Albert, 1.2.4)
     demoteAt = 50,
     kickAt = 0,                      -- 0 = off
-    goldEnabled = false,
-    goldWarnAt = 50000,
-    goldDemoteAt = 200000,
-    goldKickAt = 500000,
+    goldEnabled = false,             -- not used since 1.32.3: gold is watched when one of its limits is above 0
+    goldWarnAt = 0,                  -- 0 = off, like the item limits (Albert, 1.32.3: all three start at 0)
+    goldDemoteAt = 0,
+    goldKickAt = 0,
     excludeNames = "",
     excludeRanks = "",
     excludeTopRanks = 2,             -- ranks 1..2 (Guild Master and the next rank) are ignored
@@ -101,6 +101,18 @@ function BankWatch:Initialize(sv)
         if sv.warnText == "Hi <<1>>, on <<5>> you withdrew <<2>> from the <<3>> guild bank in less than a <<4>> hour period.\n\n<<6>>" then sv.warnText = BankWatch.defaults.warnText end
         if sv.demoteText == "Hi <<1>>, on <<5>> you withdrew <<2>> from the <<3>> guild bank in less than a <<4>> hour period.\n\n<<6>>\n\nYou have been demoted until you contact the Guild Leader or one of the officers to discuss this." then sv.demoteText = BankWatch.defaults.demoteText end
         sv.settingsVersion = 6
+    end
+    -- 1.32.3: gold has three sliders like the items, 0 = off, and the "Watch gold withdrawals
+    -- too" box is gone. Where that box was off the gold limits become 0, so nothing starts
+    -- being watched by itself; where it was on the numbers stay as they are.
+    if sv.settingsVersion < 7 then
+        for _, g in pairs(sv.guilds or {}) do
+            local watched = g.goldEnabled
+            if watched == nil then watched = sv.goldEnabled end
+            if not watched then g.goldWarnAt, g.goldDemoteAt, g.goldKickAt = 0, 0, 0 end
+        end
+        if not sv.goldEnabled then sv.goldWarnAt, sv.goldDemoteAt, sv.goldKickAt = 0, 0, 0 end
+        sv.settingsVersion = 7
     end
     self.autoDemotedThisSession = 0
     -- v0.2.3: the old auto settings had different names; clear them.
@@ -218,7 +230,7 @@ function BankWatch:OnHistoryEvent(guildId, category, info, isLive)
         name, kind, link, qty = info.displayName, "items", info.itemLink, info.quantity or 1
         amount = (g.countMode == "withdrawals") and 1 or qty
     elseif category == GUILD_HISTORY_EVENT_CATEGORY_BANKED_CURRENCY then
-        if not g.goldEnabled then return end
+        if g.goldWarnAt <= 0 and g.goldDemoteAt <= 0 and g.goldKickAt <= 0 then return end   -- gold not watched
         if info.eventType ~= GUILD_HISTORY_BANKED_CURRENCY_EVENT_WITHDRAWN then return end
         if info.currencyType ~= CURT_MONEY then return end
         name, kind, amount = info.displayName, "gold", info.amount or 0
@@ -1057,16 +1069,15 @@ function BankWatch:BuildGuildSettings(controls, guildId)
           getFunc = function() return g.demoteAt end, setFunc = function(v) g.demoteAt = v end, default = defaults.demoteAt },
         { type = "slider", name = "Kick at (0 = never)", min = 0, max = 5000, step = 1,
           getFunc = function() return g.kickAt end, setFunc = function(v) g.kickAt = v end, default = defaults.kickAt },
-        { type = "checkbox", name = "Watch gold withdrawals too", getFunc = function() return g.goldEnabled end,
-          setFunc = function(v) g.goldEnabled = v end, default = defaults.goldEnabled },
-        { type = "editbox", name = "Gold: warn / demote / kick at", tooltip = "Three numbers separated by spaces. 0 = never.",
-          getFunc = function() return string.format("%d %d %d", g.goldWarnAt, g.goldDemoteAt, g.goldKickAt) end,
-          setFunc = function(v)
-              local a, b, c = string.match(v or "", "(%d+)%D+(%d+)%D+(%d+)")
-              if a then g.goldWarnAt, g.goldDemoteAt, g.goldKickAt = tonumber(a), tonumber(b), tonumber(c) end
-          end,
-          default = string.format("%d %d %d", defaults.goldWarnAt, defaults.goldDemoteAt, defaults.goldKickAt),
-          disabled = function() return not g.goldEnabled end },
+        { type = "slider", name = "Gold: warn at (0 = never)", min = 0, max = 1000000, step = 1000, clampInput = false,
+          tooltip = "Gold a member takes from the guild bank, counted per day or rolling window like the items. 0 = never. You can also type a number in the box. All three gold limits at 0 = gold is not watched.",
+          getFunc = function() return g.goldWarnAt end, setFunc = function(v) g.goldWarnAt = v end, default = defaults.goldWarnAt },
+        { type = "slider", name = "Gold: demote at (0 = never)", min = 0, max = 5000000, step = 1000, clampInput = false,
+          tooltip = "Gold taken from the guild bank at which the member is flagged for a demotion. 0 = never. You can also type a number in the box.",
+          getFunc = function() return g.goldDemoteAt end, setFunc = function(v) g.goldDemoteAt = v end, default = defaults.goldDemoteAt },
+        { type = "slider", name = "Gold: kick at (0 = never)", min = 0, max = 10000000, step = 1000, clampInput = false,
+          tooltip = "Gold taken from the guild bank at which the member is flagged for a kick. 0 = never. You can also type a number in the box.",
+          getFunc = function() return g.goldKickAt end, setFunc = function(v) g.goldKickAt = v end, default = defaults.goldKickAt },
         { type = "header", name = "Bank: who to ignore" },
         { type = "slider", name = "Ignore the top N ranks", min = 0, max = 10, step = 1,
           tooltip = "Rank 1 is the Guild Master. 2 ignores the Guild Master and the rank below. See the rank list below.",

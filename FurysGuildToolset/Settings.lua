@@ -106,10 +106,15 @@ function Settings:AppendGuildRules(options)
                 tooltip = "Copies every setting in this section from the guild picked on the left, except the limit for each rank (ranks differ between guilds). Asks first.",
                 warning = "Replaces this guild's settings with the other guild's. Click Rescan alerts afterwards.",
                 func = function()
-                    GT:CopyGuildSettings(copyFrom, gid)
-                    CALLBACK_MANAGER:FireCallbacks("LAM-RefreshPanel", self.rulesPanel)
-                    GT.Report:RefreshIfShown()
-                    U.Print("Copied the rules from %s to %s.", U.GuildName(copyFrom), U.GuildName(gid))
+                    local from = copyFrom
+                    GT.Actions.Confirm("Copy rules",
+                        string.format("Replace the rules of %s with the rules of %s?\n\nThe limit for each rank is not copied. This can't be undone.", U.GuildName(gid), U.GuildName(from)),
+                        function()
+                            GT:CopyGuildSettings(from, gid)
+                            CALLBACK_MANAGER:FireCallbacks("LAM-RefreshPanel", self.rulesPanel)
+                            GT.Report:RefreshIfShown()
+                            U.Print("Copied the rules from %s to %s.", U.GuildName(from), U.GuildName(gid))
+                        end)
                 end }
         end
         for _, id in ipairs(GUILD_SETTINGS_ORDER) do

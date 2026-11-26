@@ -3238,8 +3238,15 @@ function Events:SettingsControls()
     end
     controls[#controls + 1] = { type = "header", name = "Discord names" }
     controls[#controls + 1] = { type = "button", name = "Forget all matched accounts", width = "half", isDangerous = true,
-        tooltip = "Forgets every account you picked for a Discord name with right-click > Set account. Matches by name still work.",
+        tooltip = "Forgets every account you picked for a Discord name with right-click > Set account. Matches by name still work. Asks first.",
         warning = "Forgets every Discord name to account match you set.",
-        func = function() sv.map = {}; self.cache = nil; GT.Report:RefreshIfShown(); U.Print("Forgot every matched account.") end }
+        func = function()
+            GT.Actions.Confirm("Forget all matched accounts", "Forget every account you picked for a Discord name?\n\nMatches by name still work. This can't be undone.", function()
+                sv.map = {}
+                self.cache = nil
+                GT.Report:RefreshIfShown()
+                U.Print("Forgot every matched account.")
+            end)
+        end }
     return controls
 end
