@@ -2,7 +2,7 @@
 --  FURY'S GUILD CRIER - DEFAULT MESSAGE LIST
 --  This is the STARTING list. Once the addon has loaded, your messages
 --  live in the addon's saved settings and you edit them in game:
---  Settings > Addons > Fury's Guild Management Toolset - Crier (or /crier settings).
+--  Settings > Addons > Fury's Guild Toolset - Crier (or /crier settings).
 --  Changes made here only show up in game if you use "Import new
 --  messages", "Import new tips" or "Reset to Messages.lua" in that
 --  settings panel.

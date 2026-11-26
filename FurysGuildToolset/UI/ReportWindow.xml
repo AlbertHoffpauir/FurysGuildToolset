@@ -97,7 +97,7 @@
                     <AnchorFill />
                     <Edge edgeSize="2" />
                 </Backdrop>
-                <Label name="$(parent)Title" font="ZoFontWinH2" text="Fury's Guild Management Toolset">
+                <Label name="$(parent)Title" font="ZoFontWinH2" text="Fury's Guild Toolset">
                     <Anchor point="TOPLEFT" offsetX="16" offsetY="10" />
                 </Label>
                 <Label name="$(parent)Version" font="ZoFontGameSmall" color="8A86B0">

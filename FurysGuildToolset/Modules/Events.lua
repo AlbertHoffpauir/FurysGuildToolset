@@ -3189,7 +3189,7 @@ end
 
 function Events:BuildSettings(options)
     self.panel = GT.Settings:AddPage("Events", "Events", self:SettingsControls(), true)
-    GT.Settings:AddPointer(options, "Events", "Sign-ups from sesh posts or any guild's sign-up sheet, missing people, guild ads and Group Finder listings are on their own page: \"Fury's Guild Management Toolset - Events\" in the Add-Ons list.",
+    GT.Settings:AddPointer(options, "Events", "Sign-ups from sesh posts or any guild's sign-up sheet, missing people, guild ads and Group Finder listings are on their own page: \"Fury's Guild Toolset - Events\" in the Add-Ons list.",
         function() self:OpenSettings() end)
 end
 

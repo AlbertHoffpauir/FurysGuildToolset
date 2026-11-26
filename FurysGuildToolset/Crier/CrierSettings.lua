@@ -652,8 +652,8 @@ function GC.InitSettings()
         EVENT_MANAGER:UnregisterForEvent(GC.name .. "Settings", EVENT_PLAYER_ACTIVATED)
         panel = LAM:RegisterAddonPanel("FurysGuildToolset_CrierPanel", {
             type = "panel",
-            name = "Fury's Guild Management Toolset - Crier",
-            displayName = "|cA08CFFFury's Guild Management Toolset: Guild Crier|r",
+            name = "Fury's Guild Toolset - Crier",
+            displayName = "|cA08CFFFury's Guild Toolset: Guild Crier|r",
             author = "Furyous",
             version = GT.version,
             website = GT.website,

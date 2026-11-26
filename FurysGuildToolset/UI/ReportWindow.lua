@@ -164,7 +164,7 @@ function Report:Initialize()
     self.search = FurysGuildToolset_ReportSearch
     self.searchBox = FurysGuildToolset_ReportSearchBox
     -- 1.31.1: the version sits in the title itself, the same way in every Fury addon (Theme.lua).
-    GT.Theme.SetTitle(FurysGuildToolset_Report, "Fury's Guild Management Toolset", GT.version)
+    GT.Theme.SetTitle(FurysGuildToolset_Report, "Fury's Guild Toolset", GT.version)
     FurysGuildToolset_ReportVersion:SetText("")
     -- 1.27.0: a top line too long for the window ends in "..." and shows in full on hover.
     self.summary:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)

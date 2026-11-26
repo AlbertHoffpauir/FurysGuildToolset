@@ -10,9 +10,9 @@
 [*][COLOR="#B4B0D8"]License: free to use and share for noncommercial purposes under the [B]PolyForm Noncommercial License 1.0.0[/B] (the LICENSE file on GitHub). Selling it, or any other commercial use, needs a separate license from me: send me a private message on ESOUI.[/COLOR]
 [/LIST][/QUOTE]
 
-[CENTER][SIZE="6"][FONT="Georgia"][COLOR="#A08CFF"][B]Fury's Guild Management Toolset[/B][/COLOR][/FONT][/SIZE]
+[CENTER][SIZE="6"][FONT="Georgia"][COLOR="#A08CFF"][B]Fury's Guild Toolset[/B][/COLOR][/FONT][/SIZE]
 [SIZE="3"][COLOR="#5CC2FF"][I]Bank, roster, trader, recruiting, raffles and events. One window, your rules.[/I][/COLOR][/SIZE][/CENTER]
-[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL]   |   [URL="https://www.esoui.com/downloads/info5115.html"]Quality of Life[/URL][/SIZE][/CENTER]
+[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL]   |   [URL="https://www.esoui.com/downloads/info5115.html"]Quality of Life[/URL][/SIZE][/CENTER]
 
 [B]Video tutorial:[/B] new to the toolset? See how everything works in my video. [URL="https://www.youtube.com/live/IoDgDIp34fA"]Watch it on YouTube[/URL].
 
@@ -66,8 +66,8 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [/LIST]
 [COLOR="#A08CFF"][B]The settings pages[/B][/COLOR]
 [LIST]
-[*]Esc > Settings > Add-Ons, or [FONT="Courier New"][B]/gtsettings[/B][/FONT]. There are six pages, all starting with "Fury's Guild Management Toolset":
-[*][B]Fury's Guild Management Toolset[/B] (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
+[*]Esc > Settings > Add-Ons, or [FONT="Courier New"][B]/gtsettings[/B][/FONT]. There are six pages, all starting with "Fury's Guild Toolset":
+[*][B]Fury's Guild Toolset[/B] (main page): guilds to get alerts from, bank alerts, members, hoppers, history, automatic actions, bank space and trader week totals. It has a button that opens each of the other pages.
 [*][B]- Guild rules:[/B] a [B]Rules for (guild)[/B] section for each ticked guild.
 [*][B]- Recruiting[/B], [B]- Raffle[/B], [B]- Events[/B] and [B]- Crier:[/B] everything for those features.
 [/LIST]
@@ -79,14 +79,14 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][FONT="Courier New"][B]/gtsettings[/B][/FONT] (or [FONT="Courier New"][B]/gt settings[/B][/FONT]): open the settings.
 [*][FONT="Courier New"][B]/gt tour[/B][/FONT]: start or stop the recruiting zone tour.
 [*][FONT="Courier New"][B]/gt raffle add @name 3 (reason)[/B][/FONT] and [FONT="Courier New"][B]/gt raffle remove @name 3[/B][/FONT]: change someone's raffle tickets by hand.
-[*][FONT="Courier New"][B]/fury[/B][/FONT]: the Fury addons menu, a small window that lists every Fury addon you have installed, each with an Open and a Settings button. It also has a key: Controls > Keybindings > Fury's Guild Management Toolset > Open the Fury addons menu.
+[*][FONT="Courier New"][B]/fury[/B][/FONT]: the Fury addons menu, a small window that lists every Fury addon you have installed, each with an Open and a Settings button. It also has a key: Controls > Keybindings > Fury's Addons > Open the Fury addons menu.
 [*][FONT="Courier New"][B]/crier[/B][/FONT]: the Guild Crier menu. [FONT="Courier New"][B]/crier next[/B][/FONT] posts the next message, [FONT="Courier New"][B]/crier reset[/B][/FONT] restarts the rotation.
 [*][FONT="Courier New"][B]/gt status[/B][/FONT]: how much history has loaded per guild, and the biggest withdrawers. [FONT="Courier New"][B]/gt guilds[/B][/FONT]: which guilds have alerts on.
 [*][FONT="Courier New"][B]/gt reset[/B][/FONT]: rebuild the alerts from the logged history with your current settings (what you already did is kept). [FONT="Courier New"][B]/gt reset full[/B][/FONT]: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept; it asks first, because it reloads the UI).
 [/LIST]
 [COLOR="#A08CFF"][B]Keybinds[/B][/COLOR]
 [LIST]
-[*]Controls > Keybindings > Fury's Guild Management Toolset: open or close the report window, open or close the Crier menu, post the next Crier message, put the zone ad in chat, start or stop the zone tour, and travel to the next ready zone.
+[*]Controls > Keybindings > Fury's Guild Toolset: open or close the report window, open or close the Crier menu, post the next Crier message, put the zone ad in chat, start or stop the zone tour, and travel to the next ready zone.
 [/LIST]
 
 [SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]Bank alerts[/B][/COLOR][/FONT][/SIZE]
@@ -94,7 +94,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Turn it on[/B][/COLOR]
 [LIST]
 [*]On the [B]Start here[/B] page, click your guilds and then [B]Bank alerts[/B], and reload. (The same switches are on the main settings page: [B]Guilds to get alerts from[/B] and [B]Guild bank alerts > Enable bank alerts[/B].)
-[*]On the [B]Guild rules[/B] page, set each guild's limits: warn, demote and kick at X stacks per day (0 = never). Demote starts at 50; warn and kick start turned off.
+[*]On the [B]Guild rules[/B] page, set each guild's limits with the [B]Items: warn at[/B], [B]demote at[/B] and [B]kick at[/B] sliders: X stacks per day (0 = never). Demote starts at 50; warn and kick start turned off.
 [*]Add your bankers and restocking officers under [B]Ignore rank names[/B] or [B]Ignore @names[/B]. The top 2 ranks are ignored from the start.
 [*]Optional: gold withdrawals, with their own [B]Gold: warn at[/B], [B]demote at[/B] and [B]kick at[/B] sliders (all start at 0, which means gold is not watched), counting items instead of stacks, or a rolling window of hours instead of midnight to midnight.
 [/LIST]
@@ -390,4 +390,4 @@ All free here on ESOUI and in Minion.
 Bug reports and ideas are welcome in the comments.
 Source code: [URL="https://github.com/AlbertHoffpauir/FurysGuildToolset"]GitHub[/URL]
 
-[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Management Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL]   |   [URL="https://www.esoui.com/downloads/info5115.html"]Quality of Life[/URL][/SIZE][/CENTER]
+[CENTER][SIZE="1"][COLOR="#B4B0D8"]FURY'S ADDONS[/COLOR]   [COLOR="#A08CFF"][B]Guild Toolset[/B][/COLOR]   |   [URL="https://www.esoui.com/downloads/info5078.html"]Character Tracker[/URL]   |   [URL="https://www.esoui.com/downloads/info5099.html"]Inventory Ledger[/URL]   |   [URL="https://www.esoui.com/downloads/info5106.html"]Account Sync[/URL]   |   [URL="https://www.esoui.com/downloads/info5115.html"]Quality of Life[/URL][/SIZE][/CENTER]

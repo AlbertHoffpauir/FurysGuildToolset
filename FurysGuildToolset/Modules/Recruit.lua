@@ -1206,9 +1206,9 @@ function Recruit:BuildSettings(options)
           getFunc = function() local w = W(); return w and w.body or MAIL_BODY end, setFunc = function(v) SetW("body", v) end, default = MAIL_BODY,
           disabled = NotOn },
     }
-    -- 1.10.0: on a page of its own, "Fury's Guild Management Toolset - Recruiting"; the main page points to it.
+    -- 1.10.0: on a page of its own, "Fury's Guild Toolset - Recruiting"; the main page points to it.
     self.panel = GT.Settings:AddPage("Recruit", "Recruiting", controls, true)
-    GT.Settings:AddPointer(options, "Recruiting", "Zone ads, the zone tour, welcomes, whisper leads, the status bar and the rest of recruiting are on their own page: \"Fury's Guild Management Toolset - Recruiting\" in the Add-Ons list.",
+    GT.Settings:AddPointer(options, "Recruiting", "Zone ads, the zone tour, welcomes, whisper leads, the status bar and the rest of recruiting are on their own page: \"Fury's Guild Toolset - Recruiting\" in the Add-Ons list.",
         function() self:OpenSettings() end)
 end
 

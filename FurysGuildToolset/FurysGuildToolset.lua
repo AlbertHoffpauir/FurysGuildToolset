@@ -1,12 +1,12 @@
--- Fury's Guild Management Toolset: core namespace, module registry, saved variables and lifecycle.
+-- Fury's Guild Toolset: core namespace, module registry, saved variables and lifecycle.
 -- Each feature lives in Modules/<Name>.lua and registers itself with GT:RegisterModule.
 
 FurysGuildToolset = {}
 local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
-GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.32.6"
+GT.displayName = "Fury's Guild Toolset"
+GT.version = "1.32.7"
 GT.website = "https://www.esoui.com/downloads/info5063.html"
 GT.savedVarsVersion = 1
 
@@ -291,7 +291,7 @@ function GT.RegisterSlashCommands()
         elseif arg == "settings" then
             GT.Settings:Open()
         else
-            GT.Util.Print("Fury's Guild Management Toolset v%s commands:", GT.version)
+            GT.Util.Print("Fury's Guild Toolset v%s commands:", GT.version)
             GT.Util.Print("/gt  open the report window")
             GT.Util.Print("/gt start  open the Start here page: pick your guilds and turn features on or off")
             -- No "|" here: ESO treats it as a text-formatting character and hides it.
