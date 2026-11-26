@@ -16,7 +16,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.32.7.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.32.7.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.33.4.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.33.4.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -40,6 +40,7 @@
 - **Right-click any row** for what you can do with it: whisper, mail, set rank, kick, dismiss and more. The line at the top of each tab reminds you.
 - To copy someone's @name, right-click their row > **Copy @name**. The name shows up selected in a small window; press Ctrl+C.
 - **Hover** over any button, tab, column header or row for a short tip or the full details.
+- The small icons in the title bar are your other Fury addons: left-click one to open that addon, right-click for its settings.
 - Click a column header to sort, and again to reverse. Tabs with a search box have a small X to clear it.
 - Every tab has an **Export / copy** button: the tab as comma-separated text to paste into Excel, Google Sheets or Discord.
 - The gear at the top right opens the settings for the tab you're on (for example the Crier page on the Crier tab, the Guild rules page on Members). Tabs without settings of their own open the main page.
@@ -59,7 +60,8 @@
 - `/gtsettings` (or `/gt settings`): open the settings.
 - `/gt tour`: start or stop the recruiting zone tour.
 - `/gt raffle add @name 3 (reason)` and `/gt raffle remove @name 3`: change someone's raffle tickets by hand.
-- `/fury`: the Fury addons menu, a small window that lists every Fury addon you have installed, each with an Open and a Settings button. It also has a key: Controls > Keybindings > Fury's Addons > Open the Fury addons menu.
+- `/fury`: shows or hides the Fury sidebar, a slim bar of icons, one per Fury addon you have installed, that shows whenever your cursor is out. Left-click an icon to open that addon, right-click for its settings; drag its violet line to move it. It starts turned off and also has a key: Controls > Keybindings > Fury's Addons > Show or hide the Fury sidebar.
+- `/fury menu`: the list of your Fury addons, each with an Open and a Settings button, and the sidebar's options: a row or a column, bigger icons, lock in place, hide in combat, stay on screen without the cursor.
 - `/crier`: the Guild Crier menu. `/crier next` posts the next message, `/crier reset` restarts the rotation.
 - `/gt status`: how much history has loaded per guild, and the biggest withdrawers. `/gt guilds`: which guilds have alerts on.
 - `/gt reset`: rebuild the alerts from the logged history with your current settings (what you already did is kept). `/gt reset full`: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept; it asks first, because it reloads the UI).

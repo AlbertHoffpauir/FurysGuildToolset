@@ -60,6 +60,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][B]Right-click any row[/B] for what you can do with it: whisper, mail, set rank, kick, dismiss and more. The line at the top of each tab reminds you.
 [*]To copy someone's @name, right-click their row > [B]Copy @name[/B]. The name shows up selected in a small window; press Ctrl+C.
 [*][B]Hover[/B] over any button, tab, column header or row for a short tip or the full details.
+[*]The small icons in the title bar are your other Fury addons: left-click one to open that addon, right-click for its settings.
 [*]Click a column header to sort, and again to reverse. Tabs with a search box have a small X to clear it.
 [*]Every tab has an [B]Export / copy[/B] button: the tab as comma-separated text to paste into Excel, Google Sheets or Discord.
 [*]The gear at the top right opens the settings for the tab you're on (for example the Crier page on the Crier tab, the Guild rules page on Members). Tabs without settings of their own open the main page.
@@ -79,7 +80,8 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][FONT="Courier New"][B]/gtsettings[/B][/FONT] (or [FONT="Courier New"][B]/gt settings[/B][/FONT]): open the settings.
 [*][FONT="Courier New"][B]/gt tour[/B][/FONT]: start or stop the recruiting zone tour.
 [*][FONT="Courier New"][B]/gt raffle add @name 3 (reason)[/B][/FONT] and [FONT="Courier New"][B]/gt raffle remove @name 3[/B][/FONT]: change someone's raffle tickets by hand.
-[*][FONT="Courier New"][B]/fury[/B][/FONT]: the Fury addons menu, a small window that lists every Fury addon you have installed, each with an Open and a Settings button. It also has a key: Controls > Keybindings > Fury's Addons > Open the Fury addons menu.
+[*][FONT="Courier New"][B]/fury[/B][/FONT]: shows or hides the Fury sidebar, a slim bar of icons, one per Fury addon you have installed, that shows whenever your cursor is out. Left-click an icon to open that addon, right-click for its settings; drag its violet line to move it. It starts turned off and also has a key: Controls > Keybindings > Fury's Addons > Show or hide the Fury sidebar.
+[*][FONT="Courier New"][B]/fury menu[/B][/FONT]: the list of your Fury addons, each with an Open and a Settings button, and the sidebar's options: a row or a column, bigger icons, lock in place, hide in combat, stay on screen without the cursor.
 [*][FONT="Courier New"][B]/crier[/B][/FONT]: the Guild Crier menu. [FONT="Courier New"][B]/crier next[/B][/FONT] posts the next message, [FONT="Courier New"][B]/crier reset[/B][/FONT] restarts the rotation.
 [*][FONT="Courier New"][B]/gt status[/B][/FONT]: how much history has loaded per guild, and the biggest withdrawers. [FONT="Courier New"][B]/gt guilds[/B][/FONT]: which guilds have alerts on.
 [*][FONT="Courier New"][B]/gt reset[/B][/FONT]: rebuild the alerts from the logged history with your current settings (what you already did is kept). [FONT="Courier New"][B]/gt reset full[/B][/FONT]: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept; it asks first, because it reloads the UI).

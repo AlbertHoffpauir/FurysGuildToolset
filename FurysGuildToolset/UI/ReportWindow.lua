@@ -295,7 +295,7 @@ function Report:Initialize()
     if self:GetTab(START_TAB) then
         local start = WINDOW_MANAGER:CreateControlFromVirtual("FurysGuildToolset_ReportStart", FurysGuildToolset_Report, "ZO_DefaultButton")
         start:SetDimensions(110, 28)
-        start:SetAnchor(LEFT, FurysGuildToolset_ReportTitle, RIGHT, 14, 0)
+        start:SetAnchor(LEFT, FurysGuildToolset_ReportTitle, RIGHT, GT.Theme.StartOffset(FurysGuildToolset_Report), 0)
         start:SetDrawLayer(DL_CONTROLS)
         start:SetDrawLevel(1)
         start:SetText("Start here")
@@ -303,6 +303,9 @@ function Report:Initialize()
         Report.SetTip(start, function() return Resolve(self:GetTab(START_TAB).tip) end)
         self.startButton = start
     end
+    -- The other Fury addons, one click each, in the title bar (Theme.lua).
+    -- 352: room for the widest thing a tab puts left of the gear (the Events tab's Invite by code bar).
+    GT.Theme.TitleIcons(FurysGuildToolset_Report, FurysGuildToolset_ReportSettings, self.startButton, 352)
 
     previous = nil
     for i = 1, MAX_FOOTER_BUTTONS do
