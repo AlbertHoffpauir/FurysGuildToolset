@@ -14,8 +14,7 @@ end
 
 function U.Print(fmt, ...)
     local text = select("#", ...) > 0 and string.format(fmt, ...) or fmt
-    local line = "|cA08CFF[Guild Toolset]|r " .. text
-    CHAT_ROUTER:AddSystemMessage(line)
+    GT.Theme.Chat(text)   -- 1.31.3: the shared chat line (UI/Theme.lua)
 end
 
 function U.Alert(text)

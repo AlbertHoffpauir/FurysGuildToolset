@@ -7,6 +7,7 @@
 [*][COLOR="#B4B0D8"]Game API details from the ESOUI wiki and ZeniMax's ESO UI source code.[/COLOR]
 [*][COLOR="#B4B0D8"]Thanks to Dack for code review feedback on how guild history should be read.[/COLOR]
 [*][COLOR="#B4B0D8"]The Guild Crier started as my own separate addon, "Fury's Guild Crier", and is now part of this toolset.[/COLOR]
+[*][COLOR="#B4B0D8"]License: free to use and share for noncommercial purposes under the [B]PolyForm Noncommercial License 1.0.0[/B] (the LICENSE file on GitHub). Selling it, or any other commercial use, needs a separate license from me: send me a private message on ESOUI.[/COLOR]
 [/LIST][/QUOTE]
 
 [CENTER][SIZE="6"][FONT="Georgia"][COLOR="#A08CFF"][B]Fury's Guild Management Toolset[/B][/COLOR][/FONT][/SIZE]
@@ -231,7 +232,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Use it[/B][/COLOR]
 [LIST]
 [*][FONT="Courier New"][B]/crier[/B][/FONT] (or the Crier tab, or a keybind) opens the menu. Click a message to put it in the chat box, then press Enter.
-[*][FONT="Courier New"][B]/crier next[/B][/FONT] (or a keybind) posts the next message in the rotation. The rotation is weighted and remembers its place between sessions.
+[*][FONT="Courier New"][B]/crier next[/B][/FONT] (or a keybind) posts the next message in the rotation. The rotation goes through your list in order and nothing is left out or bunched up: in a round every message is posted as often as its weight says, and the turns of a heavier message are spread evenly, never in a row. It remembers its place between reloads, logins and characters, and a reminder message you didn't send comes back at the next reminder.
 [/LIST]
 [COLOR="#A08CFF"][B]Set it up[/B][/COLOR]
 [LIST]

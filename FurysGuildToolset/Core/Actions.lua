@@ -21,30 +21,11 @@ local U = GT.Util
 local Actions = {}
 GT.Actions = Actions
 
-local CONFIRM_DIALOG = "FURYGMT_CONFIRM"
 local BLACKLIST_NOTE_MAX = 150
-local dialogRegistered = false
 
-local function EnsureDialog()
-    if dialogRegistered then return end
-    dialogRegistered = true
-    ZO_Dialogs_RegisterCustomDialog(CONFIRM_DIALOG, {
-        gamepadInfo = { dialogType = GAMEPAD_DIALOGS.BASIC },
-        title = { text = "<<1>>" },
-        mainText = { text = "<<1>>" },
-        buttons = {
-            { text = SI_DIALOG_CONFIRM, callback = function(dialog) dialog.data.onConfirm() end },
-            { text = SI_DIALOG_CANCEL },
-        },
-    })
-end
-
+-- 1.31.3: the confirm pop-up is the shared one (UI/Theme.lua), the same in every Fury addon.
 function Actions.Confirm(title, body, onConfirm)
-    EnsureDialog()
-    ZO_Dialogs_ShowDialog(CONFIRM_DIALOG, { onConfirm = onConfirm }, {
-        titleParams = { title },
-        mainTextParams = { body },
-    })
+    GT.Theme.Confirm(title, body, nil, onConfirm)
 end
 
 -- A small box that asks for a whole number (1 or more), then calls onNumber(n). Used for

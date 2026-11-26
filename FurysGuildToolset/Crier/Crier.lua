@@ -16,7 +16,6 @@ ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_CRIER_POST", "Guild Crier: post next 
 ZO_CreateStringId("SI_BINDING_NAME_FURYGMT_REPORT", "Open/close the report window")
 
 local MAX_CHAT = 350
-local PREFIX = "|cA08CFF[Guild Crier]|r "
 
 -- Fury Night colors (UI/Theme.lua): violet section heads, blue on hover
 local GOLD      = { 0.627, 0.549, 1.000, 1 }   -- violet A08CFF
@@ -34,7 +33,7 @@ local GUILD_CHANNELS = {
 
 local defaults = {
     guild = 1,
-    rotation = nil,        -- message text -> place in the weighted rotation (kept between sessions)
+    round = nil,           -- message text -> times posted this round of the rotation (kept between sessions)
     winX = nil,
     winY = nil,
     messages = nil,        -- your editable message list (seeded from Messages.lua)
@@ -48,7 +47,7 @@ local defaults = {
 local ICON_OPEN   = "|t20:20:EsoUI/Art/Buttons/tree_open_up.dds|t "
 local ICON_CLOSED = "|t20:20:EsoUI/Art/Buttons/tree_closed_up.dds|t "
 
-local function Say(msg) d(PREFIX .. msg) end
+local function Say(msg) FurysGuildToolset.Theme.ChatAs("Guild Crier", msg) end
 local function Messages()
     if GC.sv and GC.sv.messages then return GC.sv.messages end
     return GT.CrierMessages
@@ -129,77 +128,163 @@ local function SendToChat(m)
         channel = GUILD_CHANNELS[GC.sv.guild]
     end
     StartChatInput(text, channel, target)
+    return text
 end
 
--- ---------- weighted rotation (smooth weighted round-robin) ----------
--- Each message's place in the rotation is saved by its text (sv.rotation), so it
--- carries over between sessions, and adding, removing, moving or editing other
--- messages doesn't send the whole rotation back to the start. An edited message
--- simply starts fresh.
-local function ListSignature()
-    local h = 7
-    for _, m in ipairs(Messages()) do
-        local s = tostring(Weight(m)) .. ":" .. tostring(m.text or "") .. "|"
-        for i = 1, #s do h = (h * 31 + s:byte(i)) % 2147483647 end
+-- ---------- rotation (rounds, in list order) ----------
+-- The rotation works in rounds (1.32.1). In a round every message is posted as often as its
+-- weight says (weight 3 = three times a round), in the order of your list, with the turns of a
+-- heavier message spread evenly through the round (Sequence, 1.32.2). sv.round keeps, by message
+-- text, how often each message was posted this round, so the place carries over between
+-- reloads, logins and characters. A new message has not had a turn yet, so it comes up soon.
+--
+-- A message only counts as posted when it shows up in chat under your name (OnChatMessage).
+-- One that a reminder loaded and you did not send stays next, so it comes back at the next
+-- reminder instead of being skipped. The rotation key and /crier next move on from it.
+local function Round()
+    local sv = GC.sv
+    if not sv.round then
+        sv.round = {}
+        -- Older versions kept a weighted place per message, which cannot be turned into a
+        -- round: start a fresh round from the top of the list.
+        sv.rotation, sv.current, sv.signature = nil, nil, nil
     end
-    return h
+    return sv.round
 end
 
 function GC.SyncState()
-    local sv = GC.sv
-    if not sv.rotation then
-        sv.rotation = {}
-        -- Older versions kept the rotation by list position. Carry it over if the
-        -- list is still the one it was saved for.
-        if sv.current and sv.signature == ListSignature() then
-            for i, m in ipairs(Messages()) do
-                if sv.current[i] and m.text then sv.rotation[m.text] = sv.current[i] end
-            end
-        end
-        sv.current = nil
-        sv.signature = nil
-    end
+    local round = Round()
     -- Forget messages that are gone or no longer in the rotation.
     local live = {}
     for _, m in ipairs(Messages()) do
         if Weight(m) > 0 and m.text then live[m.text] = true end
     end
-    for text in pairs(sv.rotation) do
-        if not live[text] then sv.rotation[text] = nil end
+    for text in pairs(round) do
+        if not live[text] then round[text] = nil end
     end
+    if GC.offered and not live[GC.offered.text] then GC.offered = nil end
 end
 
 function GC.ResetRotation()
-    GC.sv.rotation = {}
+    GC.sv.round = {}
+    GC.sv.lastPosted = nil
+    GC.offered = nil
 end
 
-local function PickNext()
-    local msgs = Messages()
-    local rot = GC.sv.rotation
-    local total, best, bestVal = 0, nil, nil
-    for i, m in ipairs(msgs) do
+-- A message's text changed (edited, or a prefix was added): it keeps its place in the round.
+function GC.TextChanged(oldText, newText)
+    local round = Round()
+    if oldText and newText and oldText ~= newText and round[oldText] ~= nil then
+        round[newText] = round[oldText]
+        round[oldText] = nil
+    end
+    if GC.offered and GC.offered.text == oldText then GC.offered.text = newText end
+    if GC.sv.lastPosted == oldText then GC.sv.lastPosted = newText end
+end
+
+-- One round, as a list of messages: a message with weight w is in it w times, spread evenly
+-- (1.32.2), so its turns are never bunched up. The k-th turn of a message sits at
+-- (k + phase) / w of the way through the round, where the phase is the message's place in the
+-- list. Messages with the same weight therefore follow the order of the list, and a weight 3
+-- message comes up at about every third of the round, from one round into the next as well.
+local function Sequence()
+    local rotating = {}
+    for _, m in ipairs(Messages()) do
+        if Weight(m) > 0 and m.text and m.text ~= "" then rotating[#rotating + 1] = m end
+    end
+    local slots = {}
+    for i, m in ipairs(rotating) do
         local w = Weight(m)
-        if w > 0 and m.text and m.text ~= "" then
-            local c = (rot[m.text] or 0) + w
-            rot[m.text] = c
-            total = total + w
-            if bestVal == nil or c > bestVal then best, bestVal = i, c end
+        for k = 0, w - 1 do
+            slots[#slots + 1] = { m = m, at = (k + (i - 1) / #rotating) / w, order = #slots }
         end
     end
-    if not best then return nil end
-    rot[msgs[best].text] = bestVal - total
-    return msgs[best]
+    table.sort(slots, function(x, y)
+        if x.at ~= y.at then return x.at < y.at end
+        return x.order < y.order
+    end)
+    return slots
 end
 
-function GC.Post()
+-- The message whose turn it is: the first turn in the round that has not been posted yet.
+-- The message posted last is passed over while another one still has a turn left, so nothing
+-- is posted twice in a row. Nil when the list has no weighted message.
+local function PickNext()
+    local round = Round()
+    local slots = Sequence()
+    for pass = 1, 2 do
+        local seen, fallback = {}, nil
+        for _, slot in ipairs(slots) do
+            local text = slot.m.text
+            seen[text] = (seen[text] or 0) + 1
+            if seen[text] > (round[text] or 0) then
+                if text ~= GC.sv.lastPosted then return slot.m end
+                fallback = fallback or slot.m
+            end
+        end
+        if fallback then return fallback end
+        -- Everything has had all its turns: the next round starts.
+        for text in pairs(round) do round[text] = nil end
+    end
+    return nil
+end
+
+-- Counts a message as posted this round.
+local function Commit(text)
+    local round = Round()
+    round[text] = (round[text] or 0) + 1
+    GC.sv.lastPosted = text
+    -- Ask the game to write the saved variables soon, so a crash doesn't lose the place.
+    GetAddOnManager():RequestAddOnSavedVariablesPrioritySave(GT.name)
+end
+
+-- Your own chat lines: a rotation message counts as posted once it shows up in chat, whether a
+-- reminder, the rotation key or a click in the menu loaded it. The start of the line is
+-- compared, so filling in a name or fixing a word by hand still counts.
+local MATCH_CHARS, MATCH_MIN = 24, 8
+local function StartsWith(line, head)
+    return #head > 0 and string.sub(line, 1, #head) == head
+end
+local function OnChatMessage(_, _, _, text, _, fromDisplayName)
+    if fromDisplayName ~= GetDisplayName() then return end
+    text = text or ""
+    local offered = GC.offered
+    if offered and StartsWith(text, string.sub(offered.filled, 1, MATCH_CHARS)) then
+        GC.offered = nil
+        Commit(offered.text)
+        return
+    end
+    -- Sent from the menu: compare the part before the first placeholder.
+    for _, m in ipairs(Messages()) do
+        if Weight(m) > 0 and m.text then
+            local head = string.sub(m.text, 1, MATCH_CHARS)
+            local brace = string.find(head, "{", 1, true)
+            if brace then head = string.sub(head, 1, brace - 1) end
+            if #head >= MATCH_MIN and StartsWith(text, head) then
+                if (Round()[m.text] or 0) < Weight(m) then Commit(m.text) end
+                return
+            end
+        end
+    end
+end
+GC.OnChatMessage = OnChatMessage
+
+-- fromReminder: a message that was loaded before and never sent is loaded again.
+-- Otherwise (rotation key, /crier next, the menu) an unsent one counts as skipped.
+function GC.Post(fromReminder)
     if not GC.sv then return end
     GC.SyncState()
+    if GC.offered and not fromReminder then
+        Commit(GC.offered.text)
+        GC.offered = nil
+    end
     local m = PickNext()
     if not m then
         Say("No messages have a weight, so the rotation key has nothing to post. Use the menu instead.")
         return
     end
-    SendToChat(m)
+    local filled = SendToChat(m)
+    if filled then GC.offered = { text = m.text, filled = filled } end
 end
 
 -- ---------- menu window ----------
@@ -676,6 +761,7 @@ function module:OnPlayerActivated()
     sv.messages = sv.messages or GC.CopyDefaults()
     GC.active = true
     EVENT_MANAGER:RegisterForEvent(GC.name, EVENT_GUILD_MEMBER_ADDED, OnMemberAdded)
+    EVENT_MANAGER:RegisterForEvent(GC.name, EVENT_CHAT_MESSAGE_CHANNEL, GC.OnChatMessage)
     SLASH_COMMANDS["/crier"] = Slash
     GC.InitSettings()
     GC.StartTimer()

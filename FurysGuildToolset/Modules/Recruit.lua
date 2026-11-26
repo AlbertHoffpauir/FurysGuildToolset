@@ -271,24 +271,41 @@ end
 
 -- Zones ----------------------------------------------------------------------
 
--- Every overland zone on the world map's zone list that you can travel to.
+-- Every zone on the world map's zone list that you can travel to. 1.31.4: small zones the game
+-- files under another zone (a city with its own map, such as Fargrave) are on the list too, and
+-- every zone that is left out is kept with the reason, shown at the end of the Recruiting tab.
 function Recruit:BuildZoneList()
-    local zones, seen = {}, {}
+    local zones, seen, ids, leftOut = {}, {}, {}, {}
     for i = 1, GetNumMaps() do
         local _, mapType, mapContentType, zoneIndex = GetMapInfoByIndex(i)
-        if mapType == MAPTYPE_ZONE and mapContentType == MAP_CONTENT_NONE and zoneIndex and zoneIndex > 0 then
+        local isZoneMap = mapType == MAPTYPE_ZONE or mapType == MAPTYPE_SUBZONE
+        if isZoneMap and zoneIndex and zoneIndex > 0 then
             local zoneId = GetZoneId(zoneIndex)
-            if zoneId ~= 0 and GetParentZoneId(zoneId) == zoneId and not seen[zoneId] and CanJumpToPlayerInZone(zoneId) then
+            if zoneId ~= 0 and not seen[zoneId] then
                 seen[zoneId] = true
-                zones[#zones + 1] = { id = zoneId, name = zo_strformat("<<C:1>>", GetZoneNameById(zoneId)) }
+                local name = zo_strformat("<<C:1>>", GetZoneNameById(zoneId))
+                if mapContentType == MAP_CONTENT_AVA then
+                    leftOut[#leftOut + 1] = { name = name, why = "an Alliance War zone: the game doesn't let you jump to players there" }
+                elseif mapContentType ~= MAP_CONTENT_NONE then
+                    leftOut[#leftOut + 1] = { name = name, why = "a dungeon or battleground map, not a zone with zone chat" }
+                elseif not CanJumpToPlayerInZone(zoneId) then
+                    leftOut[#leftOut + 1] = { name = name, why = "the game doesn't let you jump to players there" }
+                else
+                    ids[zoneId] = true
+                    zones[#zones + 1] = { id = zoneId, name = name }
+                end
             end
         end
     end
-    self.zones = zones
+    self.zones, self.zoneIds, self.leftOut = zones, ids, leftOut
 end
 
+-- The zone you are standing in, as the tour counts it: the zone itself when it is on the tour
+-- list, otherwise the zone it belongs to (a delve or a city inside a zone counts as that zone).
 function Recruit:CurrentZoneId()
-    return GetParentZoneId(GetZoneId(GetUnitZoneIndex("player")))
+    local zoneId = GetZoneId(GetUnitZoneIndex("player"))
+    if self.zoneIds and self.zoneIds[zoneId] then return zoneId end
+    return GetParentZoneId(zoneId)
 end
 
 function Recruit:ZoneName(zoneId)
@@ -1012,6 +1029,11 @@ function Recruit:TabRows()
                 items[#items + 1] = { label = "Skip in the tour", fn = function() self.sv.skipZones[zoneId] = true; GT.Report:RefreshIfShown() end }
             end
             rows[#rows + 1] = GT.Report.AddMenu(row, items)
+        end
+        -- 1.31.4: zones on the world map that the tour leaves out, each with the reason.
+        for _, zone in ipairs(self.leftOut or {}) do
+            rows[#rows + 1] = { text = string.format("|c8A86B0Not in the tour  %s: %s|r", zone.name, zone.why),
+                tooltip = "The tour can only go where the game lets you jump to a player." }
         end
     end
     return rows

@@ -71,7 +71,7 @@ local function TryReminder()
     GC.sv.timerLastAt = GetTimeStamp()     -- saved, so the next one is on time after logouts and reloads
     if GC.sv.timerAutoLoad then
         GC.Say("Reminder: next rotation message loaded into chat. Press Enter to send.")
-        GC.Post()
+        GC.Post(true)
     else
         ZO_Alert(UI_ALERT_CATEGORY_ALERT, SOUNDS.NEW_NOTIFICATION, "Guild Crier: time for a guild message!")
         GC.Say("Time for a guild message! Use your rotation key or /crier next.")
@@ -115,6 +115,7 @@ end
 -- ---------- panel ----------
 local addForm = { newCat = "", chan = "guild", weight = 0, text = "" }
 local renameForm = {}
+local prefixForm = {}   -- section name -> the prefix typed for "Add to every message" (1.32.0)
 local quickAdd = {}
 local quickAddChan, quickAddWeight = {}, {}
 local panel
@@ -194,7 +195,10 @@ local function MessageControls(m, controls)
         getFunc = function() return m.text or "" end,
         setFunc = function(v)
             v = CleanText(v)
-            if v ~= "" then m.text = v end
+            if v ~= "" then
+                GC.TextChanged(m.text, v)
+                m.text = v
+            end
             GC.MessagesChanged()
         end,
     }
@@ -211,7 +215,7 @@ local function MessageControls(m, controls)
     controls[#controls + 1] = {
         type = "slider",
         name = "Rotation weight",
-        tooltip = "0 = menu only. Higher numbers come up more often in the rotation (3 comes up 3x as often as 1).",
+        tooltip = "0 = menu only. Higher numbers come up more often in the rotation (3 comes up 3x as often as 1), spread evenly, never in a row.",
         min = 0, max = 5, step = 1,
         width = "half",
         getFunc = function() return tonumber(m.weight) or 0 end,
@@ -276,6 +280,54 @@ local function SectionSubmenu(cat)
                 end)
         end,
     }
+    -- 1.32.0: one prefix for every message of the section, for example "PSA - ". Messages that
+    -- already start with it are left alone, so a second click changes nothing.
+    controls[#controls + 1] = {
+        type = "editbox",
+        name = "Prefix for every message",
+        tooltip = "Text to put in front of every message in this section, for example \"PSA -\". A space is added after it. Messages that already start with it are left as they are.",
+        width = "half",
+        getFunc = function() return prefixForm[cat] or "" end,
+        setFunc = function(v) prefixForm[cat] = CleanText(v) end,
+    }
+    controls[#controls + 1] = {
+        type = "button",
+        name = "Add prefix",
+        tooltip = "Puts the text typed on the left in front of every message in this section. Asks first. No reload.",
+        width = "half",
+        func = function()
+            local typed = prefixForm[cat] or ""
+            if typed == "" then
+                GC.Say("Type the prefix first, then click out of the box.")
+                return
+            end
+            local prefix = typed .. " "
+            local todo, tooLong = {}, 0
+            for _, m in ipairs(GC.Messages()) do
+                if (m.cat or "Messages") == cat and string.sub(m.text or "", 1, #prefix) ~= prefix then
+                    todo[#todo + 1] = m
+                    if #(m.text or "") + #prefix > GC.MAX_CHAT then tooLong = tooLong + 1 end
+                end
+            end
+            if #todo == 0 then
+                GC.Say(string.format("Every message in %s already starts with \"%s\".", cat, typed))
+                return
+            end
+            local body = string.format("Put \"%s\" in front of %d message(s) in the section \"%s\"?", typed, #todo, cat)
+            if tooLong > 0 then
+                body = body .. string.format("\n\n%d of them will be longer than the %d characters chat takes. They are marked \"too long\" on this page so you can shorten them.", tooLong, GC.MAX_CHAT)
+            end
+            GT.Actions.Confirm("Add prefix", body, function()
+                for _, m in ipairs(todo) do
+                    GC.TextChanged(m.text, prefix .. (m.text or ""))
+                    m.text = prefix .. (m.text or "")
+                end
+                GC.MessagesChanged()
+                GC.Say(string.format("Added \"%s\" to %d message(s) in %s.", typed, #todo, cat))
+                if panel then CALLBACK_MANAGER:FireCallbacks("LAM-RefreshPanel", panel) end
+            end)
+        end,
+    }
     -- Quick add, right inside the section
     local sectionChan = "guild"
     for _, m in ipairs(GC.Messages()) do
@@ -316,7 +368,7 @@ local function SectionSubmenu(cat)
     controls[#controls + 1] = {
         type = "slider",
         name = "Rotation weight for the new message",
-        tooltip = "0 = menu only. Higher numbers come up more often in the rotation (3 comes up 3x as often as 1). Starts as this section's first message's weight.",
+        tooltip = "0 = menu only. Higher numbers come up more often in the rotation (3 comes up 3x as often as 1), spread evenly, never in a row. Starts as this section's first message's weight.",
         min = 0, max = 5, step = 1,
         width = "half",
         getFunc = function() return quickAddWeight[cat] end,
@@ -508,7 +560,7 @@ local function BuildOptions()
     o[#o + 1] = {
         type = "checkbox",
         name = "Load the next message into chat automatically",
-        tooltip = "On: the reminder puts the next rotation message in your chat box, ready for Enter. Off: you just get an alert.",
+        tooltip = "On: the reminder puts the next rotation message in your chat box, ready for Enter. One you don't send comes back at the next reminder. Off: you just get an alert.",
         disabled = function() return (GC.sv.timerMinutes or 0) == 0 end,
         getFunc = function() return GC.sv.timerAutoLoad end,
         setFunc = function(v) GC.sv.timerAutoLoad = v end,
@@ -516,7 +568,7 @@ local function BuildOptions()
     o[#o + 1] = {
         type = "button",
         name = "Restart rotation",
-        tooltip = "Start the weighted rotation over from the top.",
+        tooltip = "Start the rotation over from the top of your list, as a new round.",
         width = "half",
         func = function() GC.ResetRotation(); GC.Say("Rotation reset.") end,
     }

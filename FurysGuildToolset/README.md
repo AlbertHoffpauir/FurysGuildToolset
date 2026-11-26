@@ -16,7 +16,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.31.2.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.31.2.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.32.2.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.32.2.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -221,7 +221,7 @@ A clickable menu of ready-made guild, zone and whisper messages.
 ### Use it
 
 - `/crier` (or the Crier tab, or a keybind) opens the menu. Click a message to put it in the chat box, then press Enter.
-- `/crier next` (or a keybind) posts the next message in the rotation. The rotation is weighted and remembers its place between sessions.
+- `/crier next` (or a keybind) posts the next message in the rotation. The rotation goes through your list in order and nothing is left out or bunched up: in a round every message is posted as often as its weight says, and the turns of a heavier message are spread evenly, never in a row. It remembers its place between reloads, logins and characters, and a reminder message you didn't send comes back at the next reminder.
 
 ### Set it up
 
@@ -382,6 +382,7 @@ All free on ESOUI and in Minion.
 - Game API details from the ESOUI wiki and ZeniMax's ESO UI source code.
 - Thanks to Dack for code review feedback on how guild history should be read.
 - The Guild Crier started as my own separate addon, "Fury's Guild Crier", and is now part of this toolset.
+- License: free to use and share for noncommercial purposes under the **PolyForm Noncommercial License 1.0.0** (the LICENSE file on GitHub). Selling it, or any other commercial use, needs a separate license from me: send me a private message on ESOUI.
 
 Bug reports and ideas are welcome in the comments on ESOUI.
 

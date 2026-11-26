@@ -6,7 +6,7 @@ local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Management Toolset"
-GT.version = "1.31.2"
+GT.version = "1.32.2"
 GT.website = "https://www.esoui.com/downloads/info5063.html"
 GT.savedVarsVersion = 1
 
@@ -200,9 +200,8 @@ end
 local function OnPlayerActivated()
     EVENT_MANAGER:UnregisterForEvent(GT.name, EVENT_PLAYER_ACTIVATED)
     GT.Settings:Build()
-    if GT.sv.defaultsOff and not GT.sv.welcomeShown then
-        GT.sv.welcomeShown = true
-        GT.Util.Print("Everything starts turned off. Type /gt to get started: the Start here page lets you pick your guilds and turn on the features you want.")
+    if GT.sv.defaultsOff then
+        GT.Theme.Welcome(GT.sv, "welcomeShown", "Everything starts turned off. Type /gt to get started: the Start here page lets you pick your guilds and turn on the features you want.")
     end
     GT:ForEachModule("OnPlayerActivated")
     GT.History:Start()
