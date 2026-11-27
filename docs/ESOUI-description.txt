@@ -35,8 +35,8 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][COLOR="#A08CFF"][B]History:[/B][/COLOR]  A searchable bank and roster log, with what was taken and what came back.
 [*][COLOR="#A08CFF"][B]Trader:[/B][/COLOR]  Weekly trader results, what each trader really cost, and what each member sold.
 [*][COLOR="#A08CFF"][B]Crier:[/B][/COLOR]  A clickable menu of ready-made guild, zone and whisper messages.
-[*][COLOR="#A08CFF"][B]Recruiting:[/B][/COLOR]  Zone ads, a zone tour, invites from whispers (by click, or automatic if you turn it on), and welcomes for new members.
-[*][COLOR="#A08CFF"][B]Raffle:[/B][/COLOR]  Tickets bought with bank deposits or mailed gold (or given as gifts), numbers that never move, a random draw, and the winners ready to post.
+[*][COLOR="#A08CFF"][B]Recruiting:[/B][/COLOR]  Up to five saved zone ads you can rotate, a zone tour, a scoreboard of the zones and ads that bring in members, invites from whispers (by click, or automatic if you turn it on), and welcomes for new members.
+[*][COLOR="#A08CFF"][B]Raffle:[/B][/COLOR]  Tickets bought with bank deposits or mailed gold (or given as gifts), numbers that never move, a random draw with an on-screen draw show, and the winners ready to post.
 [*][COLOR="#A08CFF"][B]Events:[/B][/COLOR]  Read Discord sign-ups (sesh or any sheet), see who showed up, and fill the empty slots.
 [/LIST][/QUOTE]
 
@@ -80,6 +80,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][FONT="Courier New"][B]/gtsettings[/B][/FONT] (or [FONT="Courier New"][B]/gt settings[/B][/FONT]): open the settings.
 [*][FONT="Courier New"][B]/gt tour[/B][/FONT]: start or stop the recruiting zone tour.
 [*][FONT="Courier New"][B]/gt raffle add @name 3 (reason)[/B][/FONT] and [FONT="Courier New"][B]/gt raffle remove @name 3[/B][/FONT]: change someone's raffle tickets by hand.
+[*][FONT="Courier New"][B]/gt congrats[/B][/FONT]: put the next member anniversary congratulation in chat.
 [*][FONT="Courier New"][B]/fury[/B][/FONT]: shows or hides the Fury sidebar, a slim bar of icons, one per Fury addon you have installed, that shows whenever your cursor is out. Left-click an icon to open that addon, right-click for its settings; drag its violet line to move it. It starts turned off and also has a key: Controls > Keybindings > Fury's Addons > Show or hide the Fury sidebar.
 [*][FONT="Courier New"][B]/fury menu[/B][/FONT]: the list of your Fury addons, each with an Open and a Settings button, and the sidebar's options: a row or a column, bigger icons, lock in place, hide in combat, stay on screen without the cursor.
 [*][FONT="Courier New"][B]/crier[/B][/FONT]: the Guild Crier menu. [FONT="Courier New"][B]/crier next[/B][/FONT] posts the next message, [FONT="Courier New"][B]/crier reset[/B][/FONT] restarts the rotation.
@@ -147,6 +148,14 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*]On the [B]Guild rules[/B] page, in each guild's rules, turn on [B]Inactivity alerts[/B].
 [*]Set the limits: officers 30, members 21, recruits 14 days offline to start with. For each rank, pick which limit applies, or no check.
 [*]Optional, on the main page under [B]Members and inactivity[/B]: [B]Alert at login[/B] tells you how many are over the limit.
+[/LIST]
+[COLOR="#A08CFF"][B]Member anniversaries[/B][/COLOR]
+[LIST]
+[*]Turn on [B]Member anniversaries[/B] on the main settings page (or on the Start here page) and reload. It starts turned off.
+[*]When a member of a guild you get alerts from reaches 30, 90 or 365 days in the guild (your own list of days, plus every year after if you like), a congratulation goes in that guild's chat box for you to press Enter. While you're typing you get a [Say congrats] link instead.
+[*]By default it waits until the member is online, so they see it. Waiting congratulations are on the [B]Anniversaries[/B] button on the Members tab, and [FONT="Courier New"][B]/gt congrats[/B][/FONT] (or a keybind) puts the next one in chat.
+[*]Write your own message: [FONT="Courier New"][B]{member}[/B][/FONT], [FONT="Courier New"][B]{guild}[/B][/FONT], [FONT="Courier New"][B]{time}[/B][/FONT] ("30 days" or "1 year") and [FONT="Courier New"][B]{days}[/B][/FONT] are filled in.
+[*]Join dates come from roster history (Time in guild on the Members tab), so members who joined before your oldest roster history are left out. A milestone counts on the day or up to 3 days later, and each one is offered once.
 [/LIST]
 [COLOR="#A08CFF"][B]Inactive tab[/B][/COLOR]
 [LIST]
@@ -250,7 +259,20 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Set it up[/B][/COLOR]
 [LIST]
 [*]Open the [B]Recruiting[/B] settings page (or the button under Recruiting in [FONT="Courier New"][B]/gtsettings[/B][/FONT]).
-[*]Pick the guild you recruit for, write a zone ad for each guild ([FONT="Courier New"][B]{guild}[/B][/FONT] becomes the guild's name), and turn on the parts you want.
+[*]Pick the guild you recruit for, write up to five zone ads for each guild ([FONT="Courier New"][B]{guild}[/B][/FONT] becomes the guild's name), and turn on the parts you want.
+[/LIST]
+[COLOR="#A08CFF"][B]Saved ads[/B][/COLOR]
+[LIST]
+[*]Save up to five zone ads per guild and pick the [B]Ad in use[/B]. [B]Switch ad[/B] on the Recruit tab, or its keybind, moves to the next one.
+[*][B]Switch ads by themselves[/B] rotates for you: the next ad after every post, or the next ad each time you start the tour. Empty ads are skipped.
+[*]Posting any of your saved ads by hand counts as an ad post too.
+[/LIST]
+[COLOR="#A08CFF"][B]Recruit scoreboard[/B][/COLOR]
+[LIST]
+[*]Turn on [B]Turn on the recruit scoreboard[/B] on the Recruiting page. It counts your ad posts and the new members they bring in.
+[*]A join counts for your ad when you posted it in the zone the new member is in, or when you invited or accepted them, within 30 minutes (you can change it). Other joins are counted separately.
+[*][B]Scoreboard[/B] on the Recruit tab lists your ads and zones, best first: posts, joins and how many posts each join took. Right-click an ad to use it. Change an ad's words and the new wording gets its own score, so you can see which one works.
+[*]The zone list also shows each zone's joins. It covers the last 30 days to start with (up to 90).
 [/LIST]
 [COLOR="#A08CFF"][B]Zone ads and the zone tour[/B][/COLOR]
 [LIST]
@@ -297,6 +319,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [COLOR="#A08CFF"][B]Draw the winners[/B][/COLOR]
 [LIST]
 [*]When sales end, click [B]Draw winners[/B] (or [B]End and draw now[/B] while sales run). Each draw picks a random ticket.
+[*][B]Draw show[/B] (in the raffle settings, starts turned off): the winners are drawn as usual, then a window counts down, spins through the buyers' names and reveals each winner with a fanfare, one at a time. [B]Next winner[/B] starts the next one. The report window steps aside during the show so it doesn't give the winners away on stream. [B]Replay draw show[/B] on the Raffle tab plays it again.
 [*][B]Winners to guild chat[/B] and [B]Winners for Discord[/B] post the results. Right-click a winner to mail them their prize, or to draw a replacement if they can't take it.
 [*][B]New / other raffles > New raffle[/B] puts the finished raffle away and opens the settings for the next one.
 [/LIST]
