@@ -6,7 +6,7 @@ local GT = FurysGuildToolset
 
 GT.name = "FurysGuildToolset"
 GT.displayName = "Fury's Guild Toolset"
-GT.version = "1.34.3"
+GT.version = "1.34.4"
 GT.website = "https://www.esoui.com/downloads/info5063.html"
 GT.savedVarsVersion = 1
 
