@@ -16,7 +16,7 @@
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.33.4.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.33.4.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.33.5.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.33.5.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -246,7 +246,7 @@ Advertise in zones, invite, and welcome new members. Every part is off until you
 
 - **Put ad in chat** (a button on the Recruit tab, or a keybind) puts your ad in zone chat; press Enter. That zone then goes on cooldown (15 minutes to start with, up to 4 hours), and posting there too soon asks first.
 - **Start tour:** each time you press Enter on your ad, you travel to the next ready zone, through a guildmate, a friend or a house you own there, and the ad is waiting when you arrive. Nothing moves until you post. If a jump fails, it tries the next person, then the next zone. If you're in combat, it waits until combat clears and then travels.
-- The **Recruit** tab (`/gt recruit`) lists every zone as ready or on cooldown. Right-click one to travel there, clear its cooldown or leave it out of the tour.
+- The **Recruit** tab (`/gt recruit`) lists every zone as ready or on cooldown. Right-click one to travel there, clear its cooldown or leave it out of the tour. **Reset zone timers** at the bottom of the tab clears the cooldown on every zone at once, after asking.
 
 ### Invites and leads
 

@@ -1051,8 +1051,31 @@ function Recruit:TabFooter()
           fn = function() self:PasteAd() end },
         { label = "Next zone", tip = "Travels once to the next ready zone through a guildmate, friend or house of yours.",
           fn = function() self:TravelNext() end },
+        { label = "Reset zone timers", tip = "Clears the cooldown on every zone so the tour can visit them all again right away. Asks first.",
+          fn = function() self:ConfirmResetTimers() end },
         { label = "Clear leads", tip = "Removes every lead from the list.", fn = function() self:ClearLeads() end },
     }
+end
+
+-- 1.33.5: clears every zone cooldown by hand, after a confirm.
+function Recruit:ConfirmResetTimers()
+    local count = 0
+    for zoneId in pairs(self.sv.posted) do
+        if self:CooldownLeft(zoneId) > 0 then count = count + 1 end
+    end
+    if count == 0 then
+        U.Print("No zones are on cooldown.")
+        return
+    end
+    A.Confirm("Reset zone timers", string.format("Clear the cooldown on %d zone%s? The tour can then post in every zone again right away.",
+        count, count == 1 and "" or "s"), function() self:ResetTimers() end)
+end
+
+function Recruit:ResetTimers()
+    self.sv.posted = {}
+    U.Print("Zone timers reset. Every zone is ready for your ad.")
+    if self.UpdateBar then self:UpdateBar() end
+    GT.Report:RefreshIfShown()
 end
 
 function Recruit:ClearLeads()

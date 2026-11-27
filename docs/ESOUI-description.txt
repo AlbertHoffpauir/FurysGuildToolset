@@ -256,7 +256,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [LIST]
 [*][B]Put ad in chat[/B] (a button on the Recruit tab, or a keybind) puts your ad in zone chat; press Enter. That zone then goes on cooldown (15 minutes to start with, up to 4 hours), and posting there too soon asks first.
 [*][B]Start tour:[/B] each time you press Enter on your ad, you travel to the next ready zone, through a guildmate, a friend or a house you own there, and the ad is waiting when you arrive. Nothing moves until you post. If a jump fails, it tries the next person, then the next zone. If you're in combat, it waits until combat clears and then travels.
-[*]The [B]Recruit[/B] tab ([FONT="Courier New"][B]/gt recruit[/B][/FONT]) lists every zone as ready or on cooldown. Right-click one to travel there, clear its cooldown or leave it out of the tour.
+[*]The [B]Recruit[/B] tab ([FONT="Courier New"][B]/gt recruit[/B][/FONT]) lists every zone as ready or on cooldown. Right-click one to travel there, clear its cooldown or leave it out of the tour. [B]Reset zone timers[/B] at the bottom of the tab clears the cooldown on every zone at once, after asking.
 [/LIST]
 [COLOR="#A08CFF"][B]Invites and leads[/B][/COLOR]
 [LIST]
