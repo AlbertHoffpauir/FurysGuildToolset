@@ -773,41 +773,10 @@ end
 -- far. Tickets taken away come off the person's highest numbers and those numbers are not used
 -- again. The first time a raffle is seen, the numbers it shows right then are saved as they are.
 -- Returns the number of tickets in the draw.
-local RESTORE_CUTOFF = 1795473600   -- 2026-11-23 22:40 UTC, just before 1.20.0's regrouping
 function Raffle:KeepNumbers(r, list, byName, price)
     if not r.issued then
         r.issued = {}
-        local seed = list
-        -- One-off for the raffle that 1.20.0 renumbered when a buyer paid again: start from the
-        -- numbers as they were before that payment (still grouped by buyer); later payments go
-        -- after them. Only for that guild's raffle that was running then, and only this week.
-        local started = self:StartTime(r) or 0
-        if not r.numbering and r.guildId == 927751 and started > 0 and started < RESTORE_CUTOFF
-            and GetTimeStamp() < RESTORE_CUTOFF + 7 * 86400 then
-            local before = {}
-            for _, d in ipairs(self:Routing().byRaffle[r.id] or {}) do
-                if d.ts < RESTORE_CUTOFF then
-                    local key = zo_strlower(d.who)
-                    before[key] = (before[key] or 0) + math.floor(d.amt / price)
-                end
-            end
-            seed = {}
-            for _, b in ipairs(list) do
-                local n = before[zo_strlower(b.who)] or 0
-                if r.maxTickets > 0 and n > r.maxTickets then n = r.maxTickets end
-                n = b.excluded and 0 or math.max(0, n + b.adjust)
-                seed[#seed + 1] = { who = b.who, ranges = n > 0 and { { 1, n } } or {} }
-            end
-            local at = 0
-            for _, b in ipairs(seed) do
-                if b.ranges[1] then
-                    local n = b.ranges[1][2]
-                    b.ranges[1] = { at + 1, at + n }
-                    at = at + n
-                end
-            end
-        end
-        for _, b in ipairs(seed) do
+        for _, b in ipairs(list) do
             for _, range in ipairs(b.ranges) do r.issued[#r.issued + 1] = { who = b.who, from = range[1], to = range[2] } end
         end
         table.sort(r.issued, function(a, b) return a.from < b.from end)
