@@ -14,9 +14,9 @@
 - **You stay in control.** Nothing is done to a member without your click, unless you turn on auto-demote or automatic invites yourself. It never kicks or posts in chat on its own: chat text waits in the chat box for your Enter, and mails open for your Send.
 - **Easy on the server.** Guild history comes only through **LibHistoire**, the way the ESO addon community asks. No extra history requests, no polling.
 
-**Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI. Optional: **Fury's Addons Menu** adds a key for the Fury sidebar and saves its settings.
+**Requires:** **LibHistoire** (AddOn version 1112 or newer) and **LibAddonMenu-2.0** (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI. Optional: **Fury's Addons Menu** adds the Fury sidebar and `/fury`.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.34.1.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.34.1.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.34.2.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.34.2.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -61,7 +61,7 @@
 - `/gt tour`: start or stop the recruiting zone tour.
 - `/gt raffle add @name 3 (reason)` and `/gt raffle remove @name 3`: change someone's raffle tickets by hand.
 - `/gt congrats`: put the next member anniversary congratulation in chat.
-- `/fury`: shows or hides the Fury sidebar, a slim bar of icons, one per Fury addon you have installed, that shows whenever your cursor is out. Left-click an icon to open that addon, right-click for its settings; drag its violet line to move it. It starts turned off and also has a key: Controls > Keybindings > Fury's Addons > Show or hide the Fury sidebar.
+- `/fury` (needs Fury's Addons Menu): shows or hides the Fury sidebar, a slim bar with one icon per Fury addon, shown whenever your cursor is out. Left-click an icon to open that addon, right-click for its settings; drag its violet line to move it. It starts turned off and has a key under Controls > Keybindings > Fury's Addons.
 - `/fury menu`: the list of your Fury addons, each with an Open and a Settings button, and the sidebar's options: a row or a column, bigger icons, lock in place, hide in combat, stay on screen without the cursor.
 - `/crier`: the Guild Crier menu. `/crier next` posts the next message, `/crier reset` restarts the rotation.
 - `/gt status`: how much history has loaded per guild, and the biggest withdrawers. `/gt guilds`: which guilds have alerts on.

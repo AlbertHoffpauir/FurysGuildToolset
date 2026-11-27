@@ -24,7 +24,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][COLOR="#A08CFF"][B]You stay in control.[/B][/COLOR]  Nothing is done to a member without your click, unless you turn on auto-demote or automatic invites yourself. It never kicks or posts in chat on its own: chat text waits in the chat box for your Enter, and mails open for your Send.
 [*][COLOR="#A08CFF"][B]Easy on the server.[/B][/COLOR]  Guild history comes only through [B]LibHistoire[/B], the way the ESO addon community asks. No extra history requests, no polling.
 [/LIST]
-[B]Requires:[/B] [B]LibHistoire[/B] (AddOn version 1112 or newer) and [B]LibAddonMenu-2.0[/B] (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI. Optional: [B]Fury's Addons Menu[/B] adds a key for the Fury sidebar and saves its settings.
+[B]Requires:[/B] [B]LibHistoire[/B] (AddOn version 1112 or newer) and [B]LibAddonMenu-2.0[/B] (version 43 or newer). Both are separate downloads: search for them in Minion, or get them from ESOUI. Optional: [B]Fury's Addons Menu[/B] adds the Fury sidebar and [FONT="Courier New"][B]/fury[/B][/FONT].
 
 [SIZE="4"][FONT="Georgia"][COLOR="#5CC2FF"][B]At a glance[/B][/COLOR][/FONT][/SIZE]
 [COLOR="#B4B0D8"][I]Every part has its own tab in the report window and its own section below.[/I][/COLOR]
@@ -81,7 +81,7 @@ ESO keeps your guild's records locked inside the game. Here, every tab has an [B
 [*][FONT="Courier New"][B]/gt tour[/B][/FONT]: start or stop the recruiting zone tour.
 [*][FONT="Courier New"][B]/gt raffle add @name 3 (reason)[/B][/FONT] and [FONT="Courier New"][B]/gt raffle remove @name 3[/B][/FONT]: change someone's raffle tickets by hand.
 [*][FONT="Courier New"][B]/gt congrats[/B][/FONT]: put the next member anniversary congratulation in chat.
-[*][FONT="Courier New"][B]/fury[/B][/FONT]: shows or hides the Fury sidebar, a slim bar of icons, one per Fury addon you have installed, that shows whenever your cursor is out. Left-click an icon to open that addon, right-click for its settings; drag its violet line to move it. It starts turned off and also has a key: Controls > Keybindings > Fury's Addons > Show or hide the Fury sidebar.
+[*][FONT="Courier New"][B]/fury[/B][/FONT] (needs Fury's Addons Menu): shows or hides the Fury sidebar, a slim bar with one icon per Fury addon, shown whenever your cursor is out. Left-click an icon to open that addon, right-click for its settings; drag its violet line to move it. It starts turned off and has a key under Controls > Keybindings > Fury's Addons.
 [*][FONT="Courier New"][B]/fury menu[/B][/FONT]: the list of your Fury addons, each with an Open and a Settings button, and the sidebar's options: a row or a column, bigger icons, lock in place, hide in combat, stay on screen without the cursor.
 [*][FONT="Courier New"][B]/crier[/B][/FONT]: the Guild Crier menu. [FONT="Courier New"][B]/crier next[/B][/FONT] posts the next message, [FONT="Courier New"][B]/crier reset[/B][/FONT] restarts the rotation.
 [*][FONT="Courier New"][B]/gt status[/B][/FONT]: how much history has loaded per guild, and the biggest withdrawers. [FONT="Courier New"][B]/gt guilds[/B][/FONT]: which guilds have alerts on.
