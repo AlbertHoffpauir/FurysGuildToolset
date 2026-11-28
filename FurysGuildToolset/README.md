@@ -14,11 +14,11 @@
 
 - **Everything starts turned off.** Nothing runs, alerts, logs or mails until you turn it on, so you switch on only what you want. Updating keeps your settings as they were.
 - **You stay in control.** Nothing is done to a member without your click, unless you turn on auto-demote or automatic invites yourself. It never kicks or posts in chat on its own: chat text waits in the chat box for your Enter, and mails open for your Send.
-- **Easy on the server.** Guild history comes only through **LibHistoire**, the way the ESO addon community asks. No extra history requests, no polling.
+- **Easy on the server.** Guild history comes through **LibHistoire**, the way the ESO addon community asks. No polling. The one exception is an optional fallback that starts turned off: when LibHistoire skips a stretch of bank history, the Toolset can fetch just that window itself (see **History > When LibHistoire leaves a hole**).
 
 **Requires:** **LibHistoire** (AddOn version 1112 or newer), **LibAddonMenu-2.0** (version 43 or newer) and **[Fury's Addons Menu](https://www.esoui.com/downloads/info5126-FurysAddonsMenu.html)** (version 1.3.0 or newer), which gives all of Fury's addons the Fury sidebar and `/fury`. All three are separate downloads: search for them in Minion (Minion 3 does not install libraries for you) or get them from ESOUI.
 
-**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.34.6.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.34.6.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
+**Download:** [ESOUI](https://www.esoui.com/downloads/info5063.html) or Minion, or [FurysGuildToolset-1.34.8.zip](https://github.com/AlbertHoffpauir/FurysGuildToolset/raw/main/downloads/FurysGuildToolset-1.34.8.zip) from GitHub. To install by hand, copy the `FurysGuildToolset` folder to `Documents/Elder Scrolls Online/live/AddOns/`.
 
 **Contents:** [Getting started](#getting-started) · [Finding your way around](#finding-your-way-around) · [Bank alerts](#bank-alerts) · [Auto-demote and the Auto tab](#auto-demote-and-the-auto-tab) · [Members and Inactive](#members-and-inactive) · [Kick and blacklist mails](#kick-and-blacklist-mails) · [Bank hoppers and watchlist](#bank-hoppers-and-watchlist) · [History](#history) · [Bank space](#bank-space) · [Trader and Member sales](#trader-and-member-sales) · [Guild Crier](#guild-crier) · [Recruiting](#recruiting) · [Raffle](#raffle) · [Events](#events) · [Questions](#questions)
 
@@ -41,6 +41,7 @@
 - A tab whose feature is turned off has a dimmed name. Open it for what it does and a **Set up** button that takes you to the **Start here** page.
 - **Right-click any row** for what you can do with it: whisper, mail, set rank, kick, dismiss and more. The line at the top of each tab reminds you.
 - To copy someone's @name, right-click their row > **Copy @name**. The name shows up selected in a small window; press Ctrl+C.
+- Right-click a member's row > **Travel to @name** jumps to them (like the game's Travel to Player), and **Visit @name's Primary Residence** takes you to their main house. Hover a menu option to see what it does.
 - **Hover** over any button, tab, column header or row for a short tip or the full details.
 - The small icons in the title bar are your other Fury addons: left-click one to open that addon, right-click for its settings.
 - Click a column header to sort, and again to reverse. Tabs with a search box have a small X to clear it.
@@ -67,6 +68,7 @@
 - `/fury menu`: the list of your Fury addons, each with an Open and a Settings button, and the sidebar's options: a row or a column, bigger icons, lock in place, hide in combat, stay on screen without the cursor.
 - `/crier`: the Guild Crier menu. `/crier next` posts the next message, `/crier reset` restarts the rotation.
 - `/gt status`: how much history has loaded per guild, and the biggest withdrawers. `/gt guilds`: which guilds have alerts on.
+- `/gt holes`: every hole LibHistoire left in the bank history that the Toolset found, and what it filled.
 - `/gt reset`: rebuild the alerts from the logged history with your current settings (what you already did is kept). `/gt reset full`: wipe the log and trader totals and download the look-back period again (settings and watchlist are kept; it asks first, because it reloads the UI).
 
 ### Keybinds
@@ -195,7 +197,18 @@ A searchable log of your guild banks and rosters.
 - `/gt history`: bank items, bank gold and roster events (joins, leaves, kicks, promotions, demotions, blacklist changes) for all your guilds.
 - Filter by type, time and guild, search by name or item, or see totals per member.
 - **Show: Bank items** marks every withdrawal as returned whole, returned partly or not returned, so you can see who took what and what came back.
-- The log is saved as one line per event, so even a full log keeps your saved file small. If you update from a version before 1.28.0, your log is moved over at your first login, every event is checked, and the old copy stays as a backup for 7 days (**History log and export > Remove the old log backup** removes it sooner).
+- The log is saved as one line per event, so even a full log keeps your saved file small. If you update from a version before 1.28.0, your log is moved over at your first login, every event is checked, and the old copy stays as a backup for 7 days (**History log and export > Remove old log backup** removes it sooner).
+
+### When LibHistoire leaves a hole
+
+LibHistoire sometimes throws away its saved place at login and starts again from the present. The history in between then never reaches any addon, so hours of bank activity can be missing from the History log and from bank alerts.
+
+- Turn on **History log and export > Fill holes LibHistoire leaves** (it starts turned off).
+- At login the Toolset looks for silences in bank item history far longer than usual for that guild (guilds you get alerts from, the last 30 days).
+- It waits until LibHistoire has nothing left to download, then asks the server for just that window, one window every few minutes and at most six a session. LibHistoire stays in charge of everything else.
+- The waits and limits are sliders under the checkbox, each with a tip: how long after login it starts (2 minutes), the shortest silence that counts as a hole (12 hours), how far back it looks (30 days), the wait between requests (4 minutes), the most holes per session (6), and how long LibHistoire may sit unchanged before it counts as stuck (15 minutes).
+- Events it finds that the log doesn't have yet go into the History log and bank alerts. They never trigger auto-demote or a mail, because they can be days old.
+- `/gt holes` (or **Show holes found**) lists every hole found: when, how long, how many events were added, and whether anything was really missing. Select all and Ctrl+C to share it.
 
 ## Bank space
 
